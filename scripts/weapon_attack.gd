@@ -140,6 +140,11 @@ func _physics_process(delta: float) -> void:
 	if is_queued_for_deletion():
 		return
 	if age >= lifetime:
+		if visual_kind=="chime" and is_instance_valid(flourish):
+			flourish.reparent(get_parent())
+			flourish.age=age
+			flourish.auto_lifetime=0.9
+			flourish=null
 		if mode == "bolt" and blast_radius > 0:
 			_explode()
 		else:
@@ -220,7 +225,7 @@ func _flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
 
 func add_flourish() -> void:
-	flourish=preload("res://scripts/weapon_flourish.gd").new()
+	flourish=preload("res://scripts/blizzard_visual.gd").new() if visual_kind=="chime" else preload("res://scripts/weapon_flourish.gd").new()
 	flourish.mode=mode
 	flourish.radius=area_radius
 	flourish.direction=direction

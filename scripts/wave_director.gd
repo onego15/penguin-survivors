@@ -3,11 +3,11 @@ const Enemy = preload("res://scripts/enemy.gd")
 const WAVES := [
 	{"name":"雪原の目覚め", "hint":"動きながら近づく敵を倒そう", "pairs":[], "new":[]},
 	{"name":"甲羅と羽音", "hint":"射撃するフクロウを先に倒そう", "pairs":[[3,4]], "new":[3,4]},
-	{"name":"牙の挟撃", "hint":"突進の予告を見て横へ避けよう", "pairs":[[2,5]], "new":[2,5]},
+	{"name":"牙の挟撃", "hint":"突進を避け、回り込む狼を正面へ誘導", "pairs":[[2,5]], "new":[2,5]},
 	{"name":"においの小道", "hint":"臭い雲を避けてルートを変えよう", "pairs":[[6,1],[6,0]], "new":[6]},
 	{"name":"針と射線", "hint":"距離を取り、針の間を抜けよう", "pairs":[[7,4],[7,3]], "new":[7]},
 	{"name":"地面の気配", "hint":"足元の予告から離れよう", "pairs":[[8,4],[8,6]], "new":[8]},
-	{"name":"交差する追手", "hint":"射撃役と突進役の位置を見よう", "pairs":[[5,4],[2,7]], "new":[]},
+	{"name":"交差する追手", "hint":"回り込む狼を正面へ誘導して倒そう", "pairs":[[5,4],[2,7]], "new":[]},
 	{"name":"角の衝撃波", "hint":"角の射線から横へ移動しよう", "pairs":[[9,5],[9,3]], "new":[9]},
 	{"name":"雪原の包囲", "hint":"角と射線を避け、待ち伏せに注意", "pairs":[[9,4],[8,7]], "new":[]},
 	{"name":"冬を越える戦い", "hint":"危険な役割から減らして決戦へ", "pairs":[[9,2],[8,6],[5,7]], "new":[]},
@@ -57,6 +57,7 @@ func below_cap(kind: int) -> bool:
 		if enemy.kind>=4: total+=1
 		if enemy.kind==kind: count+=1
 	var limit := 2 if kind==9 else (3 if kind in [4,6,7] else 12)
+	if kind==5: limit=3 if game.elapsed<360 else 5
 	return total<12 and count<limit
 func choose_kind() -> int:
 	var weights := {0:50.0} if game.elapsed<30 else {0:25.0,1:25.0}

@@ -11,7 +11,7 @@ func run() -> void:
 	current_scene = game
 	game.set_physics_process(false)
 	var sound = game.sound
-	check(sound.track == "snowfield" and sound.music.playing and sound.clips.size() == 27, "Five music tracks and twenty-two effects load and start")
+	check(sound.track == "snowfield" and sound.music.playing and sound.clips.size() == 28, "Five music tracks and twenty-three effects load and start")
 	for id in sound.MUSIC:
 		check(sound.clips[id].loop_mode == AudioStreamWAV.LOOP_FORWARD and sound.clips[id].loop_end > 0, "Music has a full-length loop: " + id)
 	for i in range(100): sound.play_effect("shot")
@@ -30,6 +30,7 @@ func run() -> void:
 	sound._input(event)
 	game.choose_weapon(0)
 	check(not paused and sound.cues.stream == sound.clips.choose, "Selection confirmation resumes gameplay with a cue")
+	game.director.introduced_at[2]=90
 	game.elapsed = 120
 	game._tick_director(0.01)
 	check(sound.track == "boss" and sound.cues.stream == sound.clips.warning, "Boss arrival changes music and plays warning")

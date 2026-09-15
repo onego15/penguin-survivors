@@ -45,7 +45,7 @@ func tick(delta: float) -> void:
 			support_count+=1
 			had_support=true
 	if clock<next_minions: return
-	var slots:=6-game.get_tree().get_nodes_in_group("final_minions").size()
+	var slots:=(8 if phase==2 else 6)-game.get_tree().get_nodes_in_group("final_minions").size()
 	if slots<=0:
 		next_minions=clock+(9 if phase==2 else 12)
 		return
@@ -55,9 +55,12 @@ func tick(delta: float) -> void:
 		var angle: float=heading+game.rng.randf_range(-PI/3,PI/3)
 		var candidate: Vector3=game.player.global_position+Vector3(cos(angle),0,sin(angle))*game.rng.randf_range(12,16)
 		if absf(candidate.x)>23 or absf(candidate.z)>23: continue
-		if not points.is_empty() and candidate.distance_to(points[0])<2: continue
+		var crowded:=false
+		for existing in points:
+			if candidate.distance_to(existing)<2: crowded=true
+		if crowded: continue
 		points.append(candidate)
-		if points.size()==mini(2,slots): break
+		if points.size()==mini(4 if phase==2 else 2,slots): break
 	if points.is_empty():
 		next_minions=clock+2
 		return
@@ -74,11 +77,10 @@ func tick(delta: float) -> void:
 
 func choose_leopard(batch_size: int) -> bool:
 	if phase!=2: return false
-	# A two-slot batch always alternates seal/leopard. Single slots balance survivors.
-	if batch_size==2:
-		var result:=next_tie_leopard
+	if batch_size==4:
+		var alternating:=next_tie_leopard
 		next_tie_leopard=not next_tie_leopard
-		return result
+		return alternating
 	var seals:=0
 	var leopards:=0
 	for enemy in game.get_tree().get_nodes_in_group("final_minions"):

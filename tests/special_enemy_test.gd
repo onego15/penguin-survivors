@@ -107,7 +107,7 @@ func run() -> void:
 	check(game.experience==xp+3,"Deer rewards three XP")
 	clean()
 	var wolves: Array=[]
-	for i in range(4):
+	for i in range(3):
 		var node=enemy(5,Vector3(i-1,0,-6))
 		node.cooldown=0
 		node._physics_process(0.01)

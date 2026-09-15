@@ -113,4 +113,5 @@ if __name__=='__main__':
     jingle("support_guard",[62,69,74],.09)
     jingle("support_leave",[86,83,79],.08)
 
+    jingle('ultimate',[62,74,81,86,90,98],.12)
     generate_finale()

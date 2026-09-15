@@ -175,6 +175,7 @@ func fire(id: String) -> bool:
 				attack.lifetime = Catalog.cooldown(id, levels[id])
 			"nova":
 				attack.mode = "nova"
+				attack.visual_kind="chime"
 				attack.position = origin
 				attack.area_radius = 4.2
 				attack.lifetime = 0.65

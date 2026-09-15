@@ -29,7 +29,7 @@ func run() -> void:
 			game._update_camera()
 		for minion in get_nodes_in_group("final_minions"): minion.set_physics_process(false)
 		max_minions=maxi(max_minions,get_nodes_in_group("final_minions").size())
-	var ok:=visits.size()==2 and visits[0]>=8 and visits[1]-visits[0]>=33 and max_minions==6
+	var ok:=visits.size()==2 and visits[0]>=8 and visits[1]-visits[0]>=33 and max_minions==8
 	print("SUPPORT ENDURANCE: visits=",visits," max_minions=",max_minions," passed=",ok)
 	game.queue_free()
 	await create_timer(0.3).timeout

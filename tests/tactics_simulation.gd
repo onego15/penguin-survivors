@@ -8,7 +8,7 @@ func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var builds := {"melee":["whip","fan","orbit","nova"],"rear":["rear_fan","rear_bomb","trail","boomerang"],"auto":["seeker","beam","turret","storm"]}
-	for start_time in [190,310,430]:
+	for start_time in [130,370,430,550]:
 		for build in builds:
 			game=load("res://scenes/main.tscn").instantiate()
 			root.add_child(game)

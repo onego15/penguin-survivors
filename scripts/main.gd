@@ -53,6 +53,7 @@ var end_backdrop: ColorRect
 var sound: Node
 var final_director: RefCounted
 var director: RefCounted
+var ultimate: Node
 var support: Node
 var last_event_at := -100.0
 var wave_hint: Label
@@ -79,6 +80,9 @@ func _ready() -> void:
 	camera.current = true
 	_update_camera()
 	_setup_hud()
+	ultimate=preload("res://scripts/ultimate.gd").new()
+	ultimate.game=self
+	add_child(ultimate)
 	choice_ui = WeaponChoice.new()
 	add_child(choice_ui)
 	choice_ui.selected.connect(choose_weapon)
@@ -219,6 +223,8 @@ func _style_bar(bar: ProgressBar, color: Color) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_SPACE:
+		ultimate.activate()
 	if run_state in ["boss_intro","phase_transition"]: return
 	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE and (game_over or victory):
 		get_tree().change_scene_to_file("res://scenes/title.tscn")
@@ -386,6 +392,7 @@ func _on_boss_defeated() -> void:
 	sound.play_effect("choose")
 	kills += 1
 	experience += 8
+	ultimate.reward(8)
 	if player.health > 0:
 		player.heal(25)
 	recovery_until = elapsed + Difficulty.BOSS_REST
@@ -416,6 +423,7 @@ func fire_at_nearest() -> bool:
 func _on_enemy_defeated(amount := 1) -> void:
 	kills += 1
 	experience += amount
+	ultimate.reward(amount)
 
 
 func open_weapon_choice() -> void:

@@ -67,7 +67,7 @@ func _ready() -> void:
 	start_button.pressed.connect(start_game)
 	start_button.grab_focus()
 	_label(ui, "ENTER / SPACE でも開始", Vector2(75, 509), 15, Color("94b4bf"))
-	_label(ui, "WASD  移動     /     攻撃は自動\nマウスホイール  ズーム     /     1・2・3  武器選択", Vector2(74, 570), 17, Color("bfd9df"))
+	_label(ui, "WASD 移動 / 攻撃は自動 / Space 必殺技\nマウスホイール  ズーム     /     1・2・3  武器選択", Vector2(74, 570), 17, Color("bfd9df"))
 	_label(ui, "一歩ずつ、強くなる。", Vector2(822, 591), 22, Color("23485a"))
 	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 633), 16, Color("8fe5dc"))
 	fade = ColorRect.new()

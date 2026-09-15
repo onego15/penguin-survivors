@@ -4,6 +4,7 @@ const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const SPEED := 7.0
 const ARENA_LIMIT := 23.0
+var ultimate_pose:=0.0
 var cinematic_locked := false
 var health := 100
 var invulnerability := 0.0
@@ -57,6 +58,10 @@ func _animate(delta: float) -> void:
 	body.get_node("WingRight").rotation.z = 0.15 - sin(gait) * 0.17 * moving
 	body.get_node("FootLeft").rotation.x = sin(gait) * 0.4 * moving
 	body.get_node("FootRight").rotation.x = -sin(gait) * 0.4 * moving
+	ultimate_pose=maxf(0,ultimate_pose-delta)
+	if ultimate_pose>0:
+		body.get_node("WingLeft").rotation.z=-1.1
+		body.get_node("WingRight").rotation.z=1.1
 	recoil = maxf(0, recoil - delta * 7.0)
 	weapon.position.z = 0.12 - recoil * 0.15
 	weapon.rotation.x = -recoil * 0.12

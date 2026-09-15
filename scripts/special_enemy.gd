@@ -76,11 +76,11 @@ func _physics_process(delta: float) -> void:
 		motion = toward * speed * (1 if distance>9 else (-1 if distance<7 else 0))
 	elif kind == Kind.WOLF:
 		var side := Vector3(-toward.z,0,toward.x)*flank_side
-		motion = (toward*0.55+side*0.85).normalized()*speed*1.1 if distance<=5 else toward*speed*1.1
+		motion = (toward*0.75+side*0.85).normalized()*speed*1.3 if distance<=5 else toward*speed*1.3
 		var next := position+motion*delta
 		if (absf(next.x)>23 and signf(motion.x)==signf(position.x)) or (absf(next.z)>23 and signf(motion.z)==signf(position.z)):
 			flank_side *= -1
-			motion=(toward*0.55-side*0.85).normalized()*speed*1.1
+			motion=(toward*0.75-side*0.85).normalized()*speed*1.3
 	_move_and_contact(delta,motion)
 	if kind == Kind.OWL:
 		model.position.y = 0.2 + sin(age*4)*0.08

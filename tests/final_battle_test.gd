@@ -106,7 +106,7 @@ func run() -> void:
 	check(get_nodes_in_group("final_minions").is_empty() and game.experience==xp,"Phase change dismisses seals without rewards")
 	d.tick(6)
 	var mix:=get_nodes_in_group("final_minions")
-	check(mix.size()==2 and mix[0].second_phase!=mix[1].second_phase,"Phase two introduces one seal and one leopard")
+	check(mix.size()==4 and mix[0].second_phase!=mix[1].second_phase,"Phase two introduces two seals and two leopards")
 	minion=mix[1] if mix[1].second_phase else mix[0]
 	check(minion.health==14 and minion.speed==3.2 and minion.reward_value==3,"Leopard keeps fixed stats and reward")
 	d.tick(2)
@@ -118,9 +118,9 @@ func run() -> void:
 	d.tick(0.01)
 	check(d.support_count==1 and is_instance_valid(game.support.active),"Phase-two first visit follows the carried companion")
 	d.tick(3.99)
-	check(get_nodes_in_group("final_minions").size()==2,"Second phase waits nine seconds between batches")
+	check(get_nodes_in_group("final_minions").size()==4,"Second phase waits nine seconds between batches")
 	d.tick(0.01)
-	check(get_nodes_in_group("final_minions").size()==4,"Second phase adds another mixed batch after nine seconds")
+	check(get_nodes_in_group("final_minions").size()==8,"Second phase adds another mixed batch after nine seconds")
 	game.support.active.recruit()
 	game.support.tick(30)
 	game.support.tick(0.5)
@@ -131,7 +131,7 @@ func run() -> void:
 	d.tick(0)
 	d.tick(100)
 	check(d.support_count==2 and not is_instance_valid(game.support.active),"Phase two cannot exceed two support visits")
-	check(get_nodes_in_group("final_minions").size()==6,"Second phase also caps minions at six")
+	check(get_nodes_in_group("final_minions").size()==8,"Second phase also caps minions at eight")
 	var removed=get_nodes_in_group("final_minions")[0]
 	var removed_type: bool=removed.second_phase
 	removed.free()
@@ -140,7 +140,12 @@ func run() -> void:
 	var count_type:=0
 	for e in get_nodes_in_group("final_minions"):
 		if e.second_phase==removed_type: count_type+=1
-	check(get_nodes_in_group("final_minions").size()==6 and count_type==3,"Single free slot restores the underrepresented species")
+	check(get_nodes_in_group("final_minions").size()==8 and count_type==4,"Single free slot restores the underrepresented species")
+	for missing in [2,3]:
+		for i in range(missing): get_nodes_in_group("final_minions")[0].free()
+		d.next_minions=d.clock
+		d.tick(0)
+		check(get_nodes_in_group("final_minions").size()==8,"Partial batch fills %d free slots" % missing)
 	xp=game.experience
 	boss.take_damage(99999)
 	game._physics_process(0)

@@ -1,6 +1,6 @@
 extends Node
 ## Original generated music and bounded, rate-limited sound effects.
-const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact"]
+const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate"]
 const MUSIC := ["snowfield","boss","final_boss","final_boss_phase2","celebration"]
 var fading: AudioStreamPlayer
 var fade_left := 0.0
@@ -105,7 +105,7 @@ func set_track(id: String) -> void:
 func play_effect(id: String) -> void:
 	if not clips.has(id):
 		return
-	var important := id in ["level_up", "choose", "warning", "victory", "game_over", "hurt", "support_arrive", "support_join", "boss_roar", "boss_transform", "quake_charge", "quake_impact"]
+	var important := id in ["level_up", "choose", "warning", "victory", "game_over", "hurt", "support_arrive", "support_join", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate"]
 	if ended and id not in ["victory", "game_over"]:
 		return
 	var now := Time.get_ticks_msec()

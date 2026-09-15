@@ -13,7 +13,7 @@ const STATS := [
 	{"health": 5, "speed": 0.85, "radius": 0.8, "damage": 18, "color": Color("a77362")},
 	{"health": 8, "speed": 0.48, "radius": 0.85, "damage": 12, "color": Color("72a27a")},
 	{"health": 4, "speed": 0.8, "radius": 0.6, "damage": 10, "color": Color("ad8cbb")},
-	{"health": 4, "speed": 1.1, "radius": 0.65, "damage": 10, "color": Color("7b9fb9")},
+	{"health": 4, "speed": 1.1, "radius": 0.65, "damage": 12, "color": Color("7b9fb9")},
 	{"health": 5, "speed": 0.8, "radius": 0.6, "damage": 10, "color": Color("555275")},
 	{"health": 7, "speed": 0.5, "radius": 0.7, "damage": 10, "color": Color("b89969")},
 	{"health": 5, "speed": 0.65, "radius": 0.6, "damage": 10, "color": Color("a68182")},

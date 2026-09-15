@@ -19,12 +19,31 @@ var hit_times: Dictionary = {}
 var ring: MeshInstance3D
 var orbiters: Array[MeshInstance3D] = []
 var visual: Node3D
+var falling_ball: MeshInstance3D
+var warning_duration := 0.25
+var struck := false
+var lightning_visual: Node3D
+var launch_origin := Vector3.ZERO
 
 
 func _ready() -> void:
 	add_to_group("weapon_attacks")
 	visual = V.pivot(self, "AttackVisual")
 	match mode:
+		"lightning":
+			ring = V.ring(visual, tint, Vector3(0, 0.05, 0), area_radius, 0.045)
+			lightning_visual = V.pivot(visual, "LightningColumn")
+			var points := [Vector3(0, 7, 0), Vector3(0.4, 5, 0), Vector3(-0.3, 3, 0.1), Vector3(0.25, 1.5, 0), Vector3.ZERO]
+			for index in range(points.size() - 1):
+				V.rod(lightning_visual, tint, points[index], points[index + 1], 0.11)
+			V.ellipsoid(lightning_visual, Color("fff7bc"), Vector3(0, 0.15, 0), Vector3(0.6, 0.15, 0.6))
+			lightning_visual.hide()
+		"meteor", "rear_bomb":
+			ring = V.ring(visual, tint, Vector3(0, 0.05, 0), area_radius, 0.055)
+			falling_ball = V.ellipsoid(visual, tint, Vector3(0, 6, 0), Vector3.ONE * 0.4)
+			if mode == "rear_bomb":
+				falling_ball.position = launch_origin - position
+				V.ring(falling_ball, Color("fff4be"), Vector3.ZERO, 1.15, 0.08, true)
 		"nova", "storm", "mine", "orbit":
 			ring = V.ring(visual, tint, Vector3(0, 0.05, 0), 1.0, 0.045)
 			if mode == "mine":
@@ -54,6 +73,22 @@ func _physics_process(delta: float) -> void:
 	age += delta
 	if mode == "bolt" or mode == "boomerang":
 		_move_projectile(delta)
+	elif mode == "lightning":
+		if age >= warning_duration and not struck:
+			struck = true
+			get_tree().call_group("game_audio", "play_effect", "thunder")
+			lightning_visual.show()
+			_area_hit(area_radius, false)
+	elif mode in ["meteor", "rear_bomb"]:
+		var progress := minf(age / lifetime, 1.0)
+		if mode == "rear_bomb":
+			falling_ball.position = (launch_origin - global_position) * (1.0 - progress) + Vector3.UP * sin(progress * PI) * 2.5
+			falling_ball.rotation.y += delta * 9
+		else:
+			falling_ball.position.y = 6.0 * (1.0 - progress)
+		if age >= lifetime:
+			_explode()
+			return
 	elif mode == "nova":
 		var expansion := area_radius * minf(age / lifetime, 1.0)
 		ring.scale = Vector3(expansion, 1, expansion)
@@ -130,7 +165,7 @@ func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
 			_explode()
 			return
 		_damage(hit.enemy)
-		if not piercing and mode == "bolt":
+		if not piercing and mode in ["bolt", "seeker"]:
 			queue_free()
 			return
 
@@ -154,6 +189,7 @@ func _area_hit(reach: float, repeat: bool) -> void:
 
 
 func _explode() -> void:
+	get_tree().call_group("game_audio", "play_effect", "blast")
 	_area_hit(blast_radius if blast_radius > 0 else area_radius, false)
 	var effect: Node3D = get_script().new()
 	effect.mode = "nova"

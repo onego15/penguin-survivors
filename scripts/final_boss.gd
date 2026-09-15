@@ -11,6 +11,13 @@ var locked_direction := Vector3.FORWARD
 var warning_ring: MeshInstance3D
 var aim_line: MeshInstance3D
 var flash_left := 0.0
+var dash_left := 0.0
+var dash_speed := 16.0
+var dash_distance := 11.0
+var dash_recovery := 1.2
+var recovery_left := 0.0
+var dash_hit := false
+var dash_marker: MeshInstance3D
 const SLAM_RADIUS := 5.2
 
 
@@ -33,6 +40,10 @@ func _ready() -> void:
 	aim_line = Visuals.mesh(self, line, Color("bf80ed"))
 	warning_ring.hide()
 	aim_line.hide()
+	var lane := BoxMesh.new()
+	lane.size = Vector3((hit_radius + 0.42) * 2, 0.025, 11)
+	dash_marker = Visuals.mesh(self, lane, Color("f0a568"))
+	dash_marker.hide()
 	add_to_group("final_bosses")
 
 
@@ -65,6 +76,14 @@ func _physics_process(delta: float) -> void:
 	age += delta
 	hurt_time = maxf(0, hurt_time - delta)
 	enraged = health <= max_health / 2
+	if dash_left > 0:
+		_tick_dash(delta)
+		return
+	if recovery_left > 0:
+		recovery_left = maxf(0, recovery_left - delta)
+		model.rotation.x = 0
+		model.rotation.z = 0
+		return
 	if warning_left > 0:
 		warning_left = maxf(0, warning_left - delta)
 		model.rotation.z = sin(age * 30) * 0.03
@@ -86,10 +105,24 @@ func _physics_process(delta: float) -> void:
 	attack_cooldown -= delta
 	if attack_cooldown <= 0:
 		attack_kind = "slam" if attack_index % 2 == 0 and offset.length() < 7 else "shards"
+		if attack_index % 3 == 2:
+			attack_kind = "dash"
 		attack_index += 1
 		warning_left = 1.3 if attack_kind == "slam" else 1.0
 		locked_direction = offset.normalized() if offset.length() > 0.01 else Vector3.FORWARD
-		if attack_kind == "slam":
+		if attack_kind == "dash":
+			warning_left = 0.8 if enraged else 1.0
+			dash_speed = 20.0 if enraged else 16.0
+			dash_distance = 13.0 if enraged else 11.0
+			dash_recovery = 1.0 if enraged else 1.2
+			var lane: BoxMesh = dash_marker.mesh
+			lane.size.z = dash_distance
+			dash_marker.position = locked_direction * dash_distance * 0.5 + Vector3(0, 0.06, 0)
+			dash_marker.rotation.y = atan2(locked_direction.x, locked_direction.z)
+			model.rotation.y = dash_marker.rotation.y
+			dash_marker.show()
+			get_tree().call_group("game_audio", "play_effect", "warning")
+		elif attack_kind == "slam":
 			warning_ring.show()
 		else:
 			aim_line.position = locked_direction * 4 + Vector3(0, 0.05, 0)
@@ -99,7 +132,12 @@ func _physics_process(delta: float) -> void:
 
 func _release_attack() -> void:
 	aim_line.hide()
-	if attack_kind == "slam":
+	if attack_kind == "dash":
+		dash_marker.hide()
+		dash_left = dash_distance
+		dash_hit = false
+		get_tree().call_group("game_audio", "play_effect", "slash")
+	elif attack_kind == "slam":
 		if global_position.distance_to(target.global_position) < SLAM_RADIUS + 0.42:
 			target.take_damage(28)
 		flash_left = 0.3
@@ -113,3 +151,28 @@ func _release_attack() -> void:
 			bolt.speed = 6.0 if enraged else 5.0
 			get_parent().add_child(bolt)
 	attack_cooldown = 2.0 if enraged else 3.0
+
+
+func _tick_dash(delta: float) -> void:
+	var start := global_position
+	var step := minf(dash_left, dash_speed * delta)
+	var finish := start + locked_direction * step
+	finish.x = clampf(finish.x, -23, 23)
+	finish.z = clampf(finish.z, -23, 23)
+	# Sweep the whole movement segment so a fast dash cannot skip the player.
+	var player_ground: Vector3 = target.global_position
+	player_ground.y = start.y
+	var closest := Geometry3D.get_closest_point_to_segment(player_ground, start, finish)
+	if not dash_hit and closest.distance_to(player_ground) <= hit_radius + 0.42:
+		target.take_damage(28)
+		dash_hit = true
+	global_position = finish
+	dash_left = maxf(0, dash_left - step)
+	model.rotation.x = 0.16
+	model.rotation.z = sin(age * 45) * 0.025
+	if absf(finish.x) >= 23 or absf(finish.z) >= 23:
+		dash_left = 0
+	if dash_left <= 0:
+		recovery_left = dash_recovery
+		model.rotation.x = 0
+		model.rotation.z = 0

@@ -47,7 +47,7 @@ func run() -> void:
 	game.spawn_cooldown = 9999
 	game.fire_cooldown = 9999
 	await frames(2)
-	check(Catalog.ITEMS.size() == 10 and game.armory.levels.size() == 1, "Ten weapon types exist, with one starter equipped")
+	check(Catalog.ITEMS.size() == 18 and game.armory.levels.size() == 1, "Eighteen weapon types exist, with one starter equipped")
 	for index in range(11):
 		enemy_at(Vector3(5, 0, 0), 2).take_damage(2)
 	await frames(2)
@@ -56,7 +56,7 @@ func run() -> void:
 	await frames(2)
 	check(game.choice_open and paused and game.experience == 12, "Twelfth defeat opens the weapon menu and pauses the tree")
 	var options: Array = game.offered_weapons.duplicate()
-	check(options.size() == 3 and options[0] != options[1] and options[1] != options[2] and options[0] != options[2] and not options.has("frost"), "Three distinct unowned weapons are offered")
+	check(options.size() == 3 and options[0] != options[1] and options[1] != options[2] and options[0] != options[2], "Three distinct weapons are offered from the mixed pool")
 	var frozen_enemy = enemy_at(Vector3(1, 0, 0))
 	frozen_enemy.set_physics_process(true)
 	var frozen_attack := Attack.new()
@@ -81,28 +81,35 @@ func run() -> void:
 	check(not paused and not game.choice_open and game.armory.levels.has(options[2]) and game.armory.levels.has("frost"), "Key 3 adds the selected weapon, preserves starter, and resumes play")
 	check(game.level == 2 and game.experience == 0 and game.xp_needed == 22, "Level increases and the next threshold becomes twenty-two")
 	game.choose_weapon(2)
-	check(game.armory.levels.size() == 2, "Repeated selection does not grant a second weapon")
+	check(game.armory.levels[options[2]] == (2 if options[2] == "frost" else 1), "Repeated selection does not grant a second reward")
 	# Build the collection through actual menus, preserving every earlier acquisition.
 	game.set_physics_process(false)
 	var all_options_unique := true
 	var all_prior_retained := true
-	while game.armory.levels.size() < 10:
+	var draws := 0
+	while game.armory.levels.size() < Catalog.ITEMS.size() and draws < 200:
+		draws += 1
 		game.experience = game.xp_needed + 2
 		game.open_weapon_choice()
 		var before: Dictionary = game.armory.levels.duplicate()
 		var candidates: Array = game.offered_weapons.duplicate()
 		all_options_unique = all_options_unique and candidates.size() == 3 and candidates[0] != candidates[1] and candidates[1] != candidates[2] and candidates[0] != candidates[2]
-		game.choice_ui.cards[0].pressed.emit()
+		var pick := 0
+		for index in range(3):
+			if not before.has(candidates[index]):
+				pick = index
+				break
+		game.choice_ui.cards[pick].pressed.emit()
 		for id in before:
-			all_prior_retained = all_prior_retained and game.armory.levels.get(id) == before[id]
+			all_prior_retained = all_prior_retained and game.armory.levels.get(id) >= before[id]
 		check(game.experience == 2, "Overflow XP survives a level-up")
-	check(all_options_unique and all_prior_retained and game.armory.levels.size() == 10 and game.armory.mounts.size() == 9, "All ten weapons accumulate without replacement; final menus still have three unique cards")
+	check(all_options_unique and all_prior_retained and game.armory.levels.size() == Catalog.ITEMS.size() and game.armory.mounts.size() == Catalog.ITEMS.size() - 1, "All catalog weapons accumulate without replacement; final menus still have three unique cards")
 	game.experience = game.xp_needed
 	game.open_weapon_choice()
 	var upgrade: String = game.offered_weapons[0]
 	var old_rank: int = game.armory.levels[upgrade]
 	game.choice_ui.cards[0].pressed.emit()
-	check(game.armory.levels.size() == 10 and game.armory.levels[upgrade] == old_rank + 1 and not paused, "Full collection offers upgrades and remains playable")
+	check(game.armory.levels.size() == Catalog.ITEMS.size() and game.armory.levels[upgrade] == old_rank + 1 and not paused, "Full collection offers upgrades and remains playable")
 	check(Catalog.cooldown(upgrade, 2) < Catalog.cooldown(upgrade, 1) and Catalog.damage(upgrade, 3) > Catalog.damage(upgrade, 1), "Upgrades improve fire rate and eventually damage")
 	for id in game.armory.levels:
 		game.armory.levels[id] = 1
@@ -118,20 +125,20 @@ func run() -> void:
 	var b = enemy_at(Vector3(0, 0, 6))
 	game.armory.fire("spear")
 	await frames(25)
-	check(a.health == 97 and b.health == 97, "Lance pierces two lined-up enemies exactly once")
+	check(a.health == 95 and b.health == 95, "Empowered lance pierces two lined-up enemies exactly once")
 	clear_actors()
-	a = enemy_at(Vector3(0, 0, 3))
-	b = enemy_at(Vector3(1.6, 0, 3))
+	a = enemy_at(Vector3(0, 0, 6))
+	b = enemy_at(Vector3(1.6, 0, 6))
 	game.armory.fire("ember")
-	await frames(35)
-	check(a.health == 97 and b.health == 97, "Fireball splash hits its target and a neighbor without double damage")
+	await frames(50)
+	check(a.health == 94 and b.health == 94, "Empowered meteor hits its target and a neighbor without double damage")
 	clear_actors()
-	a = enemy_at(Vector3(0, 0, 3))
-	b = enemy_at(Vector3(2, 0, 3))
-	var c = enemy_at(Vector3(4, 0, 3))
-	var d = enemy_at(Vector3(6, 0, 3))
 	game.armory.fire("lightning")
-	check(a.health == 98 and b.health == 98 and c.health == 98 and d.health == 100, "Lightning chains to exactly three different enemies")
+	var strikes := get_nodes_in_group("weapon_attacks")
+	check(strikes.size() == 3, "Lightning creates three random strikes without needing a target")
+	a = enemy_at(strikes[0].position)
+	await frames(50)
+	check(a.health <= 95, "Random lightning damages enemies inside its landing area")
 	clear_actors()
 	a = enemy_at(Vector3(2.2, 0, 0))
 	game.armory.fire("orbit")
@@ -168,10 +175,12 @@ func run() -> void:
 	game.fire_cooldown = 0
 	game.set_physics_process(true)
 	await frames(120)
-	var scheduled: bool = game.armory.cooldowns.size() == 9
+	var scheduled: bool = game.armory.cooldowns.size() == Catalog.ITEMS.size() - 1
 	for id in game.armory.cooldowns:
+		if id == "trail": # Movement-only weapon intentionally waits while stationary.
+			continue
 		scheduled = scheduled and game.armory.cooldowns[id] > -0.1
-	check(scheduled and get_nodes_in_group("weapon_attacks").size() > 0, "All nine additional weapons run beside the initial blaster")
+	check(scheduled and get_nodes_in_group("weapon_attacks").size() > 0, "All additional weapons run beside the initial blaster")
 	game.set_physics_process(false)
 	await frames(510)
 	check(get_nodes_in_group("weapon_attacks").is_empty(), "Projectiles, mines, storms, pearls and effects expire")
@@ -186,4 +195,6 @@ func run() -> void:
 	await frames(2)
 	check(current_scene.level == 1 and current_scene.experience == 0 and current_scene.armory.levels.size() == 1 and not paused, "Restart resets the collection, level, XP and pause state")
 	print("WEAPONS TEST: %d failure(s)" % failures)
+	current_scene.queue_free()
+	await create_timer(0.3).timeout
 	quit(1 if failures else 0)

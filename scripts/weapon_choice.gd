@@ -33,7 +33,7 @@ func _ready() -> void:
 	title.add_theme_color_override("font_color", Color("ffe5a9"))
 	layout.add_child(title)
 	var description := Label.new()
-	description.text = "新しい武器を追加するか、所持武器を強化。全10種類からランダムに3候補。"
+	description.text = "新しい武器を追加するか、所持武器を強化。全%d種類からランダムに3候補。" % Catalog.ITEMS.size()
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	description.add_theme_font_size_override("font_size", 18)
 	layout.add_child(description)

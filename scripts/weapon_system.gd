@@ -2,12 +2,14 @@ extends Node
 
 const Catalog = preload("res://scripts/weapon_catalog.gd")
 const Attack = preload("res://scripts/weapon_attack.gd")
+const Advanced = preload("res://scripts/advanced_attack.gd")
 const V = preload("res://scripts/visuals.gd")
 var game: Node3D
 var levels: Dictionary = {"frost": 1}
 var cooldowns: Dictionary = {}
 var mounts: Dictionary = {}
 var time := 0.0
+var last_trail := Vector3.INF
 
 
 func acquire(id: String) -> void:
@@ -21,6 +23,26 @@ func acquire(id: String) -> void:
 	var tint: Color = Catalog.ITEMS[id].color
 	V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
+		"beam":
+			preload("res://scripts/prism_visual.gd").build_crystal(mount)
+		"rear_fan":
+			for index in range(3):
+				V.rod(mount, tint, Vector3((index - 1) * 0.14, 0, 0), Vector3((index - 1) * 0.2, 0.4, 0), 0.07)
+		"rear_bomb":
+			V.rod(mount, tint, Vector3.ZERO, Vector3(0, 0.35, 0), 0.18)
+			V.rod(mount, Color("fff4be"), Vector3(0, 0.35, 0), Vector3(0, 0.6, 0), 0.18, 0)
+		"whip":
+			V.ring(mount, tint, Vector3(0, 0.25, 0), 0.28, 0.045, true)
+			V.rod(mount, tint, Vector3.ZERO, Vector3(0, 0.55, 0), 0.1, 0)
+		"turret":
+			V.ellipsoid(mount, tint, Vector3.ZERO, Vector3.ONE * 0.23)
+			V.ellipsoid(mount, tint, Vector3(0, 0.3, 0), Vector3.ONE * 0.16)
+		"trail":
+			for index in range(3):
+				V.rod(mount, tint, Vector3((index - 1) * 0.15, 0, 0), Vector3((index - 1) * 0.15, 0.4, 0), 0.1, 0)
+		"seeker":
+			V.ellipsoid(mount, tint, Vector3(0, 0.2, 0), Vector3(0.14, 0.14, 0.28))
+			V.ellipsoid(mount, Color.WHITE, Vector3(0, 0.3, 0), Vector3(0.4, 0.04, 0.12))
 		"fan":
 			for index in range(3):
 				V.rod(mount, tint, Vector3.ZERO, Vector3((index - 1) * 0.19, 0.4, 0), 0.1, 0)
@@ -41,8 +63,9 @@ func tick(delta: float) -> void:
 	time += delta
 	var index := 0
 	for id in mounts:
-		var angle := time * 0.35 + index * TAU / mounts.size()
-		mounts[id].position = Vector3(cos(angle) * 1.2, 1.35 + sin(time * 2 + index) * 0.08, sin(angle) * 1.2)
+		var angle := time * 0.35 + (index % 8) * TAU / mini(8, mounts.size())
+		var reach := 1.2 + 0.65 * floori(index / 8.0)
+		mounts[id].position = Vector3(cos(angle) * reach, 1.35 + sin(time * 2 + index) * 0.08, sin(angle) * reach)
 		mounts[id].rotation.y = -angle
 		index += 1
 	for id in levels:
@@ -70,27 +93,45 @@ func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
 	var origin: Vector3 = game.player.global_position
-	var target := nearest(origin, 12.0)
-	if target == null and not id in ["orbit", "nova", "mine"]:
+	var aimed: bool = id in ["boomerang", "storm", "bounce", "seeker", "beam"]
+	var target: Node3D = nearest(origin, 12.0) if aimed else null
+	if target == null and aimed:
 		return false
-	var direction := Vector3.BACK
-	if target != null:
+	var direction: Vector3 = game.player.facing_direction()
+	if id in ["rear_fan", "rear_bomb"]:
+		direction = -direction
+	if aimed:
 		direction = (target.global_position - origin).normalized()
 	var damage := Catalog.damage(id, levels[id])
-	if id == "lightning":
-		var used: Array = []
-		var start := origin + Vector3.UP
-		for index in range(3):
-			if target == null:
-				break
-			var finish: Vector3 = target.global_position + Vector3.UP
-			_trace(start, finish, Catalog.ITEMS[id].color)
-			used.append(target)
-			target.take_damage(damage)
-			start = finish
-			target = nearest(finish - Vector3.UP, 5.0, used)
+	if id in ["whip", "trail", "bounce", "turret", "seeker", "beam"]:
+		if id == "trail":
+			if game.player.velocity.length_squared() < 0.1 or origin.distance_to(last_trail) < 0.8:
+				return false
+			last_trail = origin
+		for index in range(3 if id == "seeker" else 1):
+			var special := Advanced.new()
+			special.mode = id
+			special.player = game.player
+			special.position = origin + Vector3.UP
+			special.direction = direction.rotated(Vector3.UP, (index - 1) * 0.6 if id == "seeker" else 0.0)
+			special.damage = damage
+			special.tint = Catalog.ITEMS[id].color
+			game.actors.add_child(special)
+		game.sound.play_effect("slash" if id == "whip" else "magic")
 		return true
-	for index in range(5 if id == "fan" else 1):
+	if id == "lightning":
+		for index in range(3):
+			var strike := Attack.new()
+			strike.mode = "lightning"
+			strike.position = random_visible_ground()
+			strike.tint = Catalog.ITEMS[id].color
+			strike.damage = damage
+			strike.area_radius = 3.0
+			strike.warning_duration = 0.25 + index * 0.12
+			strike.lifetime = strike.warning_duration + 0.3
+			game.actors.add_child(strike)
+		return true
+	for index in range(5 if id in ["fan", "rear_fan"] else 1):
 		var attack := Attack.new()
 		attack.player = game.player
 		attack.tint = Catalog.ITEMS[id].color
@@ -98,19 +139,27 @@ func fire(id: String) -> bool:
 		attack.position = origin + Vector3.UP
 		attack.direction = direction
 		match id:
-			"fan":
+			"fan", "rear_fan":
 				attack.direction = direction.rotated(Vector3.UP, (index - 2) * 0.18)
 				attack.speed = 16.0
 				attack.lifetime = 0.85
+			"rear_bomb":
+				attack.mode = "rear_bomb"
+				attack.position = origin + direction * 4.5
+				attack.launch_origin = origin + Vector3.UP
+				attack.lifetime = 0.65
+				attack.area_radius = 3.0
 			"spear":
 				attack.piercing = true
+				attack.radius = 0.26
 				attack.speed = 26.0
 				attack.damage = damage
 				attack.lifetime = 0.75
 			"ember":
-				attack.speed = 11.0
-				attack.lifetime = 1.3
-				attack.blast_radius = 2.7
+				attack.mode = "meteor"
+				attack.position = origin + direction * 6.0
+				attack.lifetime = 0.7
+				attack.area_radius = 3.2
 			"boomerang":
 				attack.mode = "boomerang"
 				attack.piercing = true
@@ -139,14 +188,24 @@ func fire(id: String) -> bool:
 				attack.area_radius = 2.6
 				attack.lifetime = 3.2
 		game.actors.add_child(attack)
+	game.sound.play_effect("shot" if id in ["fan", "rear_fan", "spear"] else "magic")
 	return true
 
 
-func _trace(start: Vector3, finish: Vector3, tint: Color) -> void:
-	var bolt := V.pivot(game.actors, "Lightning")
-	var bend := (start + finish) * 0.5 + Vector3(0.25, 0.65, -0.2)
-	V.rod(bolt, tint, start, bend, 0.055)
-	V.rod(bolt, tint, bend, finish, 0.055)
-	var tween := bolt.create_tween()
-	tween.tween_interval(0.18)
-	tween.tween_callback(bolt.queue_free)
+func random_visible_ground() -> Vector3:
+	# Sample screen space and intersect the actual camera ray with the arena floor.
+	# Enemy positions never influence the sample. Rejection keeps strikes on land.
+	var camera: Camera3D = game.camera
+	var size := camera.get_viewport().get_visible_rect().size
+	for attempt in range(128):
+		var pixel := Vector2(game.rng.randf_range(32, size.x - 32), game.rng.randf_range(32, size.y - 32))
+		var start := camera.project_ray_origin(pixel)
+		var ray := camera.project_ray_normal(pixel)
+		if absf(ray.y) < 0.0001:
+			continue
+		var distance := -start.y / ray.y
+		var point := start + ray * distance
+		if distance > 0 and absf(point.x) <= 23 and absf(point.z) <= 23:
+			point.y = 0
+			return point
+	return game.player.global_position

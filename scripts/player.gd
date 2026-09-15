@@ -67,6 +67,12 @@ func aim_at(target_position: Vector3) -> void:
 	weapon_pivot.rotation.y = atan2(direction.x, direction.z)
 
 
+func facing_direction() -> Vector3:
+	var forward := body.global_basis.z
+	forward.y = 0
+	return forward.normalized()
+
+
 func muzzle_position() -> Vector3:
 	return weapon.to_global(Vector3(0, 0, 0.85))
 
@@ -79,4 +85,5 @@ func take_damage(amount: int) -> void:
 	if invulnerability > 0.0 or health <= 0:
 		return
 	health = maxi(0, health - amount)
+	get_tree().call_group("game_audio", "play_effect", "hurt")
 	invulnerability = 0.8

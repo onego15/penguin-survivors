@@ -45,10 +45,13 @@ var final_boss_spawned := false
 var final_boss_defeated := false
 var victory := false
 var end_backdrop: ColorRect
+var sound: Node
 
 
 func _ready() -> void:
 	rng.randomize()
+	sound = preload("res://scripts/game_audio.gd").new()
+	add_child(sound)
 	_setup_input()
 	_setup_arena()
 	actors = Node3D.new()
@@ -96,7 +99,7 @@ func _setup_hud() -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(panel)
 	var title := Label.new()
-	title.text = "ARCANE SWARM  /  FROSTFIN EXPEDITION"
+	title.text = "PENGUIN SURVIVORS"
 	title.position = Vector2(30, 24)
 	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", Color("ffdd9b"))
@@ -124,7 +127,7 @@ func _setup_hud() -> void:
 	layer.add_child(xp_bar)
 	var inventory_panel := ColorRect.new()
 	inventory_panel.position = Vector2(16, 195)
-	inventory_panel.size = Vector2(235, 304)
+	inventory_panel.size = Vector2(235, 424)
 	inventory_panel.color = Color(0.055, 0.12, 0.17, 0.88)
 	inventory_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(inventory_panel)
@@ -133,7 +136,7 @@ func _setup_hud() -> void:
 	var japanese_font := SystemFont.new()
 	japanese_font.font_names = PackedStringArray(["Yu Gothic UI", "Meiryo", "sans-serif"])
 	inventory_label.add_theme_font_override("font", japanese_font)
-	inventory_label.add_theme_font_size_override("font_size", 16)
+	inventory_label.add_theme_font_size_override("font_size", 14)
 	layer.add_child(inventory_label)
 	phase_label = Label.new()
 	phase_label.position = Vector2(450, 20)
@@ -189,6 +192,9 @@ func _style_bar(bar: ProgressBar, color: Color) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE and (game_over or victory):
+		get_tree().change_scene_to_file("res://scenes/title.tscn")
+		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			camera.size = maxf(12.0, camera.size - 1.5)
@@ -203,17 +209,19 @@ func _physics_process(delta: float) -> void:
 		return
 	if player.health <= 0:
 		game_over = true
+		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
-		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\nPress R to restart" % [kills, elapsed]
+		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\nR: Restart   /   Esc: Title" % [kills, elapsed]
 		game_over_label.show()
 		end_backdrop.show()
 		_update_hud()
 		return
 	if final_boss_defeated:
 		victory = true
+		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		end_backdrop.show()
-		game_over_label.text = "VICTORY!\n%d defeated  /  %02d:%02d\nPress R to play again" % [kills, int(elapsed) / 60, int(elapsed) % 60]
+		game_over_label.text = "VICTORY!\n%d defeated  /  %02d:%02d\nR: Play again   /   Esc: Title" % [kills, int(elapsed) / 60, int(elapsed) % 60]
 		game_over_label.show()
 		_update_hud()
 		return
@@ -234,6 +242,8 @@ func _physics_process(delta: float) -> void:
 func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 	if final_boss_spawned or game_over or victory:
 		return null
+	if as_boss and boss_encounters >= Miniboss.ROSTER.size():
+		return null
 	var profile := Difficulty.profile(elapsed)
 	var cap: int = MAX_ENEMIES if as_boss else profile.cap
 	# Reserve one of the 100 total slots for a scheduled boss.
@@ -252,7 +262,7 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 	enemy.target = player
 	enemy.speed = rng.randf_range(0.9, 1.1) * profile.speed
 	if as_boss:
-		enemy.speed = 2.4 if boss_encounters % 2 == 0 else 3.0
+		enemy.speed = Miniboss.ROSTER[boss_encounters].speed
 	# Reject positions outside the arena instead of clamping them near the player.
 	var spawn_position := Vector3.ZERO
 	for attempt in range(64):
@@ -280,9 +290,11 @@ func _tick_director(delta: float) -> void:
 	var boss_alive: bool = is_instance_valid(active_boss) and not active_boss.dead
 	if elapsed < recovery_until:
 		return
-	if elapsed >= next_boss_at and not boss_alive:
+	if elapsed >= next_boss_at and not boss_alive and boss_encounters < Miniboss.ROSTER.size():
 		active_boss = spawn_enemy(-1, true)
 		if active_boss != null:
+			sound.set_track("boss")
+			sound.play_effect("warning")
 			boss_encounters += 1
 			next_boss_at = elapsed + Difficulty.BOSS_INTERVAL
 			boss_alive = true
@@ -296,6 +308,8 @@ func _tick_director(delta: float) -> void:
 
 
 func _start_final_boss() -> void:
+	sound.set_track("boss")
+	sound.play_effect("warning")
 	# Transition to a duel without treating removed enemies as defeated rewards.
 	for actor in actors.get_children():
 		if actor == player:
@@ -322,6 +336,8 @@ func _on_final_boss_defeated() -> void:
 
 
 func _on_boss_defeated() -> void:
+	sound.set_track("snowfield")
+	sound.play_effect("choose")
 	kills += 1
 	experience += 8
 	if player.health > 0:
@@ -346,6 +362,7 @@ func fire_at_nearest() -> bool:
 	bullet.position = player.muzzle_position()
 	bullet.direction = (nearest.position + Vector3(0, 1.0, 0) - bullet.position).normalized()
 	player.fire_feedback()
+	sound.play_effect("shot")
 	actors.add_child(bullet)
 	return true
 
@@ -368,6 +385,7 @@ func open_weapon_choice() -> void:
 		offered_weapons.append(pool[index])
 		pool.remove_at(index)
 	choice_open = true
+	sound.play_effect("level_up")
 	_update_hud()
 	get_tree().paused = true
 	choice_ui.show_choices(offered_weapons, armory.levels, level + 1)
@@ -377,6 +395,7 @@ func choose_weapon(index: int) -> void:
 	if not choice_open or index < 0 or index >= offered_weapons.size():
 		return
 	armory.acquire(offered_weapons[index])
+	sound.play_effect("choose")
 	experience -= xp_needed
 	level += 1
 	xp_needed = Difficulty.xp_for_level(level)
@@ -394,7 +413,7 @@ func _update_camera() -> void:
 
 func _update_hud() -> void:
 	hud.text = "HP  %d / 100\nDEFEATED  %d     TIME  %02d:%02d" % [player.health, kills, int(elapsed) / 60, int(elapsed) % 60]
-	xp_label.text = "Lv.%d     XP  %d / %d     WEAPONS  %d / 10" % [level, experience, xp_needed, armory.levels.size()]
+	xp_label.text = "Lv.%d     XP  %d / %d     WEAPONS  %d / %d" % [level, experience, xp_needed, armory.levels.size(), Catalog.ITEMS.size()]
 	xp_bar.max_value = xp_needed
 	xp_bar.value = experience
 	inventory_label.text = "装備武器 / すべて自動攻撃"
@@ -408,6 +427,8 @@ func _update_hud() -> void:
 	boss_bar.visible = boss_alive
 	if boss_alive:
 		boss_label.text = "%s：%s   %d / %d" % ["ラスボス" if final_boss_spawned else "中ボス", active_boss.boss_name, active_boss.health, active_boss.max_health]
+		if not final_boss_spawned:
+			boss_label.text += active_boss.status_label()
 		if final_boss_spawned and active_boss.enraged:
 			phase_label.text = "FINAL BATTLE  /  冬の王・第二形態"
 		boss_bar.max_value = active_boss.max_health
@@ -418,3 +439,5 @@ func _update_hud() -> void:
 		boss_label.text = "中ボス撃破！ HP +25 / XP +8   増援休止 %d秒" % ceili(recovery_until - elapsed)
 	else:
 		boss_label.text = "中ボスまで %d秒 / 最終決戦まで %d秒" % [maxi(0, ceili(next_boss_at - elapsed)), maxi(0, ceili(Difficulty.FINAL_BOSS_TIME - elapsed))]
+		if boss_encounters >= Miniboss.ROSTER.size():
+			boss_label.text = "中ボス全討伐 / 最終決戦まで %d秒" % maxi(0, ceili(Difficulty.FINAL_BOSS_TIME - elapsed))

@@ -36,13 +36,13 @@ func _ready() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var title := Label.new()
-	title.text = "FROSTFIN EXPEDITION"
+	title.text = "PENGUIN SURVIVORS"
 	title.position = Vector2(36, 24)
 	title.add_theme_font_size_override("font_size", 32)
 	title.add_theme_color_override("font_color", Color("213e50"))
 	layer.add_child(title)
 	var subtitle := Label.new()
-	subtitle.text = "ARCANE SWARM   /   CHARACTER COLLECTION"
+	subtitle.text = "CHARACTER COLLECTION"
 	subtitle.position = Vector2(38, 66)
 	subtitle.add_theme_font_size_override("font_size", 16)
 	subtitle.add_theme_color_override("font_color", Color("456a7b"))

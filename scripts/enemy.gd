@@ -175,6 +175,7 @@ func take_damage(amount: int) -> void:
 	if dead:
 		return
 	health -= amount
+	get_tree().call_group("game_audio", "play_effect", "defeat" if health <= 0 else "hit")
 	hurt_time = 0.16
 	health_bar.show()
 	var fraction := maxf(0.0, float(health) / max_health)

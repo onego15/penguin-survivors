@@ -1,73 +1,65 @@
 extends Node3D
-## Open this scene and press F6 to inspect the models at a larger scale.
-
-const V = preload("res://scripts/visuals.gd")
-const Models = preload("res://scripts/character_models.gd")
-var models: Array[Node3D] = []
-var time := 0.0
-
-
+const V=preload("res://scripts/visuals.gd")
+const Models=preload("res://scripts/character_models.gd")
+const Creatures=preload("res://scripts/creature_models.gd")
+const Enemy=preload("res://scripts/enemy.gd")
+const Friend=preload("res://scripts/support_friend.gd")
+var models: Array[Node3D]=[]
+var time:=0.0
 func _ready() -> void:
 	preload("res://scripts/arena.gd").build(self)
-	var camera := Camera3D.new()
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 13.5
-	camera.position = Vector3(0, 12, 23)
+	var camera:=Camera3D.new()
+	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
+	camera.size=20
+	camera.position=Vector3(0,23,30)
 	add_child(camera)
-	camera.look_at(Vector3(0, 1.0, 0))
-	camera.current = true
-	var hero := V.pivot(self, "HeroDisplay", Vector3(-5.3, 0.15, 0.1))
-	hero.scale = Vector3.ONE * 1.65
+	camera.look_at(Vector3(0,0,1))
+	camera.current=true
+	for kind in range(10):
+		var point:=Vector3((kind%5-2)*6,0,-7+floori(kind/5.0)*7)
+		var stand:=V.pivot(self,"EnemyDisplay_%d" % kind,point)
+		stand.scale=Vector3.ONE*1.2
+		models.append(Models.animal(stand,kind))
+		_plinth(point,1.3,Color("d8b497"))
+		_label(Enemy.NAMES[kind],point+Vector3(0,0.2,1.65),38)
+		_label(Enemy.ROLES[kind],point+Vector3(0,0,2.5),25)
+	var hero:=V.pivot(self,"Hero",Vector3(-10,0,8))
 	models.append(Models.penguin(hero))
-	var gun := Models.blaster(hero)
-	gun.position = Vector3(0.9, 0.95, 0.1)
-	gun.rotation.y = 0.3
-	_plinth(Vector3(-5.3, 0, 0.1), 1.95)
-	_label("EMPEROR PENGUIN", Vector3(-5.3, 0.3, 2.1), 40)
-	_label("Round glasses + Frostfin blaster", Vector3(-5.3, -0.02, 2.8), 26)
-	var positions := [Vector3(-0.3, 0.15, -4.4), Vector3(4.4, 0.15, -4.4), Vector3(-0.3, 0.15, 3.0), Vector3(4.4, 0.15, 3.0)]
-	var labels := ["FOX / ZIGZAG", "RABBIT / HOP", "BOAR / CHARGE", "TURTLE / TANK"]
-	for kind in range(4):
-		var stand := V.pivot(self, "AnimalDisplay", positions[kind])
-		stand.scale = Vector3.ONE * 1.2
-		models.append(Models.animal(stand, kind))
-		_plinth(positions[kind] - Vector3(0, 0.15, 0), 1.65)
-		_label(labels[kind], positions[kind] + Vector3(0, 0.1, 1.8), 34)
-	var layer := CanvasLayer.new()
+	_plinth(hero.position,1.3,Color("7fdacb"))
+	_label("プレイヤー",hero.position+Vector3(0,0.2,1.6),32)
+	for kind in range(3):
+		var point:=Vector3(-3+kind*6,0,8)
+		var stand:=V.pivot(self,"FriendDisplay_%d" % kind,point)
+		stand.scale=Vector3.ONE*1.2
+		models.append(Creatures.support(stand,kind))
+		_plinth(point,1.3,Color("7fdacb"))
+		_label("%s %s" % [Friend.ICONS[kind],Friend.NAMES[kind]],point+Vector3(0,0.2,1.65),34)
+		_label(["回復","防御","攻撃援護"][kind],point+Vector3(0,0,2.5),25)
+	var layer:=CanvasLayer.new()
 	add_child(layer)
-	var title := Label.new()
-	title.text = "PENGUIN SURVIVORS"
-	title.position = Vector2(36, 24)
-	title.add_theme_font_size_override("font_size", 32)
-	title.add_theme_color_override("font_color", Color("213e50"))
+	var title:=Label.new()
+	title.text="PENGUIN SURVIVORS  /  10 ENEMIES + 3 FRIENDS"
+	title.position=Vector2(32,22)
+	title.add_theme_font_size_override("font_size",25)
+	title.add_theme_color_override("font_color",Color("203e50"))
 	layer.add_child(title)
-	var subtitle := Label.new()
-	subtitle.text = "CHARACTER COLLECTION"
-	subtitle.position = Vector2(38, 66)
-	subtitle.add_theme_font_size_override("font_size", 16)
-	subtitle.add_theme_color_override("font_color", Color("456a7b"))
-	layer.add_child(subtitle)
-
-
-func _plinth(point: Vector3, radius: float) -> void:
-	V.rod(self, Color("a2c5ce"), point - Vector3(0, 0.2, 0), point + Vector3(0, 0.05, 0), radius)
-	V.rod(self, Color("f0f4e9"), point + Vector3(0, 0.05, 0), point + Vector3(0, 0.14, 0), radius * 0.95)
-
-
-func _label(caption: String, point: Vector3, font_size: int) -> void:
-	var label := Label3D.new()
-	label.text = caption
-	label.font_size = font_size
-	label.pixel_size = 0.008
-	label.outline_size = 0
-	label.modulate = Color("24485a")
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.position = point
+func _plinth(point: Vector3, radius: float, color: Color) -> void:
+	V.rod(self,color,point-Vector3(0,0.2,0),point+Vector3(0,0.04,0),radius)
+func _label(caption: String, point: Vector3, size: int) -> void:
+	var label:=Label3D.new()
+	var font:=SystemFont.new()
+	font.font_names=PackedStringArray(["Yu Gothic UI","Meiryo"])
+	label.font=font
+	label.text=caption
+	label.font_size=size
+	label.pixel_size=0.014
+	label.no_depth_test=true
+	label.position=point
+	label.billboard=BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate=Color("234c5b")
+	label.outline_size=0
 	add_child(label)
-
-
 func _process(delta: float) -> void:
-	time += delta
-	for model in models:
-		model.rotation.y = sin(time * 0.65) * 0.3 - 0.18
+	time+=delta
+	for i in range(models.size()):
+		models[i].rotation.y=sin(time*0.6+i)*0.16

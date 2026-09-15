@@ -11,7 +11,7 @@ func run() -> void:
 	current_scene = game
 	game.set_physics_process(false)
 	var sound = game.sound
-	check(sound.track == "snowfield" and sound.music.playing and sound.clips.size() == 15, "Music and all thirteen effects load and start")
+	check(sound.track == "snowfield" and sound.music.playing and sound.clips.size() == 20, "Music and all eighteen effects load and start")
 	for id in ["snowfield", "boss"]:
 		check(sound.clips[id].loop_mode == AudioStreamWAV.LOOP_FORWARD and sound.clips[id].loop_end > 0, "Music has a full-length loop: " + id)
 	for i in range(100): sound.play_effect("shot")

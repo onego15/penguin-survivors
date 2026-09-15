@@ -1,24 +1,38 @@
 extends Node3D
 
 signal defeated
+signal rewarded(amount: int)
 const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const Effects = preload("res://scripts/hit_effect.gd")
-enum Kind { FOX, RABBIT, BOAR, TURTLE }
+enum Kind { FOX, RABBIT, BOAR, TURTLE, OWL, WOLF, SKUNK, HEDGEHOG, MOLE, DEER }
 enum ChargeState { APPROACH, WINDUP, CHARGE, RECOVER }
 const STATS := [
 	{"health": 2, "speed": 1.1, "radius": 0.58, "damage": 10, "color": Color("de743a")},
 	{"health": 2, "speed": 1.05, "radius": 0.55, "damage": 10, "color": Color("dfc7ef")},
 	{"health": 5, "speed": 0.85, "radius": 0.8, "damage": 18, "color": Color("a77362")},
 	{"health": 8, "speed": 0.48, "radius": 0.85, "damage": 12, "color": Color("72a27a")},
+	{"health": 4, "speed": 0.8, "radius": 0.6, "damage": 10, "color": Color("ad8cbb")},
+	{"health": 4, "speed": 1.1, "radius": 0.65, "damage": 10, "color": Color("7b9fb9")},
+	{"health": 5, "speed": 0.8, "radius": 0.6, "damage": 10, "color": Color("555275")},
+	{"health": 7, "speed": 0.5, "radius": 0.7, "damage": 10, "color": Color("b89969")},
+	{"health": 5, "speed": 0.65, "radius": 0.6, "damage": 10, "color": Color("a68182")},
+	{"health": 10, "speed": 0.65, "radius": 0.8, "damage": 10, "color": Color("ccad79")},
 ]
-@export_enum("Fox", "Rabbit", "Boar", "Turtle") var kind: int = Kind.FOX
+const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ"]
+const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "周囲を加速"]
+static func cost(type: int) -> int:
+	return 3 if type == Kind.DEER else (2 if type >= Kind.OWL else 1)
+
+@export_enum("Fox", "Rabbit", "Boar", "Turtle", "Owl", "Wolf", "Skunk", "Hedgehog", "Mole", "Deer") var kind: int = Kind.FOX
 var target: Node3D
 var speed := 2.3
 var health := 2
 var max_health := 2
 var hit_radius := 0.58
 var dead := false
+var targetable := true
+var reward_value := 1
 var model: Node3D
 var age := 0.0
 var movement_phase := 0.0
@@ -42,6 +56,8 @@ var recovery_duration := 1.1
 
 func _ready() -> void:
 	add_to_group("enemies")
+	add_to_group("all_enemies")
+	reward_value = cost(kind)
 	health = maxi(1, roundi(STATS[kind].health * health_multiplier))
 	max_health = health
 	hit_radius = STATS[kind].radius * visual_scale
@@ -104,6 +120,19 @@ func _physics_process(delta: float) -> void:
 				motion += separation / gap * 0.6
 	if distance < 0.15 and kind != Kind.BOAR:
 		motion = Vector3.ZERO
+	_move_and_contact(delta, motion * aura_multiplier())
+
+
+func aura_multiplier() -> float:
+	if is_miniboss or is_in_group("final_bosses"):
+		return 1.0
+	for deer in get_tree().get_nodes_in_group("deer_aura"):
+		if deer != self and not deer.dead and global_position.distance_to(deer.global_position) <= 5.0:
+			return 1.2
+	return 1.0
+
+
+func _move_and_contact(delta: float, motion: Vector3) -> void:
 	var start := global_position
 	global_position += motion * delta
 	position.x = clampf(position.x, -24, 24)
@@ -172,7 +201,7 @@ func _animate(motion_speed: float) -> void:
 
 
 func take_damage(amount: int) -> void:
-	if dead:
+	if dead or not targetable:
 		return
 	health -= amount
 	get_tree().call_group("game_audio", "play_effect", "defeat" if health <= 0 else "hit")
@@ -189,5 +218,7 @@ func take_damage(amount: int) -> void:
 	if health <= 0:
 		dead = true
 		remove_from_group("enemies")
+		remove_from_group("all_enemies")
+		rewarded.emit(reward_value)
 		defeated.emit()
 		queue_free()

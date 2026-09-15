@@ -1,6 +1,6 @@
 extends Node
 ## Original generated music and bounded, rate-limited sound effects.
-const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over"]
+const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave"]
 var music: AudioStreamPlayer
 var voices: Array[AudioStreamPlayer] = []
 var cues: AudioStreamPlayer

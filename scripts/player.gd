@@ -6,6 +6,7 @@ const SPEED := 7.0
 const ARENA_LIMIT := 23.0
 var health := 100
 var invulnerability := 0.0
+var support_damage_multiplier := 1.0
 var body: Node3D
 var weapon_pivot: Node3D
 var weapon: Node3D
@@ -84,6 +85,12 @@ func fire_feedback() -> void:
 func take_damage(amount: int) -> void:
 	if invulnerability > 0.0 or health <= 0:
 		return
+	amount = maxi(1, ceili(amount * support_damage_multiplier))
 	health = maxi(0, health - amount)
 	get_tree().call_group("game_audio", "play_effect", "hurt")
 	invulnerability = 0.8
+
+
+func heal(amount: int) -> void:
+	if health > 0:
+		health = mini(100, health + maxi(0, amount))

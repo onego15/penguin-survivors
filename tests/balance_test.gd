@@ -20,11 +20,11 @@ func run() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 812
 	var valid := true
-	for seconds in [0, 44, 45, 89, 90, 149, 150]:
+	for seconds in [0, 29, 30, 59, 60, 119, 120]:
 		for sample in range(200):
 			var kind := D.pick_kind(seconds, rng)
-			valid = valid and not (seconds < 45 and kind != 0) and not (seconds < 90 and kind == 3) and not (seconds < 150 and kind == 2)
-	check(valid, "Rabbit, turtle and boar unlock at 45, 90 and 150 seconds")
+			valid = valid and not (seconds < 30 and kind != 0) and not (seconds < 60 and kind == 3) and not (seconds < 120 and kind == 2)
+	check(valid, "Rabbit, turtle and boar unlock at 30, 60 and 120 seconds")
 	var monotonic := true
 	for second in range(1, 900):
 		var previous := D.profile(second - 1)
@@ -63,9 +63,10 @@ func run() -> void:
 	var boss = game.active_boss
 	boss.set_physics_process(false)
 	check(boss != null and boss.kind == 2 and boss.health == 100 and boss.visual_scale == 1.9, "Two minutes spawns the crowned boar miniboss")
-	game.spawn_cooldown = 0
-	game._tick_director(0.01)
-	check(is_equal_approx(game.spawn_cooldown, 2.0 / D.profile(120).rate), "Reinforcements are halved during a miniboss fight")
+	game.spawn_cooldown = 999
+	game.director.budget = 0
+	game._tick_director(0.5)
+	check(is_equal_approx(game.director.budget, D.profile(120).rate * 0.5 * 0.5), "Reinforcement budget is halved during a miniboss fight")
 	game.elapsed = 241
 	game._tick_director(0.01)
 	check(game.boss_encounters == 1 and game.active_boss == boss, "A living miniboss prevents overlapping boss encounters")
@@ -110,4 +111,6 @@ func run() -> void:
 	game.active_boss.take_damage(9999)
 	check(game.player.health == 0, "Boss reward cannot resurrect a defeated player")
 	print("BALANCE TEST: %d failure(s)" % failures)
+	game.queue_free()
+	await create_timer(0.3).timeout
 	quit(1 if failures else 0)

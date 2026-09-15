@@ -78,6 +78,7 @@ static func animal(parent: Node3D, kind: int) -> Node3D:
 		1: rabbit(root)
 		2: boar(root)
 		3: turtle(root)
+		_: preload("res://scripts/creature_models.gd").build(root, kind)
 	return root
 
 

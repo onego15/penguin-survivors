@@ -46,6 +46,11 @@ var final_boss_defeated := false
 var victory := false
 var end_backdrop: ColorRect
 var sound: Node
+var director: RefCounted
+var support: Node
+var last_event_at := -100.0
+var wave_hint: Label
+var support_label: Label
 
 
 func _ready() -> void:
@@ -72,6 +77,12 @@ func _ready() -> void:
 	choice_ui = WeaponChoice.new()
 	add_child(choice_ui)
 	choice_ui.selected.connect(choose_weapon)
+	director = preload("res://scripts/wave_director.gd").new()
+	director.game = self
+	director.advance()
+	support = preload("res://scripts/support_director.gd").new()
+	support.game = self
+	add_child(support)
 	_update_hud()
 
 
@@ -169,8 +180,20 @@ func _setup_hud() -> void:
 	game_over_label.add_theme_font_size_override("font_size", 42)
 	game_over_label.visible = false
 	layer.add_child(game_over_label)
+	wave_hint=Label.new()
+	wave_hint.position=Vector2(450,112)
+	wave_hint.add_theme_font_override("font",japanese_font)
+	wave_hint.add_theme_font_size_override("font_size",16)
+	wave_hint.add_theme_color_override("font_color",Color("234758"))
+	layer.add_child(wave_hint)
+	support_label=Label.new()
+	support_label.position=Vector2(450,144)
+	support_label.add_theme_font_override("font",japanese_font)
+	support_label.add_theme_font_size_override("font_size",16)
+	support_label.add_theme_color_override("font_color",Color("176554"))
+	layer.add_child(support_label)
 	var legend := Label.new()
-	legend.text = "FOX  Zigzag     /     RABBIT  Hop     /     BOAR  Charge     /     TURTLE  Tank"
+	legend.text = "PENGUIN SURVIVORS  /  10 WAVES  /  3 FRIENDS"
 	legend.add_theme_font_size_override("font_size", 16)
 	legend.add_theme_color_override("font_color", Color("233f50"))
 	layer.add_child(legend)
@@ -209,6 +232,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if player.health <= 0:
 		game_over = true
+		support.clear()
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\nR: Restart   /   Esc: Title" % [kills, elapsed]
@@ -218,6 +242,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if final_boss_defeated:
 		victory = true
+		support.clear()
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		end_backdrop.show()
@@ -230,6 +255,7 @@ func _physics_process(delta: float) -> void:
 		return
 	elapsed += delta
 	_tick_director(delta)
+	support.tick(delta)
 	fire_cooldown -= delta
 	if fire_cooldown <= 0.0:
 		if fire_at_nearest():
@@ -248,13 +274,15 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 	var cap: int = MAX_ENEMIES if as_boss else profile.cap
 	# Reserve one of the 100 total slots for a scheduled boss.
 	cap = mini(cap, MAX_ENEMIES if as_boss else MAX_ENEMIES - 1)
-	if get_tree().get_nodes_in_group("enemies").size() >= cap:
+	if get_tree().get_nodes_in_group("all_enemies").size() >= cap:
 		return null
-	var enemy: Node3D = Miniboss.new() if as_boss else Enemy.new()
+	var chosen: int = forced_kind if forced_kind>=0 else (director.choose_kind() if director!=null else Difficulty.pick_kind(elapsed,rng))
+	if not as_boss and director!=null and not director.below_cap(chosen): return null
+	var enemy: Node3D = Miniboss.new() if as_boss else (preload("res://scripts/special_enemy.gd").new() if chosen>=4 else Enemy.new())
 	if as_boss:
 		enemy.encounter = boss_encounters
 	else:
-		enemy.kind = forced_kind if forced_kind >= 0 else Difficulty.pick_kind(elapsed, rng)
+		enemy.kind = chosen
 		enemy.health_multiplier = profile.hp
 		enemy.damage_multiplier = profile.damage
 	spawn_count += 1
@@ -277,12 +305,13 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 	if as_boss:
 		enemy.defeated.connect(_on_boss_defeated)
 	else:
-		enemy.defeated.connect(_on_enemy_defeated)
+		enemy.rewarded.connect(_on_enemy_defeated)
 	actors.add_child(enemy)
 	return enemy
 
 
 func _tick_director(delta: float) -> void:
+	director.advance()
 	if elapsed >= Difficulty.FINAL_BOSS_TIME:
 		if not final_boss_spawned:
 			_start_final_boss()
@@ -293,21 +322,18 @@ func _tick_director(delta: float) -> void:
 	if elapsed >= next_boss_at and not boss_alive and boss_encounters < Miniboss.ROSTER.size():
 		active_boss = spawn_enemy(-1, true)
 		if active_boss != null:
+			notify_event()
 			sound.set_track("boss")
 			sound.play_effect("warning")
 			boss_encounters += 1
 			next_boss_at = elapsed + Difficulty.BOSS_INTERVAL
 			boss_alive = true
-	spawn_cooldown -= delta
-	if spawn_cooldown <= 0:
-		spawn_enemy()
-		var rate: float = Difficulty.profile(elapsed).rate
-		if boss_alive:
-			rate *= Difficulty.BOSS_SPAWN_RATE
-		spawn_cooldown = 1.0 / rate
+	director.tick(delta, boss_alive)
 
 
 func _start_final_boss() -> void:
+	notify_event()
+	support.begin_final()
 	sound.set_track("boss")
 	sound.play_effect("warning")
 	# Transition to a duel without treating removed enemies as defeated rewards.
@@ -341,7 +367,7 @@ func _on_boss_defeated() -> void:
 	kills += 1
 	experience += 8
 	if player.health > 0:
-		player.health = mini(100, player.health + 25)
+		player.heal(25)
 	recovery_until = elapsed + Difficulty.BOSS_REST
 	spawn_cooldown = 1.0
 
@@ -367,9 +393,9 @@ func fire_at_nearest() -> bool:
 	return true
 
 
-func _on_enemy_defeated() -> void:
+func _on_enemy_defeated(amount := 1) -> void:
 	kills += 1
-	experience += 1
+	experience += amount
 
 
 func open_weapon_choice() -> void:
@@ -420,6 +446,12 @@ func _update_hud() -> void:
 	for id in armory.levels:
 		inventory_label.text += "\n%s  Lv.%d" % [Catalog.ITEMS[id].name, armory.levels[id]]
 	var profile := Difficulty.profile(elapsed)
+	if director!=null:
+		wave_hint.text = director.WAVES[director.wave].hint if director.wave>=0 else ""
+		if elapsed<director.notification_until: wave_hint.text=director.notice
+		if final_boss_spawned: wave_hint.text="冬の王を倒そう / 予告を見て回避"
+		elif not choice_open: wave_hint.text += "  /  次Wave %d秒" % maxi(0,60-int(elapsed)%60)
+	if support!=null: support_label.text=support.status_text()
 	phase_label.text = "WAVE %d  /  %s" % [profile.phase, profile.name]
 	if final_boss_spawned:
 		phase_label.text = "FINAL BATTLE  /  冬の王" if not victory else "CLEAR  /  冬の王を討伐！"
@@ -441,3 +473,7 @@ func _update_hud() -> void:
 		boss_label.text = "中ボスまで %d秒 / 最終決戦まで %d秒" % [maxi(0, ceili(next_boss_at - elapsed)), maxi(0, ceili(Difficulty.FINAL_BOSS_TIME - elapsed))]
 		if boss_encounters >= Miniboss.ROSTER.size():
 			boss_label.text = "中ボス全討伐 / 最終決戦まで %d秒" % maxi(0, ceili(Difficulty.FINAL_BOSS_TIME - elapsed))
+
+
+func notify_event() -> void:
+	last_event_at=elapsed

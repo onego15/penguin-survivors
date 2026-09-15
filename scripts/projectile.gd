@@ -5,9 +5,15 @@ const SPEED := 22.0
 var direction := Vector3.FORWARD
 var lifetime := 1.5
 var damage := 1
+var support_star := false
 
 
 func _ready() -> void:
+	if support_star:
+		for index in range(5):
+			var angle := index * TAU / 5
+			Visuals.rod(self,Color("ffe782"),Vector3.ZERO,Vector3(cos(angle),sin(angle),0)*0.3,0.09,0)
+		return
 	# A faceted ice bolt with a tapered tail replaces the plain sphere.
 	Visuals.rod(self, Color("b4faff"), Vector3(0, 0, -0.1), Vector3(0, 0, 0.32), 0.15, 0.0)
 	Visuals.rod(self, Color("5cbfd6"), Vector3(0, 0, -0.65), Vector3(0, 0, -0.1), 0.015, 0.12)

@@ -69,3 +69,9 @@ if __name__=='__main__':
     jingle('warning',[50,50,57,50],.19)
     jingle('victory',[74,78,81,86,81,86,90],.18)
     jingle('game_over',[62,60,57,50],.27)
+
+    jingle("support_arrive",[79,83,86],.12)
+    jingle("support_join",[83,86,91],.08)
+    jingle("support_heal",[86,91],.10)
+    jingle("support_guard",[62,69,74],.09)
+    jingle("support_leave",[86,83,79],.08)

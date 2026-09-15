@@ -115,6 +115,7 @@ func run() -> void:
 	var kills_before: int = game.kills
 	game.elapsed = 600
 	game._tick_director(0.01)
+	game._finish_presentation()
 	var boss = game.active_boss
 	boss.set_physics_process(false)
 	check(game.final_boss_spawned and boss.max_health == 1400 and get_nodes_in_group("enemies").size() == 1, "Final duel overrides an overdue miniboss and clears ordinary enemies")
@@ -135,6 +136,9 @@ func run() -> void:
 	for bolt in get_nodes_in_group("hostile_projectiles"):
 		bolt.free()
 	boss.health = 700
+	boss._enter_phase_two()
+	game._finish_presentation()
+	boss.phase_attack_index=1
 	boss._physics_process(0.01)
 	boss._release_attack()
 	check(boss.enraged and get_nodes_in_group("hostile_projectiles").size() == 12, "Half health triggers the faster twelve-shot second phase")
@@ -146,7 +150,7 @@ func run() -> void:
 	check(game.victory and not game.game_over and not game.choice_open and game.actors.process_mode == Node.PROCESS_MODE_DISABLED, "Final defeat ends the run with victory before any pending weapon menu")
 	var end_time: float = game.elapsed
 	game._physics_process(1)
-	check(game.elapsed == end_time and game.end_backdrop.visible, "Victory freezes gameplay and displays the result screen")
+	check(game.elapsed == end_time and is_instance_valid(game.victory_screen), "Victory freezes gameplay and displays the result screen")
 	Input.action_press("restart")
 	game._physics_process(0.01)
 	await frames(3)
@@ -156,6 +160,7 @@ func run() -> void:
 	game.set_physics_process(false)
 	game.elapsed = 600
 	game._tick_director(0.01)
+	game._finish_presentation()
 	game.active_boss.take_damage(9999)
 	game.player.health = 0
 	game._physics_process(0.01)

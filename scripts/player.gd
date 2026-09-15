@@ -4,6 +4,7 @@ const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const SPEED := 7.0
 const ARENA_LIMIT := 23.0
+var cinematic_locked := false
 var health := 100
 var invulnerability := 0.0
 var support_damage_multiplier := 1.0
@@ -83,6 +84,7 @@ func fire_feedback() -> void:
 
 
 func take_damage(amount: int) -> void:
+	if cinematic_locked: return
 	if invulnerability > 0.0 or health <= 0:
 		return
 	amount = maxi(1, ceili(amount * support_damage_multiplier))

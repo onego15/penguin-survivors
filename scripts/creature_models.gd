@@ -57,10 +57,11 @@ static func build(parent: Node3D, kind: int) -> void:
 			var start := Vector3(cos(angle) * 0.35, 0.8, sin(angle) * 0.5 - 0.15)
 			V.rod(parent, Color("705454"), start, start + Vector3(cos(angle)*0.3, 0.6, sin(angle)*0.3), 0.13, 0)
 	elif kind == 8:
-		for side in [-1, 1]:
-			V.ellipsoid(parent, Color("e3c2ac"), Vector3(side * 0.48, 0.4, 0.5), Vector3(0.28, 0.12, 0.34))
+		for side in [-1,1]:
+			var hand:=V.pivot(parent,"DigHand%d" % side,Vector3(side*0.48,0.4,0.5))
+			V.ellipsoid(hand,Color("e3c2ac"),Vector3.ZERO,Vector3(0.28,0.12,0.34))
 			for claw in range(3):
-				V.rod(parent, WHITE, Vector3(side * 0.48 + (claw-1)*0.1, 0.4, 0.65), Vector3(side * 0.48+(claw-1)*0.1,0.4,0.98),0.04,0)
+				V.rod(hand,WHITE,Vector3((claw-1)*0.1,0,0.15),Vector3((claw-1)*0.1,0,0.48),0.04,0)
 	elif kind == 9:
 		for side in [-1, 1]:
 			V.rod(head, Color("ffe2a0"), Vector3(side * 0.2, 0.3, 0), Vector3(side * 0.45, 1.1, -0.1), 0.06)
@@ -84,7 +85,8 @@ static func support(parent: Node3D, kind: int) -> Node3D:
 		V.ellipsoid(root, WHITE, Vector3(0,1.25,0.08),Vector3(0.49,0.43,0.39))
 		for side in [-1,1]:
 			V.ellipsoid(root, WHITE, Vector3(side*0.35,1.58,0),Vector3.ONE*0.16)
-			V.ellipsoid(root, WHITE, Vector3(side*0.48,0.7,0),Vector3(0.15,0.4,0.18))
+			var arm:=V.pivot(root,"WaveArm" if side<0 else "OtherArm",Vector3(side*0.48,0.95,0))
+			V.ellipsoid(arm,WHITE,Vector3(0,-0.25,0),Vector3(0.15,0.4,0.18))
 		eyes(root,0.2,1.3,0.43)
 		V.ellipsoid(root, WHITE, Vector3(0,1.12,0.43),Vector3(0.25,0.16,0.18))
 		V.ellipsoid(root, INK, Vector3(0,1.17,0.57),Vector3(0.09,0.065,0.05))

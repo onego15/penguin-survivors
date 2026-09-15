@@ -9,6 +9,8 @@ var support_star := false
 
 
 func _ready() -> void:
+	preload("res://scripts/combat_visuals.gd").tail(self)
+	rotation.y=atan2(direction.x,direction.z)
 	if support_star:
 		for index in range(5):
 			var angle := index * TAU / 5

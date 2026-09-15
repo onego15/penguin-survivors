@@ -20,7 +20,7 @@ const STATS := [
 	{"health": 10, "speed": 0.65, "radius": 0.8, "damage": 10, "color": Color("ccad79")},
 ]
 const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ"]
-const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "周囲を加速"]
+const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "前方を角で薙ぎ払い"]
 static func cost(type: int) -> int:
 	return 3 if type == Kind.DEER else (2 if type >= Kind.OWL else 1)
 
@@ -41,7 +41,7 @@ var hop_direction := Vector3.ZERO
 var charge_state := ChargeState.APPROACH
 var state_time := 0.0
 var charge_direction := Vector3.ZERO
-var charge_marker: MeshInstance3D
+var charge_marker: Node3D
 var health_fill: MeshInstance3D
 var health_bar: Node3D
 var hurt_time := 0.0
@@ -75,9 +75,7 @@ func _ready() -> void:
 	if is_miniboss:
 		health_bar.position.y = 4.0
 	if kind == Kind.BOAR:
-		var marker := BoxMesh.new()
-		marker.size = Vector3(0.18, 0.035, 5.0)
-		charge_marker = Visuals.mesh(self, marker, Color("ffb452"))
+		charge_marker = preload("res://scripts/combat_visuals.gd").warning(self,hit_radius,6.0)
 		charge_marker.visible = false
 
 
@@ -120,16 +118,7 @@ func _physics_process(delta: float) -> void:
 				motion += separation / gap * 0.6
 	if distance < 0.15 and kind != Kind.BOAR:
 		motion = Vector3.ZERO
-	_move_and_contact(delta, motion * aura_multiplier())
-
-
-func aura_multiplier() -> float:
-	if is_miniboss or is_in_group("final_bosses"):
-		return 1.0
-	for deer in get_tree().get_nodes_in_group("deer_aura"):
-		if deer != self and not deer.dead and global_position.distance_to(deer.global_position) <= 5.0:
-			return 1.2
-	return 1.0
+	_move_and_contact(delta, motion)
 
 
 func _move_and_contact(delta: float, motion: Vector3) -> void:
@@ -160,6 +149,7 @@ func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
 				return Vector3.ZERO
 			return toward * speed * STATS[kind].speed
 		ChargeState.WINDUP:
+			preload("res://scripts/combat_visuals.gd").progress(charge_marker,1-state_time/windup_duration)
 			if state_time >= windup_duration:
 				charge_state = ChargeState.CHARGE
 				state_time = 0.0

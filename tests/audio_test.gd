@@ -11,8 +11,8 @@ func run() -> void:
 	current_scene = game
 	game.set_physics_process(false)
 	var sound = game.sound
-	check(sound.track == "snowfield" and sound.music.playing and sound.clips.size() == 20, "Music and all eighteen effects load and start")
-	for id in ["snowfield", "boss"]:
+	check(sound.track == "snowfield" and sound.music.playing and sound.clips.size() == 27, "Five music tracks and twenty-two effects load and start")
+	for id in sound.MUSIC:
 		check(sound.clips[id].loop_mode == AudioStreamWAV.LOOP_FORWARD and sound.clips[id].loop_end > 0, "Music has a full-length loop: " + id)
 	for i in range(100): sound.play_effect("shot")
 	var count := 0
@@ -36,7 +36,14 @@ func run() -> void:
 	game.active_boss.take_damage(9999)
 	check(sound.track == "snowfield", "Miniboss defeat restores field music")
 	game._start_final_boss()
-	check(sound.track == "boss", "Final duel uses boss music")
+	game._finish_presentation()
+	check(sound.track == "final_boss", "Final duel uses dedicated music")
+	check(sound.clips.final_boss.get_length()==48 and sound.clips.final_boss_phase2.get_length()==48,"Both final-boss arrangements have identical 48-second loops")
+	sound.music.seek(12)
+	sound.set_track("final_boss_phase2")
+	check(absf(sound.music.get_playback_position()-sound.fading.get_playback_position())<0.1,"Crossfade preserves playback position")
+	sound._process(0.8)
+	check(not sound.fading.playing and sound.music.volume_db==0,"Crossfade completes after 0.8 seconds")
 	sound.finish(true)
 	check(not sound.music.playing and sound.cues.stream == sound.clips.victory, "Victory stops the loop and plays its ending")
 	sound.finish(false)

@@ -14,8 +14,10 @@ func _ready() -> void:
 	add_to_group("hostile_projectiles")
 	if regular:
 		add_to_group("regular_projectiles")
-	V.ellipsoid(self, tint, Vector3.ZERO, Vector3(0.22, 0.22, 0.34))
-	V.ring(self, Color("f6d3ff"), Vector3.ZERO, 0.26, 0.035, true)
+	var c=preload("res://scripts/combat_visuals.gd")
+	c.ink(V.ellipsoid(self,Color("ff573c"),Vector3.ZERO,Vector3(0.22,0.22,0.34)))
+	c.ink(V.ring(self,Color("3a2033"),Vector3.ZERO,0.28,0.075,true))
+	c.ink(V.rod(self,Color("ff573c"),Vector3(0,0,-0.9),Vector3.ZERO,0.01,0.16))
 	rotation.y = atan2(direction.x, direction.z)
 
 

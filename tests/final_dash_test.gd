@@ -12,6 +12,7 @@ func run() -> void:
 	game.set_physics_process(false)
 	game.player.set_physics_process(false)
 	game._start_final_boss()
+	game._finish_presentation()
 	var boss = game.active_boss
 	boss.set_physics_process(false)
 	boss.position = Vector3.ZERO
@@ -49,6 +50,9 @@ func run() -> void:
 	boss.recovery_left = 0
 	boss.position = Vector3.ZERO
 	boss.health = 700
+	boss._enter_phase_two()
+	game._finish_presentation()
+	boss.phase_attack_index=2
 	game.player.position = Vector3(0, 0, 8)
 	boss.attack_index = 5
 	boss.attack_cooldown = 0

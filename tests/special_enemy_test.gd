@@ -40,7 +40,7 @@ func run() -> void:
 	game.player.position.x=8
 	wolf._physics_process(0.81)
 	wolf._physics_process(0.51)
-	check(wolf.special_state=="recover" and game.player.health==100,"Wolf commits to a dodgeable five-metre lunge and rests")
+	check(wolf.special_state=="move" and game.player.health==100,"Wolf never charges even after its former attack cooldown")
 	clean()
 	var skunk=enemy(6,Vector3.ZERO)
 	game.player.position.x=6
@@ -68,10 +68,16 @@ func run() -> void:
 	var mole=enemy(8)
 	mole.cooldown=0
 	mole._physics_process(0.01)
+	check(mole.special_state=="dig" and mole.targetable and mole.model.visible,"Mole visibly digs while still targetable")
+	mole.take_damage(1)
+	mole._physics_process(0.2)
+	check(mole.model.position.y<0 and mole.targetable,"Mole sinks during its 0.4 second vulnerable transition")
+	mole._physics_process(0.2)
+	check(mole.special_state=="warn" and mole.timer==1.2,"Full burrowing starts a fresh 1.2 second warning")
 	var hp_before: int=mole.health
 	mole.take_damage(99)
 	check(not mole.targetable and not mole.is_in_group("enemies") and mole.is_in_group("all_enemies") and mole.health==hp_before and game.armory.nearest(Vector3.ZERO,12)==null,"Buried mole remains counted but cannot be targeted or damaged")
-	game.player.position.x=5
+	game.player.position=Vector3(15,0,15)
 	mole._physics_process(1.21)
 	check(mole.targetable and mole.timer==2 and game.player.health==100,"Mole emerges at its locked marker and is exposed for two seconds")
 	mole.take_damage(1)
@@ -80,13 +86,13 @@ func run() -> void:
 	var deer1=enemy(9,Vector3(2,0,0))
 	var deer2=enemy(9,Vector3(-2,0,0))
 	var fox=enemy(0,Vector3.ZERO)
-	check(fox.aura_multiplier()==1.2,"Overlapping deer auras apply only one 20% boost")
+	check(not fox.has_method("aura_multiplier") and get_nodes_in_group("deer_aura").is_empty(),"Deer no longer applies any movement aura")
 	var boss=game.spawn_enemy(-1,true)
 	boss.position=Vector3.ZERO
-	check(boss.aura_multiplier()==1,"Deer aura does not accelerate bosses")
+	check(not boss.has_method("aura_multiplier"),"Boss movement has no deer multiplier")
 	deer1.position.x=10
 	deer2.position.x=-10
-	check(fox.aura_multiplier()==1,"Leaving the aura removes the boost")
+	check(not deer1.has_node("ActiveDanger"),"Deer has no surrounding area marker")
 	clean()
 	var special=enemy(4)
 	check(special.max_health==roundi(4*sqrt(game.Difficulty.profile(300).hp)),"Special enemies use square-root HP scaling")
@@ -108,8 +114,8 @@ func run() -> void:
 		wolves.append(node)
 	var warning_count:=0
 	for node in wolves:
-		if node.special_state=="warn": warning_count+=1
-	check(warning_count==2,"Only two wolves can commit to a lunge simultaneously")
+		if node.special_state in ["warn","dig"]: warning_count+=1
+	check(warning_count==0,"Wolves never enter a telegraphed charge")
 	clean()
 	for i in range(3):
 		var node=enemy(8,Vector3(i,0,-6))
@@ -117,8 +123,18 @@ func run() -> void:
 		node._physics_process(0.01)
 	warning_count=0
 	for node in get_nodes_in_group("all_enemies"):
-		if node.special_state=="warn": warning_count+=1
+		if node.special_state in ["warn","dig"]: warning_count+=1
 	check(warning_count==1,"Only one mole can mark an emergence simultaneously")
+	clean()
+	wolf=enemy(5,Vector3(0,0,-4.5))
+	var initial_distance: float=wolf.position.length()
+	for i in range(120): wolf._physics_process(0.01)
+	check(wolf.position.length()<initial_distance-0.5,"Circling wolf closes on a stationary player")
+	wolf.position=Vector3(22.99,0,0)
+	game.player.position=Vector3(22.99,0,4)
+	wolf.flank_side=-1
+	wolf._physics_process(0.1)
+	check(wolf.flank_side==1,"Wolf reverses its flank at the arena edge")
 	print("SPECIAL ENEMY TEST: %d failure(s)" % failures)
 	game.queue_free()
 	await create_timer(0.3).timeout

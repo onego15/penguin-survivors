@@ -31,7 +31,7 @@ func _ready() -> void:
 	visual = V.pivot(self, "AttackVisual")
 	match mode:
 		"lightning":
-			ring = V.ring(visual, tint, Vector3(0, 0.05, 0), area_radius, 0.045)
+			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
 			lightning_visual = V.pivot(visual, "LightningColumn")
 			var points := [Vector3(0, 7, 0), Vector3(0.4, 5, 0), Vector3(-0.3, 3, 0.1), Vector3(0.25, 1.5, 0), Vector3.ZERO]
 			for index in range(points.size() - 1):
@@ -39,13 +39,13 @@ func _ready() -> void:
 			V.ellipsoid(lightning_visual, Color("fff7bc"), Vector3(0, 0.15, 0), Vector3(0.6, 0.15, 0.6))
 			lightning_visual.hide()
 		"meteor", "rear_bomb":
-			ring = V.ring(visual, tint, Vector3(0, 0.05, 0), area_radius, 0.055)
+			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
 			falling_ball = V.ellipsoid(visual, tint, Vector3(0, 6, 0), Vector3.ONE * 0.4)
 			if mode == "rear_bomb":
 				falling_ball.position = launch_origin - position
 				V.ring(falling_ball, Color("fff4be"), Vector3.ZERO, 1.15, 0.08, true)
 		"nova", "storm", "mine", "orbit":
-			ring = V.ring(visual, tint, Vector3(0, 0.05, 0), 1.0, 0.045)
+			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, 1.0)
 			if mode == "mine":
 				V.ellipsoid(visual, tint, Vector3(0, 0.2, 0), Vector3(0.28, 0.25, 0.28))
 				V.ellipsoid(visual, Color("775340"), Vector3(0, 0.38, 0), Vector3(0.31, 0.1, 0.31))
@@ -66,6 +66,7 @@ func _ready() -> void:
 				V.rod(visual, tint, Vector3(0, 0, -0.45 if piercing else -0.2), Vector3(0, 0, 0.6), 0.16, 0)
 				V.rod(visual, Color("fff0cf"), Vector3(0, 0, -0.7), Vector3(0, 0, 0), 0.045)
 	if mode == "bolt" or mode == "boomerang":
+		preload("res://scripts/combat_visuals.gd").tail(visual)
 		visual.rotation.y = atan2(direction.x, direction.z)
 
 

@@ -19,7 +19,7 @@ func _ready() -> void:
 			lifetime = 4.0
 			area_radius = 1.25
 			position.y = 0
-			V.ring(visual, tint, Vector3(0, 0.08, 0), area_radius, 0.07)
+			preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
 			for i in range(5):
 				V.rod(visual, tint, Vector3((i - 2) * 0.35, 0, 0), Vector3((i - 2) * 0.35, 0.6, 0), 0.18, 0)
 		"bounce":
@@ -49,8 +49,12 @@ func _ready() -> void:
 			prism.length = beam_length
 			visual.add_child(prism)
 
+	if mode in ["bounce","seeker"]:
+		preload("res://scripts/combat_visuals.gd").tail(visual)
+
 func _physics_process(delta: float) -> void:
 	age += delta
+	if mode in ["bounce","seeker"]: visual.rotation.y=atan2(direction.x,direction.z)
 	match mode:
 		"whip":
 			global_position = player.global_position + Vector3.UP

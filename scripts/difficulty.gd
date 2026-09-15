@@ -20,7 +20,7 @@ const BOSS_REST := 8.0
 
 static func xp_for_level(level: int) -> int:
 	var step := maxi(0, level - 1)
-	return 12 + 8 * step + 2 * step * step
+	return 12 + 8 * step + ceili(1.3 * step * step)
 
 
 static func profile(seconds: float) -> Dictionary:

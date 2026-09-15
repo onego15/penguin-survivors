@@ -33,7 +33,7 @@ func run() -> void:
 			monotonic = monotonic and current[key] >= previous[key]
 	check(monotonic, "Enemy numbers, health and speed rise monotonically over fifteen minutes")
 	check(D.profile(0).rate < 0.4 and D.profile(0).cap == 10 and D.profile(540).rate == 5 and D.profile(540).cap == 100, "Opening is sparse; late game has a bounded dense population")
-	check(D.xp_for_level(1) == 12 and D.xp_for_level(2) == 22 and D.xp_for_level(3) == 36 and D.xp_for_level(4) == 54, "Weapon XP costs grow faster than the original 5/8/11 progression")
+	check(D.xp_for_level(1) == 12 and D.xp_for_level(2) == 22 and D.xp_for_level(3) == 34 and D.xp_for_level(4) == 48, "Weapon XP costs grow faster than the original 5/8/11 progression")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game

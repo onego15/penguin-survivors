@@ -1,6 +1,10 @@
 extends Node
 ## Original generated music and bounded, rate-limited sound effects.
-const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave"]
+const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact"]
+const MUSIC := ["snowfield","boss","final_boss","final_boss_phase2","celebration"]
+var fading: AudioStreamPlayer
+var fade_left := 0.0
+var celebration_left := -1.0
 var music: AudioStreamPlayer
 var voices: Array[AudioStreamPlayer] = []
 var cues: AudioStreamPlayer
@@ -22,6 +26,9 @@ func _ready() -> void:
 	music = AudioStreamPlayer.new()
 	music.bus = "Music"
 	add_child(music)
+	fading=AudioStreamPlayer.new()
+	fading.bus="Music"
+	add_child(fading)
 	cues = AudioStreamPlayer.new()
 	cues.bus = "SFX"
 	add_child(cues)
@@ -31,9 +38,9 @@ func _ready() -> void:
 		voice.volume_db = -8
 		add_child(voice)
 		voices.append(voice)
-	for id in EFFECTS + ["snowfield", "boss"]:
+	for id in EFFECTS + MUSIC:
 		var clip: AudioStreamWAV = load("res://assets/audio/%s.wav" % id)
-		if id in ["snowfield", "boss"]:
+		if id in MUSIC:
 			clip = clip.duplicate()
 			clip.loop_mode = AudioStreamWAV.LOOP_FORWARD
 			clip.loop_begin = 0
@@ -50,7 +57,21 @@ func _ready() -> void:
 	set_track("snowfield")
 
 func _process(delta: float) -> void:
-	music.volume_db = move_toward(music.volume_db, -10.0 if get_tree().paused else 0.0, delta * 30)
+	if fade_left>0:
+		fade_left=maxf(0,fade_left-delta)
+		music.volume_db=linear_to_db(maxf(0.001,1-fade_left/0.8))
+		fading.volume_db=linear_to_db(maxf(0.001,fade_left/0.8))
+		if fade_left<=0: fading.stop()
+	else:
+		music.volume_db = move_toward(music.volume_db, -10.0 if get_tree().paused else 0.0, delta * 30)
+	if celebration_left>=0:
+		celebration_left-=delta
+		if celebration_left<=0:
+			celebration_left=-1
+			track="celebration"
+			music.stream=clips.celebration
+			music.volume_db=0
+			music.play()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -66,14 +87,25 @@ func _refresh_status() -> void:
 func set_track(id: String) -> void:
 	if ended or id == track:
 		return
+	var offset:=0.0
+	if id=="final_boss_phase2" and track=="final_boss":
+		offset=fmod(music.get_playback_position(),clips[id].get_length())
+		fading.stream=music.stream
+		fading.volume_db=0
+		fading.play(offset)
+		fade_left=0.8
+	else:
+		fading.stop()
+		fade_left=0
 	track = id
+	music.volume_db=-60 if fade_left>0 else 0
 	music.stream = clips[id]
-	music.play()
+	music.play(offset)
 
 func play_effect(id: String) -> void:
 	if not clips.has(id):
 		return
-	var important := id in ["level_up", "choose", "warning", "victory", "game_over", "hurt"]
+	var important := id in ["level_up", "choose", "warning", "victory", "game_over", "hurt", "support_arrive", "support_join", "boss_roar", "boss_transform", "quake_charge", "quake_impact"]
 	if ended and id not in ["victory", "game_over"]:
 		return
 	var now := Time.get_ticks_msec()
@@ -94,12 +126,15 @@ func play_effect(id: String) -> void:
 func finish(won: bool) -> void:
 	ended = true
 	music.stop()
+	fading.stop()
+	fade_left=0
+	celebration_left=clips.victory.get_length() if won else -1
 	for voice in voices:
 		voice.stop()
 	play_effect("victory" if won else "game_over")
 
 func _exit_tree() -> void:
-	for voice in voices + [music, cues]:
+	for voice in voices + [music, fading, cues]:
 		voice.stop()
 		voice.stream = null
 	clips.clear()

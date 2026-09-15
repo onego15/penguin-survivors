@@ -5,8 +5,16 @@ var active: Node3D
 var next_at := 0.0
 var bag: Array[int] = []
 var last_kind := -1
+var notice: Control
 func _ready() -> void:
 	next_at=game.elapsed+game.rng.randf_range(75,95)
+	var layer:=CanvasLayer.new()
+	layer.layer=2
+	add_child(layer)
+	notice=preload("res://scripts/support_notice.gd").new()
+	notice.manager=self
+	layer.add_child(notice)
+	notice.hide()
 func draw_kind() -> int:
 	if bag.is_empty():
 		bag.assign([0,1,2])
@@ -21,7 +29,10 @@ func draw_kind() -> int:
 			bag[2]=value
 	last_kind=bag.pop_back()
 	return last_kind
+func announce(joined: bool) -> void:
+	notice.announce(joined)
 func tick(delta: float) -> void:
+	notice.refresh(delta)
 	if game.game_over or game.victory or game.player.health<=0:
 		clear()
 		return
@@ -46,6 +57,7 @@ func spawn_friend(kind: int, point: Vector3) -> Node3D:
 	active.kind=kind
 	active.position=point
 	add_child(active)
+	announce(false)
 	game.sound.play_effect("support_arrive")
 	return active
 func position_safe(point: Vector3) -> bool:
@@ -78,6 +90,8 @@ func find_safe_position() -> Vector3:
 func begin_final() -> void:
 	if is_instance_valid(active) and active.state=="waiting": clear()
 func clear() -> void:
+	notice.hide()
+	notice.banner_left=0
 	game.player.support_damage_multiplier=1.0
 	if is_instance_valid(active):
 		active.queue_free()

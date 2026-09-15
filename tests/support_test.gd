@@ -52,11 +52,22 @@ func run() -> void:
 	game.last_event_at=0
 	manager.tick(0.1)
 	check(is_instance_valid(manager.active),"Support arrives when the event grace period has ended")
+	check(manager.notice.visible and manager.notice.banner_left==4,"Arrival displays a four-second banner")
 	manager.clear()
 	await process_frame
 	var unattended=manager.spawn_friend(0,Vector3(7,0,0))
-	unattended.tick(20)
-	check(unattended.state=="leaving" and game.player.health==100,"Unrecruited support leaves after twenty seconds without penalty")
+	game.camera.size=12
+	unattended.position=Vector3(23,0,0)
+	manager.notice.refresh(0)
+	check(manager.notice.guide.visible,"An off-screen support has a directional portrait guide")
+	unattended.position=Vector3(7,0,0)
+	game.camera.size=20
+	manager.notice.refresh(0)
+	check(not manager.notice.guide.visible,"The guide hides when the support is on-screen")
+	unattended.tick(29)
+	check(unattended.state=="waiting","Unrecruited support remains for the first 29 seconds")
+	unattended.tick(1)
+	check(unattended.state=="leaving" and game.player.health==100,"Unrecruited support leaves after thirty seconds without penalty")
 	manager.clear()
 	await process_frame
 	var friend=manager.spawn_friend(0,Vector3(7,0,0))
@@ -66,19 +77,20 @@ func run() -> void:
 	game.player.position=Vector3(6,0,0)
 	friend.tick(0.01)
 	check(friend.state=="following" and game.player.health==75,"Approaching within two metres recruits and heals immediately")
-	friend.tick(9)
-	check(game.player.health==90,"Bird heals exactly twenty HP across four pulses")
-	friend.tick(3)
-	check(friend.state=="leaving","Support ends after twelve active seconds")
+	check(manager.notice.joined and manager.notice.banner_left==3 and not friend.beacon.visible,"Recruitment changes the banner and removes the waiting beacon")
+	friend.tick(24)
+	check(game.player.health==95,"Bird heals exactly twenty-five HP across five pulses")
+	friend.tick(6)
+	check(friend.state=="leaving","Support ends after thirty active seconds")
 	manager.tick(0.51)
 	check(not is_instance_valid(manager.active) and manager.next_at-game.elapsed>=110 and manager.next_at-game.elapsed<=140,"Next visit starts 110-140 seconds after departure")
 	friend=manager.spawn_friend(0,game.player.position)
 	game.player.health=100
 	friend.recruit()
-	friend.tick(3)
+	friend.tick(6)
 	check(game.player.health==100,"Healing does not accumulate above maximum")
 	game.player.health=0
-	friend.tick(3)
+	friend.tick(6)
 	check(game.player.health==0,"Healing cannot revive the defeated player")
 	manager.clear()
 	await process_frame
@@ -95,14 +107,16 @@ func run() -> void:
 	game.experience=game.xp_needed
 	game.open_weapon_choice()
 	var remaining: float=friend.remaining
+	var banner_before: float=manager.notice.banner_left
 	game.set_physics_process(true)
 	await create_timer(0.1).timeout
-	check(friend.remaining==remaining,"Weapon selection freezes the support duration")
+	check(friend.remaining==remaining and manager.notice.banner_left==banner_before,"Weapon selection freezes support duration and announcement")
 	game.set_physics_process(false)
 	game.choose_weapon(0)
 	game._start_final_boss()
+	game._finish_presentation()
 	check(manager.active==friend and game.player.support_damage_multiplier==0.7,"Recruited support survives the final-boss transition")
-	friend.tick(12)
+	friend.tick(30)
 	check(game.player.support_damage_multiplier==1,"Bear reduction is removed on expiry")
 	manager.clear()
 	await process_frame

@@ -15,6 +15,7 @@ const MAX_ENEMIES := 100
 var player: CharacterBody3D
 var actors: Node3D
 var camera: Camera3D
+var hud_layer: CanvasLayer
 var hud: Label
 var game_over_label: Label
 var kills := 0
@@ -44,13 +45,15 @@ var boss_bar: ProgressBar
 var final_boss_spawned := false
 var final_boss_defeated := false
 var victory := false
+var run_state := "combat"
+var presentation: Node3D
+var victory_screen: CanvasLayer
 var end_backdrop: ColorRect
 var sound: Node
 var director: RefCounted
 var support: Node
 var last_event_at := -100.0
 var wave_hint: Label
-var support_label: Label
 
 
 func _ready() -> void:
@@ -102,6 +105,7 @@ func _setup_arena() -> void:
 
 func _setup_hud() -> void:
 	var layer := CanvasLayer.new()
+	hud_layer=layer
 	add_child(layer)
 	var panel := ColorRect.new()
 	panel.position = Vector2(16, 16)
@@ -154,16 +158,21 @@ func _setup_hud() -> void:
 	phase_label.add_theme_font_override("font", japanese_font)
 	phase_label.add_theme_font_size_override("font_size", 20)
 	phase_label.add_theme_color_override("font_color", Color("233f50"))
+	phase_label.size.x=440
+	phase_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	layer.add_child(phase_label)
 	boss_label = Label.new()
 	boss_label.position = Vector2(450, 52)
 	boss_label.add_theme_font_override("font", japanese_font)
 	boss_label.add_theme_font_size_override("font_size", 20)
 	boss_label.add_theme_color_override("font_color", Color("523944"))
+	boss_label.size.x=440
+	boss_label.add_theme_font_size_override("font_size",17)
+	boss_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	layer.add_child(boss_label)
 	boss_bar = ProgressBar.new()
-	boss_bar.position = Vector2(450, 84)
-	boss_bar.size = Vector2(570, 16)
+	boss_bar.position = Vector2(450, 98)
+	boss_bar.size = Vector2(440, 16)
 	boss_bar.show_percentage = false
 	_style_bar(boss_bar, Color("e98665"))
 	layer.add_child(boss_bar)
@@ -181,17 +190,13 @@ func _setup_hud() -> void:
 	game_over_label.visible = false
 	layer.add_child(game_over_label)
 	wave_hint=Label.new()
-	wave_hint.position=Vector2(450,112)
+	wave_hint.position=Vector2(450,136)
 	wave_hint.add_theme_font_override("font",japanese_font)
 	wave_hint.add_theme_font_size_override("font_size",16)
 	wave_hint.add_theme_color_override("font_color",Color("234758"))
+	wave_hint.size.x=440
+	wave_hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	layer.add_child(wave_hint)
-	support_label=Label.new()
-	support_label.position=Vector2(450,144)
-	support_label.add_theme_font_override("font",japanese_font)
-	support_label.add_theme_font_size_override("font_size",16)
-	support_label.add_theme_color_override("font_color",Color("176554"))
-	layer.add_child(support_label)
 	var legend := Label.new()
 	legend.text = "PENGUIN SURVIVORS  /  10 WAVES  /  3 FRIENDS"
 	legend.add_theme_font_size_override("font_size", 16)
@@ -215,10 +220,11 @@ func _style_bar(bar: ProgressBar, color: Color) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if run_state in ["boss_intro","phase_transition"]: return
 	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE and (game_over or victory):
 		get_tree().change_scene_to_file("res://scenes/title.tscn")
 		return
-	if event is InputEventMouseButton and event.pressed:
+	if event is InputEventMouseButton and event.pressed and not (game_over or victory):
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			camera.size = maxf(12.0, camera.size - 1.5)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -232,6 +238,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if player.health <= 0:
 		game_over = true
+		run_state="dead"
+		_cancel_presentation()
 		support.clear()
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
@@ -242,19 +250,25 @@ func _physics_process(delta: float) -> void:
 		return
 	if final_boss_defeated:
 		victory = true
+		run_state="victory"
+		_cancel_presentation()
 		support.clear()
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
-		end_backdrop.show()
-		game_over_label.text = "VICTORY!\n%d defeated  /  %02d:%02d\nR: Play again   /   Esc: Title" % [kills, int(elapsed) / 60, int(elapsed) % 60]
-		game_over_label.show()
+		victory_screen=preload("res://scripts/victory_screen.gd").new()
+		victory_screen.results={"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true)}
+		victory_screen.play_again.connect(func(): get_tree().reload_current_scene())
+		victory_screen.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
+		add_child(victory_screen)
 		_update_hud()
 		return
+	if run_state!="combat": return
 	if experience >= xp_needed:
 		open_weapon_choice()
 		return
 	elapsed += delta
 	_tick_director(delta)
+	if run_state!="combat": return
 	support.tick(delta)
 	fire_cooldown -= delta
 	if fire_cooldown <= 0.0:
@@ -332,10 +346,11 @@ func _tick_director(delta: float) -> void:
 
 
 func _start_final_boss() -> void:
+	if final_boss_spawned: return
 	notify_event()
 	support.begin_final()
-	sound.set_track("boss")
-	sound.play_effect("warning")
+	sound.set_track("final_boss")
+	sound.play_effect("boss_roar")
 	# Transition to a duel without treating removed enemies as defeated rewards.
 	for actor in actors.get_children():
 		if actor == player:
@@ -351,7 +366,9 @@ func _start_final_boss() -> void:
 	var inward: Vector3 = -player.position.normalized() if player.position.length() > 0.1 else Vector3.FORWARD
 	active_boss.position = player.position + inward * 14.0
 	active_boss.defeated.connect(_on_final_boss_defeated)
+	active_boss.phase_changed.connect(_on_phase_changed)
 	actors.add_child(active_boss)
+	_begin_presentation("boss_intro")
 
 
 func _on_final_boss_defeated() -> void:
@@ -399,7 +416,7 @@ func _on_enemy_defeated(amount := 1) -> void:
 
 
 func open_weapon_choice() -> void:
-	if choice_open or game_over or victory or final_boss_defeated or player.health <= 0 or experience < xp_needed:
+	if run_state!="combat" or choice_open or game_over or victory or final_boss_defeated or player.health <= 0 or experience < xp_needed:
 		return
 	var pool: Array[String] = []
 	for id in Catalog.ITEMS:
@@ -449,9 +466,9 @@ func _update_hud() -> void:
 	if director!=null:
 		wave_hint.text = director.WAVES[director.wave].hint if director.wave>=0 else ""
 		if elapsed<director.notification_until: wave_hint.text=director.notice
-		if final_boss_spawned: wave_hint.text="冬の王を倒そう / 予告を見て回避"
+		if final_boss_spawned:
+			wave_hint.text="大氷震：範囲の外へ！" if is_instance_valid(active_boss) and active_boss.attack_kind=="quake" and active_boss.warning_left>0 else "冬の王を倒そう / 予告を見て回避"
 		elif not choice_open: wave_hint.text += "  /  次Wave %d秒" % maxi(0,60-int(elapsed)%60)
-	if support!=null: support_label.text=support.status_text()
 	phase_label.text = "WAVE %d  /  %s" % [profile.phase, profile.name]
 	if final_boss_spawned:
 		phase_label.text = "FINAL BATTLE  /  冬の王" if not victory else "CLEAR  /  冬の王を討伐！"
@@ -477,3 +494,41 @@ func _update_hud() -> void:
 
 func notify_event() -> void:
 	last_event_at=elapsed
+
+func _on_phase_changed() -> void:
+	if player.health<=0 or final_boss_defeated: return
+	for bolt in get_tree().get_nodes_in_group("hostile_projectiles"):
+		bolt.process_mode=Node.PROCESS_MODE_DISABLED
+		bolt.queue_free()
+	sound.set_track("final_boss_phase2")
+	sound.play_effect("boss_transform")
+	_begin_presentation("phase_transition")
+func _begin_presentation(state: String) -> void:
+	if is_instance_valid(presentation): return
+	run_state=state
+	hud_layer.hide()
+	actors.process_mode=Node.PROCESS_MODE_DISABLED
+	player.cinematic_locked=true
+	active_boss.cinematic_locked=true
+	presentation=preload("res://scripts/boss_presentation.gd").new()
+	presentation.game=self
+	add_child(presentation)
+	_update_hud()
+func _process(delta: float) -> void:
+	if is_instance_valid(presentation):
+		presentation.tick(delta)
+		if presentation.time>=2: _finish_presentation()
+func _finish_presentation() -> void:
+	if not is_instance_valid(presentation): return
+	_cancel_presentation()
+	if game_over or victory or player.health<=0: return
+	run_state="combat"
+	actors.process_mode=Node.PROCESS_MODE_INHERIT
+	player.cinematic_locked=false
+	if is_instance_valid(active_boss): active_boss.cinematic_locked=false
+func _cancel_presentation() -> void:
+	hud_layer.show()
+	if is_instance_valid(presentation):
+		presentation.restore()
+		presentation.queue_free()
+		presentation=null

@@ -60,6 +60,43 @@ def jingle(name,notes,beat):
     buf=[0.] * int((len(notes)*beat+.6)*RATE)
     for i,p in enumerate(notes): add(buf,i*beat,.5,note(p),.35)
     write(name,buf)
+def finale_music(name, phase_two=False, celebration=False):
+    # 24 bars at 120 BPM = 48 seconds; phase arrangements share harmony and timing.
+    beat = .5
+    buf = [0.] * (48 * RATE)
+    roots = [50, 46, 53, 45, 48, 45] if not celebration else [62, 67, 69, 65, 62, 69]
+    motif = [0, 7, 12, 10, 7, 3, 5, 7]
+    for bar in range(24):
+        root = roots[(bar//2) % len(roots)]
+        third = 4 if celebration else 3
+        for pitch in [root+12, root+12+third, root+19]:
+            add(buf, bar*4*beat, 1.96, note(pitch), .04, 'pad')
+        for b in range(4):
+            t=(bar*4+b)*beat
+            add(buf,t,.38,note(root+(7 if b==3 else 0)),.13,'bass')
+            add(buf,t,.22,55,.18 if phase_two else .12,'kick')
+            if b%2: add(buf,t,.12,0,.055,'noise')
+            steps=4 if phase_two else 2
+            for sub in range(steps):
+                add(buf,t+sub*beat/steps,.04,0,.025,'noise')
+            pitch=root+24+motif[(bar+b*2)%8]
+            if celebration and pitch==root+27: pitch+=1
+            add(buf,t,.36,note(pitch),.10,'bell')
+            if phase_two:
+                add(buf,t+.25,.23,note(root+36+motif[(bar+b*2+1)%8]),.065,'bell')
+    write(name,buf)
+
+def generate_finale():
+    rng.seed(829)
+    finale_music('final_boss')
+    rng.seed(829)
+    finale_music('final_boss_phase2',True)
+    finale_music('celebration',celebration=True)
+    sweep('boss_roar',1.4,95,42,.45,.6)
+    sweep('boss_transform',1.6,70,370,.35,.5)
+    sweep('quake_charge',3.0,90,580,.18,.4)
+    sweep('quake_impact',.8,130,30,.7,.65)
+
 if __name__=='__main__':
     music('snowfield')
     music('boss',True)
@@ -75,3 +112,5 @@ if __name__=='__main__':
     jingle("support_heal",[86,91],.10)
     jingle("support_guard",[62,69,74],.09)
     jingle("support_leave",[86,83,79],.08)
+
+    generate_finale()

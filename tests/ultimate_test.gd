@@ -15,6 +15,20 @@ func run() -> void:
 	check(not u.activate(),"Requires 200 reward XP")
 	u.reward(100)
 	check(u.charge==200,"Full gauge discards overflow")
+	game.run_state="phase_transition"
+	u._process(1)
+	check(u.ready_notifications==0 and u.ready_pending,"Ready cue waits for combat after cinematics")
+	game.run_state="combat"
+	u._process(0.01)
+	check(u.ready_notifications==1 and u.notice.visible and u.ready_audio.playing,"Full gauge announces visually and audibly")
+	u.reward(20)
+	u._process(0.1)
+	check(u.ready_notifications==1,"Full gauge does not repeat notifications on every kill")
+	var notice_time: float=u.notice_left
+	game.choice_open=true
+	u._process(2)
+	check(u.notice_left==notice_time,"Selection freezes readiness notice")
+	game.choice_open=false
 	var near=game.spawn_enemy(0)
 	near.position=Vector3(4,0,0)
 	var far=game.spawn_enemy(0)
@@ -26,6 +40,12 @@ func run() -> void:
 	game.actors.add_child(cloud)
 	var xp: int=game.experience
 	check(u.activate(),"Ready activation")
+	check(not u.notice.visible and not u.ready_audio.playing,"Activation clears ready notice")
+	for child in game.actors.get_children():
+		if child.get_script()==preload("res://scripts/ultimate_visual.gd"):
+			var geometry: int=child.get_child_count()
+			for i in range(22): child.animate(i*0.1,2.2)
+			check(child.get_child_count()==geometry and child.auto_lifetime==2.2,"Rich ultimate reuses fixed geometry for 2.2 seconds")
 	check(near.dead and not far.dead and not mole.dead,"Range and underground exclusion")
 	check(game.experience==xp+1 and u.charge==1 and u.uses==1,"Kills grant XP and next gauge")
 	check(cloud.is_queued_for_deletion() and not cloud.visible,"Cloud immediately disabled")

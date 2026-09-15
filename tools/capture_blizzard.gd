@@ -11,6 +11,7 @@ func run() -> void:
 	game.director.advance()
 	game.armory.acquire("nova")
 	game.ultimate.reward(200)
+	game.ultimate._process(0.1)
 	game._update_hud()
 	var deer=game.spawn_enemy(9)
 	deer.position=Vector3(-5,0,-5)
@@ -24,12 +25,14 @@ func run() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://docs/screenshots/chime-cold.png")
 	visual.free()
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://docs/screenshots/ultimate-ready.png")
 	game.ultimate.activate()
 	game.player._animate(0)
 	for child in game.actors.get_children():
-		if child.get_script()==preload("res://scripts/blizzard_visual.gd"):
+		if child.get_script()==preload("res://scripts/ultimate_visual.gd"):
 			child.set_physics_process(false)
-			child.animate(0.42,0.9)
+			child.animate(0.55,2.2)
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://docs/screenshots/emperor-blizzard.png")
 	game.queue_free()

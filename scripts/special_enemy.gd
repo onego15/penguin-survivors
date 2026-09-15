@@ -25,7 +25,7 @@ func _ready() -> void:
 	warning.hide()
 	if kind == Kind.DEER:
 		warning.free()
-		warning=C.sector_warning(self,3.0,PI/3)
+		warning=C.warning(self,1.2,14.0)
 		warning.hide()
 func _physics_process(delta: float) -> void:
 	if dead or not is_instance_valid(target): return
@@ -115,8 +115,11 @@ func _physics_process(delta: float) -> void:
 		_begin_warning(0.9)
 	elif kind == Kind.HEDGEHOG and distance<=12:
 		_begin_warning(1.0)
-	elif kind == Kind.DEER and distance<=3.5:
-		_begin_warning(1.0)
+	elif kind == Kind.DEER and distance<=12:
+		if get_tree().get_nodes_in_group("regular_projectiles").size()>=32: return
+		for other in get_tree().get_nodes_in_group("all_enemies"):
+			if other!=self and not other.dead and other.kind==Kind.DEER and other.get("special_state")=="warn": return
+		_begin_warning(1.2)
 	elif kind == Kind.MOLE:
 		special_state="dig"
 		timer=0.4
@@ -129,6 +132,7 @@ func _begin_warning(duration: float) -> void:
 	C.progress(warning,1.0)
 	warning.show()
 	if kind == Kind.DEER:
+		warning.position=locked*7+Vector3.UP*0.06
 		warning.rotation.y=atan2(locked.x,locked.z)
 		model.rotation.y=warning.rotation.y
 	if kind == Kind.OWL:
@@ -147,10 +151,16 @@ func _release() -> void:
 			for i in range(8): _fire(Vector3(sin(i*TAU/8),0,cos(i*TAU/8)))
 		cooldown=5
 	elif kind == Kind.DEER:
-		if antlers_contain(target.global_position): target.take_damage(roundi(14*damage_multiplier))
+		if get_tree().get_nodes_in_group("regular_projectiles").size()<32:
+			var wave:=preload("res://scripts/deer_shockwave.gd").new()
+			wave.target=target
+			wave.direction=locked
+			wave.position=position
+			wave.damage=roundi(12*damage_multiplier)
+			get_parent().add_child(wave)
 		special_state="recover"
 		timer=1.2
-		cooldown=3.0
+		cooldown=4.0
 	elif kind == Kind.MOLE:
 		global_position=landing
 		digging.position=Vector3.ZERO
@@ -198,8 +208,5 @@ func sample_landing(center: Vector3) -> Vector3:
 func antlers_contain(point: Vector3) -> bool:
 	var offset:=point-global_position
 	offset.y=0
-	if offset.length()>3.0+0.42: return false
-	if offset.length()<=0.42: return true
-	# Include the player's radius at the radial edges of the sector as well.
-	var angle:=acos(clampf(locked.dot(offset.normalized()),-1,1))
-	return angle<=PI/3+asin(minf(1,0.42/offset.length()))
+	var along:=offset.dot(locked)
+	return along>=-0.42 and along<=14.42 and absf(offset.dot(Vector3(-locked.z,0,locked.x)))<=1.62

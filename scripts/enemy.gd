@@ -20,7 +20,7 @@ const STATS := [
 	{"health": 10, "speed": 0.65, "radius": 0.8, "damage": 10, "color": Color("ccad79")},
 ]
 const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ"]
-const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "前方を角で薙ぎ払い"]
+const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波"]
 static func cost(type: int) -> int:
 	return 3 if type == Kind.DEER else (2 if type >= Kind.OWL else 1)
 

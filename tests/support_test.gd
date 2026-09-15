@@ -140,7 +140,7 @@ func run() -> void:
 	game.final_boss_spawned=true
 	manager.next_at=0
 	manager.tick(10)
-	check(not is_instance_valid(manager.active),"Final battle never spawns a new support")
+	check(not is_instance_valid(manager.active),"Normal schedule is suppressed during final battle (phase visits use their own director)")
 	game.final_boss_spawned=false
 	game.elapsed=570
 	manager.tick(1)

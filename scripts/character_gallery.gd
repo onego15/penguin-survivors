@@ -10,10 +10,10 @@ func _ready() -> void:
 	preload("res://scripts/arena.gd").build(self)
 	var camera:=Camera3D.new()
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
-	camera.size=20
+	camera.size=24
 	camera.position=Vector3(0,23,30)
 	add_child(camera)
-	camera.look_at(Vector3(0,0,1))
+	camera.look_at(Vector3(0,0,4))
 	camera.current=true
 	for kind in range(10):
 		var point:=Vector3((kind%5-2)*6,0,-7+floori(kind/5.0)*7)
@@ -35,10 +35,21 @@ func _ready() -> void:
 		_plinth(point,1.3,Color("7fdacb"))
 		_label("%s %s" % [Friend.ICONS[kind],Friend.NAMES[kind]],point+Vector3(0,0.2,1.65),34)
 		_label(["回復","防御","攻撃援護"][kind],point+Vector3(0,0,2.5),25)
+	for phase in [1,2]:
+		var point:=Vector3(-5 if phase==1 else 5,0,15)
+		var minion:=preload("res://scripts/boss_minion.gd").new()
+		minion.second_phase=phase==2
+		minion.position=point
+		add_child(minion)
+		minion.set_physics_process(false)
+		models.append(minion.model)
+		_plinth(point,1.3,Color("839cae"))
+		_label("氷アザラシ" if phase==1 else "氷ユキヒョウ",point+Vector3(0,0.2,1.65),34)
+		_label("第一形態：腹滑り追跡" if phase==1 else "第二形態：回り込み",point+Vector3(0,0,2.5),25)
 	var layer:=CanvasLayer.new()
 	add_child(layer)
 	var title:=Label.new()
-	title.text="PENGUIN SURVIVORS  /  10 ENEMIES + 3 FRIENDS"
+	title.text="PENGUIN SURVIVORS  /  10 ENEMIES + 2 BOSS MINIONS + 3 FRIENDS"
 	title.position=Vector2(32,22)
 	title.add_theme_font_size_override("font_size",25)
 	title.add_theme_color_override("font_color",Color("203e50"))

@@ -2,6 +2,7 @@ extends Node3D
 ## Temporary attacks share collision/lifetime handling, but retain distinct movement.
 
 const V = preload("res://scripts/visuals.gd")
+var flourish: Node3D
 var mode := "bolt"
 var tint := Color("b5f5ff")
 var direction := Vector3.BACK
@@ -29,6 +30,7 @@ var launch_origin := Vector3.ZERO
 func _ready() -> void:
 	add_to_group("weapon_attacks")
 	visual = V.pivot(self, "AttackVisual")
+	if mode in ["storm","nova"]: add_flourish()
 	match mode:
 		"lightning":
 			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
@@ -72,6 +74,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	age += delta
+	if is_instance_valid(flourish): flourish.animate(age,lifetime)
 	if mode == "bolt" or mode == "boomerang":
 		_move_projectile(delta)
 	elif mode == "lightning":
@@ -190,6 +193,13 @@ func _area_hit(reach: float, repeat: bool) -> void:
 
 
 func _explode() -> void:
+	if mode=="rear_bomb":
+		var burst:=preload("res://scripts/weapon_flourish.gd").new()
+		burst.mode="firework"
+		burst.radius=area_radius
+		burst.auto_lifetime=0.6
+		burst.position=position
+		get_parent().add_child(burst)
 	get_tree().call_group("game_audio", "play_effect", "blast")
 	_area_hit(blast_radius if blast_radius > 0 else area_radius, false)
 	var effect: Node3D = get_script().new()
@@ -205,3 +215,10 @@ func _explode() -> void:
 
 func _flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
+
+func add_flourish() -> void:
+	flourish=preload("res://scripts/weapon_flourish.gd").new()
+	flourish.mode=mode
+	flourish.radius=area_radius
+	flourish.direction=direction
+	visual.add_child(flourish)

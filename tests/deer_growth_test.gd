@@ -18,28 +18,31 @@ func run() -> void:
 	game.player.position=Vector3(0,0,3)
 	deer.cooldown=0
 	deer._physics_process(0)
-	check(deer.special_state=="warn" and deer.timer==1 and deer.warning.visible,"Deer warns for one second within 3.5m")
+	check(deer.special_state=="warn" and deer.timer==1.2 and deer.warning.visible,"Deer warns for 1.2 seconds within 12m")
 	var start: Vector3=deer.position
 	game.player.position=Vector3(3,0,0)
 	deer._physics_process(0.5)
 	check(deer.position==start and deer.locked==Vector3.BACK,"Deer stands still and locks its attack direction")
-	check(deer.antlers_contain(Vector3(0,0,2.9)) and not deer.antlers_contain(Vector3(3,0,0)) and not deer.antlers_contain(Vector3(0,0,-2)),"Only the forward sector is dangerous; sides and rear are safe")
-	check(not deer.antlers_contain(Vector3(0,0,3.5)),"Antler attack respects range including player radius")
-	deer._physics_process(0.5)
+	check(deer.antlers_contain(Vector3(0,0,2.9)) and not deer.antlers_contain(Vector3(3,0,0)) and not deer.antlers_contain(Vector3(0,0,-2)),"Only the forward lane is dangerous; sides and rear are safe")
+	check(not deer.antlers_contain(Vector3(0,0,14.5)),"Antler attack respects range including player radius")
+	deer._physics_process(0.7)
 	check(game.player.health==100 and deer.special_state=="recover" and deer.timer==1.2,"Side dodge avoids damage and opens a 1.2s recovery")
 	deer._physics_process(1.2)
-	check(deer.special_state=="move" and deer.cooldown==3,"Recovery is followed by a separate three-second cooldown")
+	check(deer.special_state=="move" and deer.cooldown==4,"Recovery is followed by a separate four-second cooldown")
 	game.player.position=Vector3(0,0,2)
 	game.player.invulnerability=0
 	game.player.support_damage_multiplier=0.7
 	deer.cooldown=0
 	deer._physics_process(0)
-	deer._physics_process(1)
-	var expected:=ceili(roundi(14*deer.damage_multiplier)*0.7)
+	deer._physics_process(1.2)
+	for shot in get_nodes_in_group("regular_projectiles"):
+		shot.set_physics_process(false)
+		shot._physics_process(0.5)
+	var expected:=ceili(roundi(12*deer.damage_multiplier)*0.7)
 	check(game.player.health==100-expected,"Antler hit uses time scaling and common bear reduction")
 	game.player.invulnerability=0
 	deer._physics_process(0.1)
-	check(game.player.health==100-expected,"The antler sweep damages only once")
+	check(game.player.health==100-expected,"The shockwave damages only once")
 	deer.free()
 	var mole=game.spawn_enemy(8)
 	mole.set_physics_process(false)

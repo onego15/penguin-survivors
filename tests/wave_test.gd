@@ -36,7 +36,7 @@ func run() -> void:
 	game.spawn_cooldown=3
 	game.elapsed=0
 	var first_seen:={0:0.0}
-	var unlocked_at:={1:30,3:60,4:60,2:120,5:120,6:180,7:240,8:300,9:420}
+	var unlocked_at:={1:30,3:60,4:60,2:90,5:120,6:180,7:240,8:300,9:420}
 	var embargo_ok:=true
 	var spending_ok:=true
 	var earned:=0.0
@@ -60,6 +60,7 @@ func run() -> void:
 	game.director=Director.new()
 	game.director.game=game
 	game.director.introduced[1]=true
+	game.director.introduced[2]=true
 	game.director.budget=6
 	game.spawn_cooldown=0
 	game.director.tick(0,true)

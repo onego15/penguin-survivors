@@ -12,16 +12,13 @@ func _ready() -> void:
 	match mode:
 		"whip":
 			lifetime = 0.35
-			for i in range(17):
-				var d := direction.rotated(Vector3.UP, lerpf(-PI / 3, PI / 3, i / 16.0))
-				V.ellipsoid(visual, tint, d * 3.5, Vector3.ONE * 0.18)
+			add_flourish()
 		"trail":
 			lifetime = 4.0
 			area_radius = 1.25
 			position.y = 0
 			preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
-			for i in range(5):
-				V.rod(visual, tint, Vector3((i - 2) * 0.35, 0, 0), Vector3((i - 2) * 0.35, 0.6, 0), 0.18, 0)
+			add_flourish()
 		"bounce":
 			lifetime = 5.0
 			speed = 16
@@ -54,6 +51,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	age += delta
+	if is_instance_valid(flourish): flourish.animate(age,lifetime)
 	if mode in ["bounce","seeker"]: visual.rotation.y=atan2(direction.x,direction.z)
 	match mode:
 		"whip":

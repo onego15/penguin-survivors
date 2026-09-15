@@ -50,6 +50,7 @@ var presentation: Node3D
 var victory_screen: CanvasLayer
 var end_backdrop: ColorRect
 var sound: Node
+var final_director: RefCounted
 var director: RefCounted
 var support: Node
 var last_event_at := -100.0
@@ -82,6 +83,8 @@ func _ready() -> void:
 	choice_ui.selected.connect(choose_weapon)
 	director = preload("res://scripts/wave_director.gd").new()
 	director.game = self
+	final_director=preload("res://scripts/final_battle_director.gd").new()
+	final_director.game=self
 	director.advance()
 	support = preload("res://scripts/support_director.gd").new()
 	support.game = self
@@ -240,6 +243,7 @@ func _physics_process(delta: float) -> void:
 		game_over = true
 		run_state="dead"
 		_cancel_presentation()
+		final_director.stop()
 		support.clear()
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
@@ -252,6 +256,7 @@ func _physics_process(delta: float) -> void:
 		victory = true
 		run_state="victory"
 		_cancel_presentation()
+		final_director.stop()
 		support.clear()
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
@@ -270,6 +275,7 @@ func _physics_process(delta: float) -> void:
 	_tick_director(delta)
 	if run_state!="combat": return
 	support.tick(delta)
+	final_director.tick(delta)
 	fire_cooldown -= delta
 	if fire_cooldown <= 0.0:
 		if fire_at_nearest():
@@ -333,7 +339,7 @@ func _tick_director(delta: float) -> void:
 	var boss_alive: bool = is_instance_valid(active_boss) and not active_boss.dead
 	if elapsed < recovery_until:
 		return
-	if elapsed >= next_boss_at and not boss_alive and boss_encounters < Miniboss.ROSTER.size():
+	if elapsed >= next_boss_at and not boss_alive and boss_encounters < Miniboss.ROSTER.size() and (boss_encounters>0 or director.first_boss_ready()):
 		active_boss = spawn_enemy(-1, true)
 		if active_boss != null:
 			notify_event()
@@ -372,6 +378,7 @@ func _start_final_boss() -> void:
 
 
 func _on_final_boss_defeated() -> void:
+	final_director.stop()
 	if final_boss_defeated:
 		return
 	final_boss_defeated = true
@@ -496,6 +503,7 @@ func notify_event() -> void:
 	last_event_at=elapsed
 
 func _on_phase_changed() -> void:
+	final_director.stop()
 	if player.health<=0 or final_boss_defeated: return
 	for bolt in get_tree().get_nodes_in_group("hostile_projectiles"):
 		bolt.process_mode=Node.PROCESS_MODE_DISABLED
@@ -525,7 +533,9 @@ func _finish_presentation() -> void:
 	run_state="combat"
 	actors.process_mode=Node.PROCESS_MODE_INHERIT
 	player.cinematic_locked=false
-	if is_instance_valid(active_boss): active_boss.cinematic_locked=false
+	if is_instance_valid(active_boss):
+		active_boss.cinematic_locked=false
+		final_director.begin_phase(2 if active_boss.enraged else 1)
 func _cancel_presentation() -> void:
 	hud_layer.show()
 	if is_instance_valid(presentation):

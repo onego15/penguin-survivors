@@ -8,7 +8,7 @@ const WAVES := [
 	{"name":"針と射線", "hint":"距離を取り、針の間を抜けよう", "pairs":[[7,4],[7,3]], "new":[7]},
 	{"name":"地面の気配", "hint":"足元の予告から離れよう", "pairs":[[8,4],[8,6]], "new":[8]},
 	{"name":"交差する追手", "hint":"射撃役と突進役の位置を見よう", "pairs":[[5,4],[2,7]], "new":[]},
-	{"name":"大角の間合い", "hint":"角の予告を見てシカの横・背後へ", "pairs":[[9,5],[9,3]], "new":[9]},
+	{"name":"角の衝撃波", "hint":"角の射線から横へ移動しよう", "pairs":[[9,5],[9,3]], "new":[9]},
 	{"name":"雪原の包囲", "hint":"角と射線を避け、待ち伏せに注意", "pairs":[[9,4],[8,7]], "new":[]},
 	{"name":"冬を越える戦い", "hint":"危険な役割から減らして決戦へ", "pairs":[[9,2],[8,6],[5,7]], "new":[]},
 ]
@@ -19,6 +19,7 @@ var previous_pair: Array = []
 var budget := 0.0
 var spent := 0.0
 var introduced := {0:true}
+var introduced_at := {}
 var pending: Array[int] = []
 var embargo := {}
 var next_intro := 0.0
@@ -40,7 +41,11 @@ func advance() -> void:
 		for kind in WAVES[wave].new:
 			if not introduced.has(kind) and not pending.has(kind): pending.append(kind)
 	if game.elapsed>=30 and not introduced.has(1) and not pending.has(1): pending.push_front(1)
+	if game.elapsed>=90 and not introduced.has(2) and not pending.has(2): pending.push_front(2)
+func first_boss_ready() -> bool:
+	return introduced_at.has(2) and game.elapsed-float(introduced_at[2])>=20
 func eligible(kind: int) -> bool:
+	if kind==2 and game.elapsed<120: return false
 	if not introduced.has(kind) or game.elapsed < float(embargo.get(kind,0)): return false
 	return below_cap(kind)
 func below_cap(kind: int) -> bool:
@@ -83,6 +88,7 @@ func tick(delta: float, boss_alive: bool) -> void:
 				spent+=Enemy.cost(kind)
 				pending.pop_front()
 				introduced[kind]=true
+				introduced_at[kind]=game.elapsed
 				embargo[kind]=game.elapsed+10
 				next_intro=game.elapsed+4
 				notification_until=game.elapsed+4

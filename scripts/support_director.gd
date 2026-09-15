@@ -73,7 +73,7 @@ func position_safe(point: Vector3) -> bool:
 		if enemy.has_method("danger_contains") and enemy.danger_contains(point): return false
 		if enemy.kind==2 and enemy.charge_state!=0:
 			if Geometry3D.get_closest_point_to_segment(point,enemy.global_position,enemy.global_position+enemy.charge_direction*10).distance_to(point)<3: return false
-		if enemy.is_in_group("final_bosses") or enemy.is_miniboss:
+		if enemy.is_miniboss and not enemy.is_in_group("final_bosses"):
 			if point.distance_to(enemy.global_position)<12: return false
 	for cloud in get_tree().get_nodes_in_group("enemy_clouds"):
 		if cloud.danger_contains(point): return false

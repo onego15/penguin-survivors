@@ -4,6 +4,7 @@ const Bolt = preload("res://scripts/boss_projectile.gd")
 signal phase_changed
 var cinematic_locked := false
 var phase_attack_index := 0
+var casting: Node3D
 var quake_warning: Node3D
 var quake_area: Node3D
 var quake_ice: Node3D
@@ -56,6 +57,9 @@ func _ready() -> void:
 	warning_ring.hide()
 	aim_line.hide()
 	dash_marker.hide()
+	casting=Visuals.pivot(self,"RemoteIceStream")
+	for i in range(12): Visuals.ellipsoid(casting,Color("c8f4ff"),Vector3.ZERO,Vector3.ONE*0.09)
+	casting.hide()
 	quake_warning=C.warning(self,9.0)
 	quake_area=C.danger(self,9.0)
 	quake_ice=Visuals.pivot(self,"QuakeIce")
@@ -140,6 +144,10 @@ func _physics_process(delta: float) -> void:
 		warning_left = maxf(0, warning_left - delta)
 		if attack_kind=="quake":
 			C.progress(quake_warning,warning_left/3.0)
+			for i in range(casting.get_child_count()):
+				var f:=fposmod(age*0.7+i/12.0,1.0)
+				casting.get_child(i).global_position=(global_position+Vector3.UP*5.5).lerp(quake_center+Vector3.UP*0.2,f)+Vector3.UP*sin(f*PI)
+			casting.show()
 			for arm in arms: arm.rotation.x=-2.6
 		for marker in [warning_ring,aim_line,dash_marker]:
 			C.progress(marker,warning_left/(1.3 if attack_kind=="slam" else (0.8 if attack_kind=="dash" and enraged else 1.0)))
@@ -174,8 +182,8 @@ func _physics_process(delta: float) -> void:
 		locked_direction = offset.normalized() if offset.length() > 0.01 else Vector3.FORWARD
 		if attack_kind=="quake":
 			warning_left=3.0
-			quake_center=global_position
-			quake_warning.position=Vector3(0,0.09,0)
+			quake_center=sample_quake_center(target.global_position)
+			quake_warning.global_position=quake_center+Vector3(0,0.09,0)
 			C.progress(quake_warning,1)
 			quake_warning.show()
 			get_tree().call_group("game_audio","play_effect","quake_charge")
@@ -199,6 +207,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _release_attack() -> void:
+	casting.hide()
 	aim_line.hide()
 	for arm in arms: arm.rotation.x=0
 	if attack_kind=="quake":
@@ -260,6 +269,7 @@ func _tick_dash(delta: float) -> void:
 		model.rotation.z = 0
 
 func cancel_attacks() -> void:
+	casting.hide()
 	warning_left=0
 	dash_left=0
 	recovery_left=0
@@ -279,3 +289,19 @@ func take_damage(amount: int) -> void:
 	if cinematic_locked: return
 	super.take_damage(amount)
 	if not dead and health<=max_health/2 and not enraged: _enter_phase_two()
+
+func sample_quake_center(center: Vector3) -> Vector3:
+	var random: RandomNumberGenerator=get_parent().get_parent().rng
+	for attempt in range(16):
+		var a:=random.randf_range(0,TAU)
+		var r:=sqrt(random.randf())*2.5
+		var point:=center+Vector3(cos(a),0,sin(a))*r
+		if absf(point.x)<=23 and absf(point.z)<=23: return point
+	return center
+func danger_contains(point: Vector3) -> bool:
+	if warning_left>0 and attack_kind=="quake": return point.distance_to(quake_center)<9.5
+	if quake_flash>0 and point.distance_to(quake_center)<9.5: return true
+	if attack_kind=="slam" and (warning_left>0 or flash_left>0): return point.distance_to(global_position)<SLAM_RADIUS+0.5
+	if dash_left>0 or (warning_left>0 and attack_kind=="dash"):
+		return Geometry3D.get_closest_point_to_segment(point,global_position,global_position+locked_direction*dash_distance).distance_to(point)<hit_radius+0.7
+	return false

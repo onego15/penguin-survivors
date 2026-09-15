@@ -53,9 +53,10 @@ func run() -> void:
 	boss._physics_process(0.02)
 	check(boss.attack_kind=="quake" and boss.warning_left==3 and boss.quake_warning.visible,"The first second-phase attack is a three-second great quake")
 	var center: Vector3=boss.quake_center
+	var boss_start: Vector3=boss.position
 	game.player.position=center+Vector3(15,0,0)
 	boss._physics_process(2.99)
-	check(boss.position==center and game.player.health==100,"Quake remains fixed and does not deal early damage")
+	check(boss.position==boss_start and boss.quake_center==center and game.player.health==100,"Quake remains fixed and does not deal early damage")
 	boss._physics_process(0.02)
 	check(game.player.health==100 and boss.recovery_left==2,"Leaving the quake radius avoids damage and grants two seconds of recovery")
 	boss._physics_process(0.46)

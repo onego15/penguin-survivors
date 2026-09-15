@@ -58,6 +58,7 @@ func run() -> void:
 	game.spawn_cooldown = 999
 	game._tick_director(0.01)
 	check(game.active_boss == null, "First boss never appears before two minutes")
+	game.director.introduced_at[2]=90.0
 	game.elapsed = 120
 	game._tick_director(0.01)
 	var boss = game.active_boss

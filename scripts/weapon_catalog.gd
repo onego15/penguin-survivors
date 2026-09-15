@@ -12,12 +12,12 @@ const ITEMS := {
 	"frost": {"name": "氷ブラスター", "description": "最寄りの敵を狙う\n連射型の氷弾。", "style": "連射 / 単体", "color": Color("85efff"), "cooldown": 0.28, "damage": 1},
 	"fan": {"name": "羽根ショット", "description": "向いている方向へ5発。\n体の向きで狙う扇状攻撃。", "style": "前方固定 / 威力2 × 5発", "color": Color("f7c4ed"), "cooldown": 1.25, "damage": 2},
 	"spear": {"name": "つららランス", "description": "向いている方向へ貫通槍。\n敵を正面に並べて一掃。", "style": "前方固定 / 威力5・貫通", "color": Color("7ac7f9"), "cooldown": 1.8, "damage": 5},
-	"ember": {"name": "おひさまロッド", "description": "前方6mに火球を落とす。\n予告地点で0.7秒後に爆発。", "style": "固定地点 / 威力6・半径3.2m", "color": Color("ffac65"), "cooldown": 2.1, "damage": 6},
+	"ember": {"name": "おひさまロッド", "description": "前方8mに火球を落とす。\n予告地点で0.7秒後に爆発。", "style": "固定地点 / 威力6・半径3.2m", "color": Color("ffac65"), "cooldown": 2.1, "damage": 6},
 	"lightning": {"name": "かみなりベル", "description": "画面内のランダム3地点に落雷。\n半径3mをまとめて攻撃。", "style": "画面内ランダム / 威力5", "color": Color("ffe47d"), "cooldown": 1.65, "damage": 5},
 	"orbit": {"name": "真珠のまもり", "description": "2つの真珠が体の周囲を旋回。\n近づく敵を繰り返し攻撃。", "style": "周回 / 近距離", "color": Color("c5b8ff"), "cooldown": 4.0, "damage": 2},
 	"nova": {"name": "氷河のチャイム", "description": "体を中心に冷気の輪が広がる。\n全方向の敵をまとめて攻撃。", "style": "全方位 / 波紋", "color": Color("91f4d0"), "cooldown": 2.8, "damage": 2},
 	"mine": {"name": "どんぐりボム", "description": "足元に爆弾を置く。\n敵が踏むと周囲ごと爆発。", "style": "設置 / 待ち伏せ", "color": Color("d7ad76"), "cooldown": 2.3, "damage": 4},
-	"boomerang": {"name": "おさかなブーメラン", "description": "近い敵を狙って飛び戻る。\n移動で帰りの軌道を操る。", "style": "自動照準 / 往復", "color": Color("f5a8bd"), "cooldown": 2.2, "damage": 2},
+	"boomerang": {"name": "おさかなブーメラン", "description": "近い敵の方向へ楕円を描く。\n一周してから手元に戻る。", "style": "自動照準 / 往復", "color": Color("f5a8bd"), "cooldown": 2.2, "damage": 2},
 	"storm": {"name": "星ふるスノードーム", "description": "近い敵の位置に嵐を設置。\n設置後はその場で継続攻撃。", "style": "自動照準 / 設置範囲", "color": Color("afbcff"), "cooldown": 3.8, "damage": 1},
 }
 

@@ -3,6 +3,9 @@ extends Node3D
 
 const V = preload("res://scripts/visuals.gd")
 var flourish: Node3D
+var visual_kind := ""
+var detail: Node3D
+var launch_direction:=Vector3.BACK
 var mode := "bolt"
 var tint := Color("b5f5ff")
 var direction := Vector3.BACK
@@ -34,11 +37,8 @@ func _ready() -> void:
 	match mode:
 		"lightning":
 			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
-			lightning_visual = V.pivot(visual, "LightningColumn")
-			var points := [Vector3(0, 7, 0), Vector3(0.4, 5, 0), Vector3(-0.3, 3, 0.1), Vector3(0.25, 1.5, 0), Vector3.ZERO]
-			for index in range(points.size() - 1):
-				V.rod(lightning_visual, tint, points[index], points[index + 1], 0.11)
-			V.ellipsoid(lightning_visual, Color("fff7bc"), Vector3(0, 0.15, 0), Vector3(0.6, 0.15, 0.6))
+			detail=make_detail("lightning",visual)
+			lightning_visual=detail
 			lightning_visual.hide()
 		"meteor", "rear_bomb":
 			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, area_radius)
@@ -67,6 +67,17 @@ func _ready() -> void:
 			else:
 				V.rod(visual, tint, Vector3(0, 0, -0.45 if piercing else -0.2), Vector3(0, 0, 0.6), 0.16, 0)
 				V.rod(visual, Color("fff0cf"), Vector3(0, 0, -0.7), Vector3(0, 0, 0), 0.045)
+	if visual_kind=="lance":
+		for part in visual.get_children(): part.free()
+		detail=make_detail("lance",visual)
+	elif mode=="meteor":
+		falling_ball.hide()
+		detail=make_detail("fireball",visual)
+	elif mode=="rear_bomb": detail=make_detail("fuse",visual)
+	elif mode=="boomerang":
+		launch_origin=global_position
+		launch_direction=direction
+		detail=make_detail("boomerang",visual)
 	if mode == "bolt" or mode == "boomerang":
 		preload("res://scripts/combat_visuals.gd").tail(visual)
 		visual.rotation.y = atan2(direction.x, direction.z)
@@ -75,6 +86,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	age += delta
 	if is_instance_valid(flourish): flourish.animate(age,lifetime)
+	if is_instance_valid(detail) and mode!="lightning": detail.animate(age,lifetime)
 	if mode == "bolt" or mode == "boomerang":
 		_move_projectile(delta)
 	elif mode == "lightning":
@@ -83,6 +95,7 @@ func _physics_process(delta: float) -> void:
 			get_tree().call_group("game_audio", "play_effect", "thunder")
 			lightning_visual.show()
 			_area_hit(area_radius, false)
+		if struck: detail.animate(age-warning_duration,0.3)
 	elif mode in ["meteor", "rear_bomb"]:
 		var progress := minf(age / lifetime, 1.0)
 		if mode == "rear_bomb":
@@ -90,6 +103,8 @@ func _physics_process(delta: float) -> void:
 			falling_ball.rotation.y += delta * 9
 		else:
 			falling_ball.position.y = 6.0 * (1.0 - progress)
+		detail.position=falling_ball.position
+		if mode=="rear_bomb": detail.update_trail()
 		if age >= lifetime:
 			_explode()
 			return
@@ -134,21 +149,13 @@ func _physics_process(delta: float) -> void:
 func _move_projectile(delta: float) -> void:
 	var start := global_position
 	if mode == "boomerang":
-		if age >= 0.65 and not returning:
-			returning = true
-			hit_times.clear() # One hit per enemy on each leg of the trip.
-		if returning and is_instance_valid(player):
-			var destination := player.global_position + Vector3.UP
-			if start.distance_to(destination) <= speed * delta + 0.3:
-				_segment_hit(start, destination, false)
-				queue_free()
-				return
-			direction = (destination - start).normalized()
-		visual.rotation.y += delta * 14.0
+		_move_ellipse(delta)
+		return
 	var finish := start + direction * speed * delta
 	_segment_hit(start, finish, false)
 	if not is_queued_for_deletion():
 		global_position = finish
+	if is_instance_valid(detail): detail.update_trail()
 
 
 func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
@@ -181,6 +188,7 @@ func _can_hit(enemy: Node3D, repeat: bool) -> bool:
 
 func _damage(enemy: Node3D) -> void:
 	hit_times[enemy.get_instance_id()] = age
+	if visual_kind=="lance": spawn_detail("lance_hit",enemy.global_position+Vector3.UP,0.25,0.5)
 	enemy.take_damage(damage)
 
 
@@ -193,13 +201,8 @@ func _area_hit(reach: float, repeat: bool) -> void:
 
 
 func _explode() -> void:
-	if mode=="rear_bomb":
-		var burst:=preload("res://scripts/weapon_flourish.gd").new()
-		burst.mode="firework"
-		burst.radius=area_radius
-		burst.auto_lifetime=0.6
-		burst.position=position
-		get_parent().add_child(burst)
+	if mode=="rear_bomb": spawn_detail("firework",position,0.8,area_radius)
+	elif mode=="meteor": spawn_detail("fire_impact",position,0.45,area_radius)
 	get_tree().call_group("game_audio", "play_effect", "blast")
 	_area_hit(blast_radius if blast_radius > 0 else area_radius, false)
 	var effect: Node3D = get_script().new()
@@ -222,3 +225,50 @@ func add_flourish() -> void:
 	flourish.radius=area_radius
 	flourish.direction=direction
 	visual.add_child(flourish)
+
+func make_detail(style: String, parent: Node3D) -> Node3D:
+	var result:=preload("res://scripts/weapon_detail.gd").new()
+	result.mode=style
+	parent.add_child(result)
+	return result
+func spawn_detail(style: String, point: Vector3, duration: float, reach: float) -> void:
+	if get_tree().get_nodes_in_group("weapon_impact_details").size()>=16: return
+	var result:=preload("res://scripts/weapon_detail.gd").new()
+	result.mode=style
+	result.position=point
+	result.direction=direction
+	result.radius=reach
+	result.auto_lifetime=duration
+	result.add_to_group("weapon_impact_details")
+	get_parent().add_child(result)
+func ellipse_point(time: float) -> Vector3:
+	var theta:=clampf(time/1.3,0,1)*TAU
+	var side:=Vector3(-launch_direction.z,0,launch_direction.x)
+	return launch_origin+launch_direction*(4.55*(1-cos(theta)))+side*(1.6*sin(theta))
+func _move_ellipse(delta: float) -> void:
+	var cursor:=maxf(0,age-delta)
+	var end:=minf(age,lifetime)
+	while cursor<end-0.000001:
+		if cursor>=0.65-0.000001 and not returning:
+			returning=true
+			hit_times.clear()
+		var next:=minf(end,cursor+1.0/120.0)
+		if cursor<0.65: next=minf(next,0.65)
+		elif cursor<1.3: next=minf(next,1.3)
+		var start:=global_position
+		var finish:=ellipse_point(next)
+		var caught:=false
+		if cursor>=1.3-0.000001:
+			if not is_instance_valid(player): queue_free(); return
+			var destination: Vector3=player.global_position+Vector3.UP
+			finish=start.move_toward(destination,speed*(next-cursor))
+			caught=finish.distance_to(destination)<=0.3
+		_segment_hit(start,finish,false)
+		global_position=finish
+		var tangent:=finish-start
+		if tangent.length_squared()>0.000001:
+			direction=tangent.normalized()
+			visual.rotation.y=atan2(direction.x,direction.z)
+		cursor=next
+		if caught: queue_free(); return
+	if is_instance_valid(detail): detail.update_trail()

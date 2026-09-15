@@ -81,12 +81,12 @@ func run() -> void:
 	clear_actors()
 	check(game.armory.fire("ember"), "Fixed-position meteor casts without an enemy")
 	var meteor: Node3D = get_nodes_in_group("weapon_attacks")[0]
-	check(meteor.position.distance_to(Vector3(6, 0, 0)) < 0.01, "Meteor locks a point six metres ahead")
-	front = enemy_at(Vector3(6, 0, 0))
+	check(meteor.position.distance_to(Vector3(8, 0, 0)) < 0.01, "Meteor locks a point eight metres ahead")
+	front = enemy_at(Vector3(8, 0, 0))
 	game.player.position = Vector3(0, 0, 6)
 	game.player.body.rotation.y = PI
 	await frames(20)
-	check(front.health == 100 and meteor.position.distance_to(Vector3(6, 0, 0)) < 0.01, "Meteor warns without damage and does not follow player movement")
+	check(front.health == 100 and meteor.position.distance_to(Vector3(8, 0, 0)) < 0.01, "Meteor warns without damage and does not follow player movement")
 	await frames(30)
 	check(front.health == 94, "Empowered meteor damages the originally marked location after the delay")
 	clear_actors()

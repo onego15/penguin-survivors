@@ -49,7 +49,7 @@ func _ready() -> void:
 			pieces.append(star)
 	elif mode=="whip":
 		rotation.y=atan2(direction.x,direction.z)
-		for i in range(4): bands.append(ribbon([Color("e9b6ff"),Color("ffacd3"),Color("75e9ff"),Color.WHITE][i],3.45+i*0.08,0.42 if i<3 else 0.045,-PI/3,PI/3,-0.4+i*0.08))
+		for i in range(4): bands.append(ribbon([Color("bb66ef"),Color("ff70bc"),Color("75e9ff"),Color.WHITE][i],3.45+i*0.08,0.63 if i<3 else 0.095,-PI/3,PI/3,-0.12+i*0.1))
 	elif mode=="trail":
 		for i in range(5):
 			var flame:=V.pivot(self,"Flame")

@@ -150,6 +150,7 @@ func fire(id: String) -> bool:
 				attack.lifetime = 0.65
 				attack.area_radius = 3.0
 			"spear":
+				attack.visual_kind="lance"
 				attack.piercing = true
 				attack.radius = 0.26
 				attack.speed = 26.0
@@ -157,7 +158,7 @@ func fire(id: String) -> bool:
 				attack.lifetime = 0.75
 			"ember":
 				attack.mode = "meteor"
-				attack.position = origin + direction * 6.0
+				attack.position = origin + direction * 8.0
 				attack.lifetime = 0.7
 				attack.area_radius = 3.2
 			"boomerang":

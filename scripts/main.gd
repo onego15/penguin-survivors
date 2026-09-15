@@ -16,6 +16,7 @@ var player: CharacterBody3D
 var actors: Node3D
 var camera: Camera3D
 var hud_layer: CanvasLayer
+var detail_hud: Label
 var hud: Label
 var game_over_label: Label
 var kills := 0
@@ -112,37 +113,32 @@ func _setup_hud() -> void:
 	add_child(layer)
 	var panel := ColorRect.new()
 	panel.position = Vector2(16, 16)
-	panel.size = Vector2(405, 170)
+	panel.name="StatusPanel"
+	panel.size = Vector2(300, 108)
 	panel.color = Color(0.055, 0.12, 0.17, 0.91)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(panel)
-	var title := Label.new()
-	title.text = "PENGUIN SURVIVORS"
-	title.position = Vector2(30, 24)
-	title.add_theme_font_size_override("font_size", 16)
-	title.add_theme_color_override("font_color", Color("ffdd9b"))
-	layer.add_child(title)
 	hud = Label.new()
-	hud.position = Vector2(30, 50)
-	hud.add_theme_font_size_override("font_size", 20)
+	hud.position = Vector2(28, 23)
+	hud.add_theme_font_size_override("font_size",18)
 	layer.add_child(hud)
-	var help := Label.new()
-	help.text = "WASD  Move     /     Auto-fire     /     Wheel  Zoom"
-	help.position = Vector2(30, 106)
-	help.add_theme_font_size_override("font_size", 14)
-	help.add_theme_color_override("font_color", Color("b7e3e6"))
-	layer.add_child(help)
+	detail_hud=Label.new()
+	detail_hud.position=Vector2(28,49)
+	detail_hud.add_theme_font_size_override("font_size",15)
+	layer.add_child(detail_hud)
 	xp_label = Label.new()
-	xp_label.position = Vector2(30, 130)
-	xp_label.add_theme_font_size_override("font_size", 17)
+	xp_label.position = Vector2(28, 73)
+	xp_label.add_theme_font_size_override("font_size", 15)
 	xp_label.add_theme_color_override("font_color", Color("ffe3a1"))
 	layer.add_child(xp_label)
 	xp_bar = ProgressBar.new()
-	xp_bar.position = Vector2(30, 159)
-	xp_bar.size = Vector2(370, 12)
+	xp_bar.add_theme_font_size_override("font_size",1)
+	xp_bar.position = Vector2(28, 104)
 	xp_bar.show_percentage = false
 	_style_bar(xp_bar, Color("5ecdc2"))
+	xp_bar.size = Vector2(276, 8)
 	layer.add_child(xp_bar)
+	xp_bar.set_deferred("size",Vector2(276,8))
 	var inventory_panel := ColorRect.new()
 	inventory_panel.position = Vector2(16, 195)
 	inventory_panel.size = Vector2(235, 424)
@@ -462,8 +458,9 @@ func _update_camera() -> void:
 
 
 func _update_hud() -> void:
-	hud.text = "HP  %d / 100\nDEFEATED  %d     TIME  %02d:%02d" % [player.health, kills, int(elapsed) / 60, int(elapsed) % 60]
-	xp_label.text = "Lv.%d     XP  %d / %d     WEAPONS  %d / %d" % [level, experience, xp_needed, armory.levels.size(), Catalog.ITEMS.size()]
+	hud.text = "HP %d/100    TIME %02d:%02d" % [player.health,int(elapsed)/60,int(elapsed)%60]
+	detail_hud.text="Lv.%d    DEFEATED %d" % [level,kills]
+	xp_label.text="XP %d / %d" % [experience,xp_needed]
 	xp_bar.max_value = xp_needed
 	xp_bar.value = experience
 	inventory_label.text = "装備武器 / すべて自動攻撃"

@@ -72,8 +72,8 @@ func run() -> void:
 				Input.action_press("move_right" if best.x>0 else "move_left",absf(best.x))
 				Input.action_press("move_down" if best.z>0 else "move_up",absf(best.z))
 				await process_frame
-			print("BOSS AUDIT phase=%d build=%s time=%.1f hp=%d boss_hp=%d kills=%d max_minions=%d longest_all_paths_blocked=%.2fs" % [phase,build,game.elapsed-600,game.player.health,boss.health if is_instance_valid(boss) else 0,game.kills,max_minions,max_blocked])
-			if max_minions>4 or max_blocked>3: failures+=1
+			print("BOSS AUDIT phase=%d build=%s time=%.1f hp=%d boss_hp=%d kills=%d spawned=%d max_minions=%d longest_all_paths_blocked=%.2fs" % [phase,build,game.elapsed-600,game.player.health,boss.health if is_instance_valid(boss) else 0,game.kills,game.final_director.total_spawned,max_minions,max_blocked])
+			if max_minions>6 or max_blocked>3: failures+=1
 			for action in ["move_right","move_left","move_up","move_down"]: Input.action_release(action)
 			paused=false
 			game.queue_free()

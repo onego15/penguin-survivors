@@ -57,7 +57,7 @@ func run() -> void:
 		game.support.spawn_friend(phase-1,Vector3(7,0,1))
 		for i in range(2):
 			var minion=preload("res://scripts/boss_minion.gd").new()
-			minion.second_phase=phase==2
+			minion.second_phase=phase==2 and i==1
 			minion.target=game.player
 			minion.position=Vector3(-4+i*8,0,-2)
 			game.actors.add_child(minion)

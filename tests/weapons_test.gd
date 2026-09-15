@@ -158,7 +158,7 @@ func run() -> void:
 	await frames(30)
 	check(a.health == 96, "Armed mine explodes when an enemy is nearby")
 	clear_actors()
-	a = enemy_at(Vector3(0, 0, 4))
+	a = enemy_at(Vector3(0, 0, 9.1))
 	game.armory.fire("boomerang")
 	await frames(90)
 	check(a.health == 96, "Fish boomerang hits on both outbound and return paths")

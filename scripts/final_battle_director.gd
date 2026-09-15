@@ -1,11 +1,14 @@
 extends RefCounted
 const Minion=preload("res://scripts/boss_minion.gd")
 var game: Node3D
+var total_spawned:=0
 var phase:=0
 var clock:=0.0
-var next_minions:=14.0
+var next_minions:=6.0
 var support_due:=8.0
-var support_used:=false
+var support_count:=0
+var had_support:=false
+var next_tie_leopard:=false
 func clear_minions() -> void:
 	for enemy in game.get_tree().get_nodes_in_group("final_minions"):
 		enemy.dead=true
@@ -17,9 +20,11 @@ func begin_phase(value: int) -> void:
 	clear_minions()
 	phase=value
 	clock=0
-	next_minions=14
+	next_minions=6
 	support_due=8
-	support_used=false
+	support_count=0
+	had_support=is_instance_valid(game.support.active)
+	next_tie_leopard=false
 func stop() -> void:
 	phase=0
 	clear_minions()
@@ -28,17 +33,21 @@ func busy() -> bool:
 func tick(delta: float) -> void:
 	if phase==0 or game.run_state!="combat" or game.player.health<=0 or game.final_boss_defeated or game.get_tree().paused: return
 	clock+=delta
+	var present:=is_instance_valid(game.support.active)
+	if had_support and not present: support_due=maxf(support_due,clock+3)
+	had_support=present
 	if busy(): return
-	if not support_used and clock>=support_due and not is_instance_valid(game.support.active):
+	if support_count<(2 if phase==2 else 1) and clock>=support_due and not is_instance_valid(game.support.active):
 		var point: Vector3=game.support.find_safe_position()
 		if point==Vector3.INF: support_due=clock+2
 		else:
 			game.support.spawn_friend(game.support.draw_kind(),point)
-			support_used=true
+			support_count+=1
+			had_support=true
 	if clock<next_minions: return
-	var slots:=4-game.get_tree().get_nodes_in_group("final_minions").size()
+	var slots:=6-game.get_tree().get_nodes_in_group("final_minions").size()
 	if slots<=0:
-		next_minions=clock+(20 if phase==2 else 24)
+		next_minions=clock+(9 if phase==2 else 12)
 		return
 	var heading: float=game.rng.randf_range(0,TAU)
 	var points: Array[Vector3]=[]
@@ -54,10 +63,29 @@ func tick(delta: float) -> void:
 		return
 	for point in points:
 		var enemy:=Minion.new()
-		enemy.second_phase=phase==2
+		enemy.second_phase=choose_leopard(points.size())
 		enemy.side=-1 if game.rng.randf()<0.5 else 1
 		enemy.position=point
 		enemy.target=game.player
 		enemy.rewarded.connect(game._on_enemy_defeated)
 		game.actors.add_child(enemy)
-	next_minions=clock+(20 if phase==2 else 24)
+		total_spawned+=1
+	next_minions=clock+(9 if phase==2 else 12)
+
+func choose_leopard(batch_size: int) -> bool:
+	if phase!=2: return false
+	# A two-slot batch always alternates seal/leopard. Single slots balance survivors.
+	if batch_size==2:
+		var result:=next_tie_leopard
+		next_tie_leopard=not next_tie_leopard
+		return result
+	var seals:=0
+	var leopards:=0
+	for enemy in game.get_tree().get_nodes_in_group("final_minions"):
+		if enemy.dead: continue
+		if enemy.second_phase: leopards+=1
+		else: seals+=1
+	if seals!=leopards: return leopards<seals
+	var result:=next_tie_leopard
+	next_tie_leopard=not next_tie_leopard
+	return result

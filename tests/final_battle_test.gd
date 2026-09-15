@@ -56,16 +56,16 @@ func run() -> void:
 				if absf(end.x)<=23 and absf(end.z)<=23 and end.distance_to(p)>9.42: escape=true
 			valid=valid and escape
 	check(valid and absf(sum_r2/2000-3.125)<0.2,"20 seeds: quake disk is uniform, in bounds, escapable at center/edge/corner")
-	d.tick(7.99)
-	check(not is_instance_valid(game.support.active),"No boss support before eight combat seconds")
+	d.tick(5.99)
+	check(get_nodes_in_group("final_minions").is_empty(),"No minions before six seconds")
+	d.tick(0.01)
+	check(get_nodes_in_group("final_minions").size()==2,"First phase spawns two seals at six seconds")
+	d.tick(1.99)
+	check(not is_instance_valid(game.support.active),"No support before eight seconds")
 	d.tick(0.02)
-	check(d.support_used and is_instance_valid(game.support.active),"Phase one provides a safe support visit")
+	check(d.support_count==1 and is_instance_valid(game.support.active),"Phase one provides one safe visit")
 	var friend=game.support.active
 	friend.recruit()
-	d.tick(5.98)
-	check(get_nodes_in_group("final_minions").is_empty(),"No minions before fourteen seconds")
-	d.tick(0.02)
-	check(get_nodes_in_group("final_minions").size()==2,"First phase spawns two seals at fourteen seconds")
 	var spawned:=get_nodes_in_group("final_minions")
 	var spawn_ok:=true
 	for enemy in spawned:
@@ -82,9 +82,10 @@ func run() -> void:
 	minion.take_damage(999)
 	check(game.experience==xp+2,"Seal defeat uses the shared XP path")
 	await process_frame
-	d.tick(24)
-	d.tick(24)
-	check(get_nodes_in_group("final_minions").size()==4,"Repeated batches respect the combined four-minion cap")
+	d.tick(12)
+	d.tick(12)
+	d.tick(12)
+	check(get_nodes_in_group("final_minions").size()==6,"Repeated batches respect the combined six-minion cap")
 	boss.warning_left=1
 	d.next_minions=d.clock
 	var spawn_at: float=d.next_minions
@@ -103,19 +104,43 @@ func run() -> void:
 	xp=game.experience
 	d.begin_phase(2)
 	check(get_nodes_in_group("final_minions").is_empty() and game.experience==xp,"Phase change dismisses seals without rewards")
-	d.tick(8)
-	check(not d.support_used and game.support.active==friend,"Carried companion does not consume phase-two visit")
+	d.tick(6)
+	var mix:=get_nodes_in_group("final_minions")
+	check(mix.size()==2 and mix[0].second_phase!=mix[1].second_phase,"Phase two introduces one seal and one leopard")
+	minion=mix[1] if mix[1].second_phase else mix[0]
+	check(minion.health==14 and minion.speed==3.2 and minion.reward_value==3,"Leopard keeps fixed stats and reward")
+	d.tick(2)
+	check(d.support_count==0 and game.support.active==friend,"Carried companion does not consume phase-two visit")
 	game.support.clear()
 	d.tick(0)
-	check(d.support_used and is_instance_valid(game.support.active),"Independent phase-two visit follows the carried companion")
-	d.tick(6)
-	check(get_nodes_in_group("final_minions").size()==2,"Second phase spawns two snow leopards")
-	minion=get_nodes_in_group("final_minions")[0]
-	check(minion.health==14 and minion.speed==3.2 and minion.reward_value==3,"Snow leopard has independent fixed stats and XP")
-	d.tick(19.9)
-	check(get_nodes_in_group("final_minions").size()==2,"Second phase waits twenty seconds between batches")
-	d.tick(0.1)
-	check(get_nodes_in_group("final_minions").size()==4,"Second phase adds its second batch at twenty seconds")
+	d.tick(2.99)
+	check(d.support_count==0,"Support waits three seconds after departure")
+	d.tick(0.01)
+	check(d.support_count==1 and is_instance_valid(game.support.active),"Phase-two first visit follows the carried companion")
+	d.tick(3.99)
+	check(get_nodes_in_group("final_minions").size()==2,"Second phase waits nine seconds between batches")
+	d.tick(0.01)
+	check(get_nodes_in_group("final_minions").size()==4,"Second phase adds another mixed batch after nine seconds")
+	game.support.active.recruit()
+	game.support.tick(30)
+	game.support.tick(0.5)
+	d.tick(0)
+	d.tick(3)
+	check(d.support_count==2 and is_instance_valid(game.support.active),"Second phase provides a second visit after thirty-second companionship")
+	game.support.clear()
+	d.tick(0)
+	d.tick(100)
+	check(d.support_count==2 and not is_instance_valid(game.support.active),"Phase two cannot exceed two support visits")
+	check(get_nodes_in_group("final_minions").size()==6,"Second phase also caps minions at six")
+	var removed=get_nodes_in_group("final_minions")[0]
+	var removed_type: bool=removed.second_phase
+	removed.free()
+	d.next_minions=d.clock
+	d.tick(0)
+	var count_type:=0
+	for e in get_nodes_in_group("final_minions"):
+		if e.second_phase==removed_type: count_type+=1
+	check(get_nodes_in_group("final_minions").size()==6 and count_type==3,"Single free slot restores the underrepresented species")
 	xp=game.experience
 	boss.take_damage(99999)
 	game._physics_process(0)

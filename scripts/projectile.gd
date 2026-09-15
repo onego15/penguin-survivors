@@ -4,6 +4,7 @@ const Visuals = preload("res://scripts/visuals.gd")
 const SPEED := 22.0
 var direction := Vector3.FORWARD
 var lifetime := 1.5
+var damage := 1
 
 
 func _ready() -> void:
@@ -31,7 +32,7 @@ func _physics_process(delta: float) -> void:
 				nearest_distance = distance
 				hit = enemy
 	if hit != null:
-		hit.take_damage(1)
+		hit.take_damage(damage)
 		queue_free()
 		return
 	global_position = finish

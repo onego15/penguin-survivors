@@ -31,14 +31,23 @@ var charge_marker: MeshInstance3D
 var health_fill: MeshInstance3D
 var health_bar: Node3D
 var hurt_time := 0.0
+var health_multiplier := 1.0
+var damage_multiplier := 1.0
+var contact_damage := 10
+var visual_scale := 1.0
+var is_miniboss := false
+var windup_duration := 0.8
+var recovery_duration := 1.1
 
 
 func _ready() -> void:
 	add_to_group("enemies")
-	health = STATS[kind].health
+	health = maxi(1, roundi(STATS[kind].health * health_multiplier))
 	max_health = health
-	hit_radius = STATS[kind].radius
+	hit_radius = STATS[kind].radius * visual_scale
+	contact_damage = maxi(1, roundi(STATS[kind].damage * damage_multiplier))
 	model = Models.animal(self, kind)
+	model.scale = Vector3.ONE * visual_scale
 	health_bar = Visuals.pivot(self, "HealthBar", Vector3(0, 2.8 if kind == Kind.RABBIT else 2.3, 0))
 	var backdrop := BoxMesh.new()
 	backdrop.size = Vector3(1.04, 0.085, 0.07)
@@ -47,6 +56,8 @@ func _ready() -> void:
 	fill.size = Vector3(1, 0.06, 0.08)
 	health_fill = Visuals.mesh(health_bar, fill, Color("ffab81"), Vector3(0, 0.005, 0.015))
 	health_bar.visible = false
+	if is_miniboss:
+		health_bar.position.y = 4.0
 	if kind == Kind.BOAR:
 		var marker := BoxMesh.new()
 		marker.size = Vector3(0.18, 0.035, 5.0)
@@ -103,7 +114,7 @@ func _physics_process(delta: float) -> void:
 	# Sweep contact so a fast charge cannot skip the player.
 	var closest := Geometry3D.get_closest_point_to_segment(target.global_position, start, global_position)
 	if closest.distance_to(target.global_position) < hit_radius + 0.42:
-		target.take_damage(STATS[kind].damage)
+		target.take_damage(contact_damage)
 
 
 func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
@@ -120,7 +131,7 @@ func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
 				return Vector3.ZERO
 			return toward * speed * STATS[kind].speed
 		ChargeState.WINDUP:
-			if state_time >= 0.8:
+			if state_time >= windup_duration:
 				charge_state = ChargeState.CHARGE
 				state_time = 0.0
 				charge_marker.hide()
@@ -132,7 +143,7 @@ func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
 				return Vector3.ZERO
 			return charge_direction * speed * 3.8
 		ChargeState.RECOVER:
-			if state_time >= 1.1:
+			if state_time >= recovery_duration:
 				charge_state = ChargeState.APPROACH
 				state_time = 0.0
 	return Vector3.ZERO
@@ -157,7 +168,7 @@ func _animate(motion_speed: float) -> void:
 	for part in model.get_children():
 		if str(part.name).begins_with("Paw_"):
 			part.rotation.x = sin(age * 10.0 + part.position.x * 5.0 + part.position.z * 4.0) * 0.35 * walking
-	model.scale = Vector3(1.0 + hurt_time * 0.7, 1.0 - hurt_time * 0.6, 1.0 + hurt_time * 0.7)
+	model.scale = Vector3(1.0 + hurt_time * 0.7, 1.0 - hurt_time * 0.6, 1.0 + hurt_time * 0.7) * visual_scale
 
 
 func take_damage(amount: int) -> void:

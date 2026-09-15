@@ -34,7 +34,7 @@ func run() -> void:
 		var sample = game.spawn_enemy()
 		seen[sample.kind] = true
 		sample.free()
-	check(seen.size() == 4, "Spawn cycle includes all four animals")
+	check(seen.size() == 1 and seen.has(0), "Opening spawns only foxes")
 	var fox = game.spawn_enemy(0)
 	fox.position = Vector3(0, 0, -12)
 	fox.movement_phase = 0.0

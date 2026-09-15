@@ -89,9 +89,9 @@ func run() -> void:
 	var attacker = game.spawn_enemy(0)
 	attacker.position = game.player.position
 	await frames(2)
-	check(game.player.health == 90, "Enemy contact deals damage")
+	check(game.player.health == 100 - attacker.contact_damage, "Enemy contact deals damage")
 	await frames(10)
-	check(game.player.health == 90, "Damage immunity prevents per-frame damage")
+	check(game.player.health == 100 - attacker.contact_damage, "Damage immunity prevents per-frame damage")
 	game.player.invulnerability = 0.0
 	game.player.take_damage(100)
 	await frames(2)

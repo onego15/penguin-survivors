@@ -42,9 +42,9 @@ func _ready() -> void:
 	layout.add_child(row)
 	for index in range(3):
 		var card := Button.new()
-		card.custom_minimum_size = Vector2(320, 285)
+		card.custom_minimum_size = Vector2(320, 370)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		card.add_theme_font_size_override("font_size", 20)
+		card.add_theme_font_size_override("font_size", 18)
 		card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		card.pressed.connect(_select.bind(index))
 		row.add_child(card)
@@ -62,12 +62,16 @@ func show_choices(ids: Array[String], levels: Dictionary, next_level: int) -> vo
 	opened = true
 	title.text = "LEVEL UP!   Lv.%d   /   武器を選ぼう" % next_level
 	for index in range(3):
+		cards[index].visible=index<ids.size()
+		if index>=ids.size():
+			cards[index].disabled=true
+			continue
 		var id := ids[index]
 		var data: Dictionary = Catalog.ITEMS[id]
 		var rank := int(levels.get(id, 0))
 		var status := "新しい武器" if rank == 0 else "強化  Lv.%d → Lv.%d" % [rank, rank + 1]
-		var detail: String = data.description if rank == 0 else "攻撃間隔が短くなります。\n2回の強化ごとに威力も上昇。"
-		cards[index].text = "%d   /   %s\n\n%s\n\n%s\n\n%s" % [index + 1, status, data.name, detail, data.style]
+		var detail: String = data.description if rank == 0 else Catalog.upgrade_text(id,rank)
+		cards[index].text = "%d   /   %s\n\n%s\n\n%s\n\n%s" % [index + 1, status, data.name, detail, data.style if rank==0 else "最大 Lv.%d"%Catalog.MAX_RANK]
 		for state in ["normal", "hover", "pressed", "focus"]:
 			var style := StyleBoxFlat.new()
 			style.bg_color = Color("23394f") if state == "normal" else Color("354e67")
@@ -89,7 +93,7 @@ func close() -> void:
 
 
 func _select(index: int) -> void:
-	if opened:
+	if opened and index>=0 and index<cards.size() and cards[index].visible and not cards[index].disabled:
 		opened = false # Only one acquisition per popup, even with repeated input.
 		selected.emit(index)
 

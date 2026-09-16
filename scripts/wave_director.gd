@@ -57,7 +57,7 @@ func below_cap(kind: int) -> bool:
 		if enemy.dead or enemy.is_miniboss or enemy.is_in_group("final_bosses"): continue
 		if enemy.kind>=4: total+=1
 		if enemy.kind==kind: count+=1
-	var limit := 2 if kind in [9,13] else (3 if kind in [4,6,7,10,11,12] else 12)
+	var limit := 2 if kind in [9,13] else (3 if kind in [4,6,7,10,11,12,14] else 12)
 	if kind==5: limit=3 if game.elapsed<360 else 5
 	return total<12 and count<limit
 func choose_kind() -> int:

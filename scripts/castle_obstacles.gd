@@ -48,22 +48,22 @@ func _ready() -> void:
 			V.ring(self,Color("e5faff"),Vector3(x,2.8,z),0.18,0.045,true)
 			V.rod(self,Color("e5faff"),Vector3(x,2.65,z),Vector3(x,2.25,z),0.04)
 			gates.append({"rect":rect,"mesh":mesh,"label":label,"state":"open","left":0.0,"wait":0.0,"duration":8.0})
-func rectangles() -> Array[Rect2]:
+func rectangles(ignore_gates: bool=false) -> Array[Rect2]:
 	var result: Array[Rect2]=walls.duplicate()
 	for gate in gates:
-		if gate.state=="closed": result.append(gate.rect)
+		if gate.state=="closed" and not ignore_gates: result.append(gate.rect)
 	return result
-func clear(point: Vector3, radius: float=0.5) -> bool:
+func clear(point: Vector3, radius: float=0.5, ignore_gates: bool=false) -> bool:
 	if absf(point.x)>23-radius or absf(point.z)>23-radius: return false
-	for rect in rectangles():
+	for rect in rectangles(ignore_gates):
 		if rect.grow(radius).has_point(Vector2(point.x,point.z)): return false
 	return true
-func sweep(a: Vector3, b: Vector3, radius: float=0.0) -> Dictionary:
+func sweep(a: Vector3, b: Vector3, radius: float=0.0, ignore_gates: bool=false) -> Dictionary:
 	var best:=1.0
 	var normal:=Vector3.ZERO
 	var start:=Vector2(a.x,a.z)
 	var movement:=Vector2(b.x-a.x,b.z-a.z)
-	for raw in rectangles():
+	for raw in rectangles(ignore_gates):
 		var rect:=raw.grow(radius)
 		var enter:=0.0
 		var leave:=1.0
@@ -90,26 +90,28 @@ func sweep(a: Vector3, b: Vector3, radius: float=0.0) -> Dictionary:
 	return {"t":best,"point":b if best>=1 else a.lerp(b,maxf(0,best-0.001)),"normal":normal}
 func move_actor(actor: Node3D, finish: Vector3, radius: float, slide: bool=true) -> Vector3:
 	var start:=actor.global_position
-	var hit:=sweep(start,finish,radius)
+	var phasing: bool=actor.get_meta("gate_phasing",false)
+	var hit:=sweep(start,finish,radius,phasing)
 	actor.set_meta("wall_blocked",hit.t<1)
 	if hit.t>=1: return finish
 	var point: Vector3=hit.point
 	if slide:
 		var remaining:=finish-point
 		remaining-=hit.normal*remaining.dot(hit.normal)
-		point=sweep(point,point+remaining,radius).point
+		point=sweep(point,point+remaining,radius,phasing).point
 	return point
-func grid(radius: float) -> AStarGrid2D:
+func grid(radius: float, ignore_gates: bool=false) -> AStarGrid2D:
 	var size:=1.7 if radius>1 else 0.95
-	if grids.has(size): return grids[size]
+	var key:=Vector2(size,1 if ignore_gates else 0)
+	if grids.has(key): return grids[key]
 	var nav:=AStarGrid2D.new()
 	nav.region=Rect2i(-23,-23,47,47)
 	nav.cell_size=Vector2.ONE
 	nav.diagonal_mode=AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
 	nav.update()
 	for x in range(-23,24):
-		for z in range(-23,24): nav.set_point_solid(Vector2i(x,z),not clear(Vector3(x,0,z),size))
-	grids[size]=nav
+		for z in range(-23,24): nav.set_point_solid(Vector2i(x,z),not clear(Vector3(x,0,z),size,ignore_gates))
+	grids[key]=nav
 	return nav
 func cell(point: Vector3, nav: AStarGrid2D) -> Vector2i:
 	var origin:=Vector2i(roundi(point.x),roundi(point.z))
@@ -122,18 +124,19 @@ func cell(point: Vector3, nav: AStarGrid2D) -> Vector2i:
 			var d:=Vector2(x,z).distance_squared_to(Vector2(point.x,point.z))
 			if d<distance: best=p; distance=d
 	return best
-func path(a: Vector3, b: Vector3, radius: float) -> PackedVector2Array:
-	var nav:=grid(radius)
+func path(a: Vector3, b: Vector3, radius: float, ignore_gates: bool=false) -> PackedVector2Array:
+	var nav:=grid(radius,ignore_gates)
 	var start:=cell(a,nav)
 	var finish:=cell(b,nav)
 	if start.x==999 or finish.x==999: return PackedVector2Array()
 	return nav.get_point_path(start,finish)
 func steer(actor: Node3D, goal: Vector3, radius: float) -> Vector3:
-	if sweep(actor.global_position,goal,radius).t>=1: return (goal-actor.global_position).normalized()
+	var phasing: bool=actor.get_meta("gate_phasing",false)
+	if sweep(actor.global_position,goal,radius,phasing).t>=1: return (goal-actor.global_position).normalized()
 	var cache: Dictionary=actor.get_meta("castle_route",{})
 	var now:=Engine.get_physics_frames()
 	if cache.is_empty() or cache.rev!=revision or now>=cache.until:
-		cache={"rev":revision,"until":now+24+actor.get_instance_id()%17,"index":0,"path":path(actor.global_position,goal,radius)}
+		cache={"rev":revision,"until":now+24+actor.get_instance_id()%17,"index":0,"path":path(actor.global_position,goal,radius,phasing)}
 		actor.set_meta("castle_route",cache)
 	var route: PackedVector2Array=cache.path
 	while cache.index<route.size():
@@ -146,7 +149,7 @@ func reachable(a: Vector3,b: Vector3,radius: float=0.5) -> bool:
 	return clear(b,radius) and not path(a,b,radius).is_empty()
 func occupied(rect: Rect2) -> bool:
 	for actor in [game.player]+get_tree().get_nodes_in_group("all_enemies"):
-		if not is_instance_valid(actor) or actor.is_queued_for_deletion(): continue
+		if not is_instance_valid(actor) or actor.is_queued_for_deletion() or actor.get_meta("gate_phasing",false): continue
 		var r: float=0.5 if actor==game.player else actor.hit_radius
 		if rect.grow(r+0.1).has_point(Vector2(actor.position.x,actor.position.z)): return true
 	return false

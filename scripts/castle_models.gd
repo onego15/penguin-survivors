@@ -1,6 +1,7 @@
 extends RefCounted
 const V=preload("res://scripts/visuals.gd")
 static func animal(parent: Node3D, kind: int) -> Node3D:
+	if kind==14: return ghost(parent)
 	var root:=V.pivot(parent,"CastleAnimal")
 	var colors: Array[Color]=[Color("76659d"),Color("8c9bab"),Color("eef5ec"),Color("c5ccde")]
 	var color: Color=colors[kind-10]
@@ -77,3 +78,21 @@ static func arena(parent: Node3D) -> void:
 		var mat:=V.material(Color("d0d5ff")).duplicate()
 		mat.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
 		star.material_override=mat
+
+static func ghost(parent: Node3D) -> Node3D:
+	var root:=V.pivot(parent,"GateGhost")
+	var mat:=StandardMaterial3D.new()
+	mat.albedo_color=Color(0.65,0.52,0.85,0.7)
+	mat.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+	var body:=V.ellipsoid(root,Color("a894d9"),Vector3(0,0.95,0),Vector3(0.55,0.7,0.43))
+	body.material_override=mat
+	for i in range(5):
+		var a:=i*TAU/5
+		var skirt:=V.rod(root,Color("a894d9"),Vector3(cos(a)*0.33,0.6,sin(a)*0.3),Vector3(cos(a)*0.48,0.1,sin(a)*0.4),0.18,0)
+		skirt.material_override=mat
+	for side in [-1,1]:
+		V.ellipsoid(root,Color("302945"),Vector3(side*0.19,1.15,0.39),Vector3(0.12,0.17,0.05))
+		V.ellipsoid(root,Color("ff6c80"),Vector3(side*0.19,1.17,0.435),Vector3(0.055,0.085,0.02))
+		V.ellipsoid(root,Color("8b70ba"),Vector3(side*0.57,0.9,0),Vector3(0.28,0.13,0.2))
+	V.ellipsoid(root,Color("302945"),Vector3(0,0.85,0.43),Vector3(0.09,0.13,0.025))
+	return root

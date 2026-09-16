@@ -65,7 +65,7 @@ func run() -> void:
 	check(not game.armory.mounts.has("heart"),"Pink wand not duplicated on upgrade")
 	for id in game.Catalog.ITEMS: game.armory.acquire(id)
 	game._update_hud()
-	check(game.armory.levels.size()==19,"All nineteen weapons available")
+	check(game.armory.levels.size()==20,"All twenty weapons available")
 	var victory=preload("res://scripts/victory_screen.gd").new()
 	victory.results={"character_id":"pink","elapsed":600,"level":19,"kills":999,"weapons":game.armory.levels}
 	game.add_child(victory)

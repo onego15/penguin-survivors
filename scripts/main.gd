@@ -429,7 +429,8 @@ func _on_boss_defeated() -> void:
 func fire_at_nearest() -> bool:
 	if not armory.levels.has("frost"): return false
 	var nearest: Node3D = null
-	var best_distance := ATTACK_RANGE * ATTACK_RANGE
+	var reach: float=Catalog.stats("frost",armory.levels.frost).reach
+	var best_distance := reach*reach
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		var distance := player.global_position.distance_squared_to(enemy.global_position)
 		if not enemy.dead and distance <= best_distance:
@@ -439,6 +440,7 @@ func fire_at_nearest() -> bool:
 		return false
 	var bullet := Projectile.new()
 	bullet.damage = Catalog.damage("frost", armory.levels.frost)
+	bullet.lifetime=1.5*reach/ATTACK_RANGE
 	player.aim_at(nearest.global_position)
 	bullet.position = player.muzzle_position()
 	bullet.direction = (nearest.position + Vector3(0, 1.0, 0) - bullet.position).normalized()
@@ -459,10 +461,21 @@ func open_weapon_choice() -> void:
 		return
 	var pool: Array[String] = []
 	for id in Catalog.ITEMS:
-		pool.append(id)
+		if int(armory.levels.get(id,0))<Catalog.MAX_RANK: pool.append(id)
 	offered_weapons.clear()
 	# Every weapon is equally eligible: unowned = acquisition, owned = upgrade.
-	while offered_weapons.size() < 3:
+	if pool.is_empty():
+		var before: int=player.health
+		player.heal(20)
+		director.notice="全武器MAX / HP +%d"%(player.health-before)
+		director.notification_until=elapsed+3
+		sound.play_effect("level_up")
+		experience-=xp_needed
+		level+=1
+		xp_needed=Difficulty.xp_for_level(level)
+		_update_hud()
+		return
+	while offered_weapons.size() < 3 and not pool.is_empty():
 		var index := rng.randi_range(0, pool.size() - 1)
 		offered_weapons.append(pool[index])
 		pool.remove_at(index)
@@ -499,9 +512,10 @@ func _update_hud() -> void:
 	xp_label.text="XP %d / %d" % [experience,xp_needed]
 	xp_bar.max_value = xp_needed
 	xp_bar.value = experience
+	inventory_label.add_theme_font_size_override("font_size",13 if armory.levels.size()>18 else 14)
 	inventory_label.text = "装備武器 / すべて自動攻撃"
 	for id in armory.levels:
-		inventory_label.text += "\n%s  Lv.%d" % [Catalog.ITEMS[id].name, armory.levels[id]]
+		inventory_label.text += "\n%s  %s" % [Catalog.ITEMS[id].name, "MAX" if armory.levels[id]>=Catalog.MAX_RANK else "Lv.%d"%armory.levels[id]]
 	var profile := Difficulty.profile(elapsed)
 	if director!=null:
 		wave_hint.text = director.waves[director.wave].hint if director.wave>=0 else ""

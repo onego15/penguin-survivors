@@ -1,6 +1,7 @@
 extends RefCounted
 
 const ITEMS := {
+	"udon":{"name":"ちゅるちゅるおうどん","description":"どんぶりから麺を伸ばして巻き戻す。\n通常敵を少し引き寄せ、往復で攻撃。","style":"自動照準 / 巻き込み・往復","color":Color("f2de9c"),"cooldown":2.4,"damage":3},
 	"heart": {"name":"ハートの波動", "description":"最寄りの敵へハートを放つ。\n直線上の敵を最大3体貫通。", "style":"自動照準 / 3体貫通", "color":Color("f578b2"), "cooldown":0.65, "damage":2},
 	"rear_fan": {"name": "しっぽの散弾", "description": "背後へ5発の散弾を放つ。\n逃げながら追手を迎撃。", "style": "後方固定 / 威力3 × 5発", "color": Color("ffba8a"), "cooldown": 1.7, "damage": 3},
 	"rear_bomb": {"name": "うしろ花火", "description": "背後4.5mへ花火を投げる。\n0.65秒後に半径3mで爆発。", "style": "後方設置 / 威力8", "color": Color("ef9fff"), "cooldown": 2.7, "damage": 8},
@@ -23,9 +24,43 @@ const ITEMS := {
 }
 
 
+const MAX_RANK:=5
+const SHAPES={
+	"frost":{"reach":12.0}, "heart":{"reach":12.0,"pierce":3},
+	"fan":{"reach":13.6,"count":5}, "rear_fan":{"reach":13.6,"count":5},
+	"spear":{"reach":19.5}, "rear_bomb":{"radius":3.0}, "ember":{"radius":3.2},
+	"lightning":{"radius":3.0,"count":3}, "whip":{"radius":3.8},
+	"trail":{"radius":1.25,"duration":4.0}, "bounce":{"duration":5.0},
+	"turret":{"reach":12.0,"duration":8.0}, "seeker":{"reach":12.0,"count":3,"duration":3.0},
+	"beam":{"reach":12.0,"duration":1.3}, "orbit":{"radius":2.2,"count":2},
+	"nova":{"radius":4.2}, "mine":{"radius":3.0,"duration":8.0},
+	"boomerang":{"reach":12.0,"travel":9.1,"duration":2.4}, "storm":{"radius":2.6,"duration":3.2},
+	"udon":{"reach":7.0,"radius":1.2},
+}
+static func stats(id: String, rank: int) -> Dictionary:
+	var n:=clampi(rank,1,MAX_RANK)-1
+	var result: Dictionary=SHAPES[id].duplicate()
+	var many:=id in ["fan","rear_fan","seeker","lightning","orbit"]
+	result.damage=int(ITEMS[id].damage)+n if id=="frost" else ceili(float(ITEMS[id].damage)*(1+(0.4*ceilf(n/2.0) if many else 0.5*n)))
+	result.cooldown=float(ITEMS[id].cooldown)*(1-(0.025 if id=="frost" or id=="orbit" else 0.05)*n)
+	if result.has("reach"): result.reach*=1+0.1*n
+	if result.has("travel"): result.travel*=1+0.1*n
+	if result.has("radius"): result.radius*=1+(0.1 if id in ["whip","orbit"] else 0.06)*n
+	if result.has("duration"): result.duration*=1+0.075*n
+	if result.has("count"): result.count+=n/2
+	if result.has("pierce"): result.pierce+=n/2
+	return result
 static func damage(id: String, rank: int) -> int:
-	return ITEMS[id].damage + int((rank - 1) / 2)
-
-
+	return stats(id,rank).damage
 static func cooldown(id: String, rank: int) -> float:
-	return ITEMS[id].cooldown * maxf(0.35, pow(0.92, rank - 1))
+	return stats(id,rank).cooldown
+static func upgrade_text(id: String, rank: int) -> String:
+	var before:=stats(id,rank)
+	var after:=stats(id,rank+1)
+	var lines: Array[String]=[]
+	for key in ["damage","cooldown","reach","radius","count","duration","pierce","travel"]:
+		if not before.has(key) or before[key]==after[key]: continue
+		var names:={"damage":"威力","cooldown":"間隔","reach":"射程","radius":"半径","count":"数","duration":"持続","pierce":"貫通数","travel":"到達距離"}
+		if key in ["damage","count","pierce"]: lines.append("%s %d → %d"%[names[key],before[key],after[key]])
+		else: lines.append("%s %.2f → %.2f%s"%[names[key],before[key],after[key],"m" if key in ["reach","radius","travel"] else "秒"])
+	return "\n".join(lines)

@@ -13,17 +13,18 @@ var last_trail := Vector3.INF
 
 
 func acquire(id: String) -> void:
-	if not Catalog.ITEMS.has(id):
+	if not Catalog.ITEMS.has(id) or int(levels.get(id,0))>=Catalog.MAX_RANK:
 		return
 	levels[id] = int(levels.get(id, 0)) + 1
 	if id=="frost": game.player.equip_frost()
 	if id == "frost" or mounts.has(id) or (id=="heart" and game.player.character_id=="pink"):
 		return
 	cooldowns[id] = 0.0
-	var mount := V.pivot(game.player, "Weapon_" + id)
+	var mount := V.pivot(game.player.body if id=="udon" else game.player, "Weapon_" + id)
 	var tint: Color = Catalog.ITEMS[id].color
 	V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
+		"udon": preload("res://scripts/udon_attack.gd").bowl(mount)
 		"heart": preload("res://scripts/character_models.gd").heart_wand(mount)
 		"beam":
 			preload("res://scripts/prism_visual.gd").build_crystal(mount)
@@ -65,6 +66,9 @@ func tick(delta: float) -> void:
 	time += delta
 	var index := 0
 	for id in mounts:
+		if id=="udon":
+			mounts[id].position=Vector3(-0.75,1,0.35)
+			continue
 		var angle := time * 0.35 + (index % 8) * TAU / mini(8, mounts.size())
 		var reach := 1.2 + 0.65 * floori(index / 8.0)
 		mounts[id].position = Vector3(cos(angle) * reach, 1.35 + sin(time * 2 + index) * 0.08, sin(angle) * reach)
@@ -94,20 +98,36 @@ func nearest(origin: Vector3, reach: float, excluded: Array = []) -> Node3D:
 func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
+	var stats:=Catalog.stats(id,levels[id])
+	if id=="udon":
+		var enemy:=nearest(game.player.global_position,stats.reach)
+		if enemy==null: return false
+		var attack:=preload("res://scripts/udon_attack.gd").new()
+		attack.player=game.player
+		attack.position=game.player.global_position+Vector3.UP
+		attack.direction=(enemy.global_position-game.player.global_position).normalized()
+		attack.reach=minf(stats.reach,enemy.global_position.distance_to(game.player.global_position))
+		attack.splash_radius=stats.radius
+		attack.damage=stats.damage
+		game.actors.add_child(attack)
+		game.sound.play_effect("magic")
+		return true
 	if id=="heart":
-		var enemy:=nearest(game.player.global_position,12)
+		var enemy:=nearest(game.player.global_position,stats.reach)
 		if enemy==null: return false
 		var heart:=preload("res://scripts/heart_projectile.gd").new()
 		heart.position=game.player.global_position+Vector3.UP
 		heart.direction=(enemy.global_position-game.player.global_position).normalized()
-		heart.damage=Catalog.damage(id,levels[id])
+		heart.damage=stats.damage
+		heart.max_distance=stats.reach
+		heart.max_hits=stats.pierce
 		heart.player=game.player
 		game.actors.add_child(heart)
 		game.sound.play_effect("magic")
 		return true
 	var origin: Vector3 = game.player.global_position
 	var aimed: bool = id in ["boomerang", "storm", "bounce", "seeker", "beam"]
-	var target: Node3D = nearest(origin, 12.0) if aimed else null
+	var target: Node3D = nearest(origin, stats.get("reach",12.0)) if aimed else null
 	if target == null and aimed:
 		return false
 	var direction: Vector3 = game.player.facing_direction()
@@ -121,30 +141,31 @@ func fire(id: String) -> bool:
 			if game.player.velocity.length_squared() < 0.1 or origin.distance_to(last_trail) < 0.8:
 				return false
 			last_trail = origin
-		for index in range(3 if id == "seeker" else 1):
+		for index in range(int(stats.count) if id == "seeker" else 1):
 			var special := Advanced.new()
 			special.mode = id
+			special.weapon_rank=levels[id]
 			special.player = game.player
 			special.position = origin + Vector3.UP
-			special.direction = direction.rotated(Vector3.UP, (index - 1) * 0.6 if id == "seeker" else 0.0)
+			special.direction = direction.rotated(Vector3.UP, (index - (int(stats.count)-1)/2.0) * 0.6 if id == "seeker" else 0.0)
 			special.damage = damage
 			special.tint = Catalog.ITEMS[id].color
 			game.actors.add_child(special)
 		game.sound.play_effect("slash" if id == "whip" else "magic")
 		return true
 	if id == "lightning":
-		for index in range(3):
+		for index in range(int(stats.count)):
 			var strike := Attack.new()
 			strike.mode = "lightning"
 			strike.position = random_visible_ground()
 			strike.tint = Catalog.ITEMS[id].color
 			strike.damage = damage
-			strike.area_radius = 3.0
+			strike.area_radius = stats.radius
 			strike.warning_duration = 0.25 + index * 0.12
 			strike.lifetime = strike.warning_duration + 0.3
 			game.actors.add_child(strike)
 		return true
-	for index in range(5 if id in ["fan", "rear_fan"] else 1):
+	for index in range(int(stats.count) if id in ["fan", "rear_fan"] else 1):
 		var attack := Attack.new()
 		attack.player = game.player
 		attack.tint = Catalog.ITEMS[id].color
@@ -153,55 +174,57 @@ func fire(id: String) -> bool:
 		attack.direction = direction
 		match id:
 			"fan", "rear_fan":
-				attack.direction = direction.rotated(Vector3.UP, (index - 2) * 0.18)
+				attack.direction = direction.rotated(Vector3.UP, (index - (int(stats.count)-1)/2.0) * 0.18)
 				attack.speed = 16.0
-				attack.lifetime = 0.85
+				attack.lifetime = stats.reach/16.0
 			"rear_bomb":
 				attack.mode = "rear_bomb"
 				attack.position = origin + direction * 4.5
 				attack.launch_origin = origin + Vector3.UP
 				attack.lifetime = 0.65
-				attack.area_radius = 3.0
+				attack.area_radius = stats.radius
 			"spear":
 				attack.visual_kind="lance"
 				attack.piercing = true
 				attack.radius = 0.26
 				attack.speed = 26.0
 				attack.damage = damage
-				attack.lifetime = 0.75
+				attack.lifetime = stats.reach/26.0
 			"ember":
 				attack.mode = "meteor"
 				attack.position = origin + direction * 8.0
 				attack.lifetime = 0.7
-				attack.area_radius = 3.2
+				attack.area_radius = stats.radius
 			"boomerang":
 				attack.mode = "boomerang"
 				attack.piercing = true
 				attack.speed = 14.0
 				attack.radius = 0.35
-				attack.lifetime = 2.4
+				attack.lifetime = stats.duration
+				attack.ellipse_reach=stats.travel
 			"orbit":
 				attack.mode = "orbit"
 				attack.position = origin
-				attack.area_radius = 2.2
+				attack.area_radius = stats.radius
+				attack.orbit_count=stats.count
 				attack.radius = 0.3
 				attack.lifetime = Catalog.cooldown(id, levels[id])
 			"nova":
 				attack.mode = "nova"
 				attack.visual_kind="chime"
 				attack.position = origin
-				attack.area_radius = 4.2
+				attack.area_radius = stats.radius
 				attack.lifetime = 0.65
 			"mine":
 				attack.mode = "mine"
 				attack.position = origin
-				attack.area_radius = 3.0
-				attack.lifetime = 8.0
+				attack.area_radius = stats.radius
+				attack.lifetime = stats.duration
 			"storm":
 				attack.mode = "storm"
 				attack.position = target.global_position
-				attack.area_radius = 2.6
-				attack.lifetime = 3.2
+				attack.area_radius = stats.radius
+				attack.lifetime = stats.duration
 		if not preload("res://scripts/castle_obstacles.gd").placement(game,attack.position,0.1):
 			attack.free()
 			return false

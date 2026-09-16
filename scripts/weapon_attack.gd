@@ -3,6 +3,10 @@ const O=preload("res://scripts/castle_obstacles.gd")
 ## Temporary attacks share collision/lifetime handling, but retain distinct movement.
 
 const V = preload("res://scripts/visuals.gd")
+var weapon_rank:=1
+var orbit_count:=2
+var max_hits:=3
+var ellipse_reach:=9.1
 var flourish: Node3D
 var visual_kind := ""
 var detail: Node3D
@@ -54,7 +58,7 @@ func _ready() -> void:
 				V.ellipsoid(visual, Color("775340"), Vector3(0, 0.38, 0), Vector3(0.31, 0.1, 0.31))
 				V.rod(visual, Color("ffe88b"), Vector3(0, 0.4, 0), Vector3(0.08, 0.65, 0), 0.035)
 			if mode == "orbit" or mode == "storm":
-				for index in range(2 if mode == "orbit" else 6):
+				for index in range(orbit_count if mode == "orbit" else 6):
 					orbiters.append(V.ellipsoid(visual, tint, Vector3.ZERO, Vector3.ONE * (0.28 if mode == "orbit" else 0.12)))
 		"boomerang":
 			V.ellipsoid(visual, tint, Vector3.ZERO, Vector3(0.2, 0.12, 0.45))
@@ -134,7 +138,7 @@ func _physics_process(delta: float) -> void:
 		global_position = player.global_position
 		ring.scale = Vector3(area_radius, 1, area_radius)
 		for index in range(orbiters.size()):
-			var angle := age * 3.0 + index * PI
+			var angle := age * 3.0 + index * TAU / orbit_count
 			var old: Vector3 = global_position + Vector3(cos(angle - delta * 3) * area_radius, 1, sin(angle - delta * 3) * area_radius)
 			orbiters[index].position = Vector3(cos(angle) * area_radius, 1, sin(angle) * area_radius)
 			_segment_hit(old, orbiters[index].global_position, true)
@@ -188,7 +192,7 @@ func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
 			_explode()
 			return
 		_damage(hit.enemy)
-		if visual_kind=="heart" and hit_times.size()>=3:
+		if visual_kind=="heart" and hit_times.size()>=max_hits:
 			queue_free()
 			return
 		if not piercing and mode in ["bolt", "seeker"]:
@@ -262,7 +266,7 @@ func spawn_detail(style: String, point: Vector3, duration: float, reach: float) 
 func ellipse_point(time: float) -> Vector3:
 	var theta:=clampf(time/1.3,0,1)*TAU
 	var side:=Vector3(-launch_direction.z,0,launch_direction.x)
-	return launch_origin+launch_direction*(4.55*(1-cos(theta)))+side*(1.6*sin(theta))
+	return launch_origin+launch_direction*(ellipse_reach*0.5*(1-cos(theta)))+side*(1.6*sin(theta))
 func _move_ellipse(delta: float) -> void:
 	var cursor:=maxf(0,age-delta)
 	var end:=minf(age,lifetime)

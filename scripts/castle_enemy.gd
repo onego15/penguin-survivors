@@ -7,6 +7,7 @@ var rest:=0.0
 var locked:=Vector3.ZERO
 var marker: Node3D
 func _ready() -> void:
+	if kind==14: set_meta("gate_phasing",true)
 	health_multiplier=sqrt(health_multiplier)
 	super._ready()
 	marker=C.warning(self,0.7,6 if kind==13 else 1.5)
@@ -45,6 +46,10 @@ func _physics_process(delta: float) -> void:
 	if kind==10:
 		motion=(toward+Vector3(-toward.z,0,toward.x)*sin(age*4+movement_phase)*0.5).normalized()*speed
 	_move_and_contact(delta,motion)
+	if kind==14:
+		model.position.y=0.3+sin(age*3)*0.18
+		model.rotation.z=sin(age*2)*0.08
+		return
 	if kind==10:
 		model.position.y=0.35+sin(age*7)*0.15
 		model.get_node("WingLeft").rotation.z=sin(age*12)*0.5

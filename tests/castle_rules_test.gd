@@ -30,7 +30,7 @@ func run() -> void:
 			clear_actors()
 		var times: Dictionary=game.director.introduced_at
 		check(times.has(13) and times[13]>=420 and times[13]<=430 and times[2]>=90 and times[2]<=100,"Seed %d preserves goat/boar introductions"%seed_value)
-		check(game.director.introduced.size()==10,"Castle introduces exactly ten kinds, seed %d"%seed_value)
+		check(game.director.introduced.size()==11,"Castle introduces exactly eleven kinds, seed %d"%seed_value)
 	game.elapsed=0
 	game.player.position=Vector3(6.5,0,0)
 	var o=game.obstacles

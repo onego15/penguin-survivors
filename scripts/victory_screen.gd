@@ -54,7 +54,7 @@ func _ready() -> void:
 	camera.current=true
 	V.rod(stage,Color("edf7ec"),Vector3(-2,-0.6,0),Vector3(-2,-0.05,0),4.6)
 	V.ring(stage,Color("e2bd6c"),Vector3(-2,0,0),4.3,0.07)
-	var hero:=Models.penguin(stage)
+	var hero:=Models.penguin(stage,results.get("character_id","classic"))
 	hero.position=Vector3(-2,0,0)
 	hero.scale=Vector3.ONE*1.5
 	characters.append(hero)

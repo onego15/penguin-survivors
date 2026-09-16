@@ -4,13 +4,17 @@ var history: Array[Vector3]=[]
 var fin: Node3D
 var flash: MeshInstance3D
 func _ready() -> void:
-	if mode in ["lance","boomerang","fuse"]:
+	if mode in ["lance","boomerang","fuse","heart"]:
 		for i in range(10):
 			var rod:=materialize(V.rod(self,Color("93edff"),Vector3.ZERO,Vector3.UP,0.035*(1-i/12.0)),0.6)
 			rod.set_as_top_level(true)
 			rod.hide()
 			trails.append(rod)
 	match mode:
+		"heart_hit":
+			var heart=preload("res://scripts/character_models.gd").heart(self)
+			heart.scale=Vector3.ONE*0.4
+			bands.append(materialize(V.ring(self,Color("9cecff"),Vector3.ZERO,0.35,0.018,true),0.7))
 		"lance":
 			var shape:=CylinderMesh.new()
 			shape.radial_segments=5
@@ -56,6 +60,9 @@ func _ready() -> void:
 func animate(time: float, duration: float) -> void:
 	var t:=clampf(time/duration,0,1)
 	if is_instance_valid(fin): fin.rotation.y=sin(time*25)*0.4
+	if mode=="heart_hit":
+		scale=Vector3.ONE*(1+t)
+		for band in bands: band.material_override.albedo_color.a=0.7*(1-t)
 	if mode=="fireball":
 		for i in range(pieces.size()): pieces[i].scale.y=1+sin(time*28+i)*0.25
 		for i in range(bands.size()): bands[i].position=Vector3(cos(i*2.4)*0.45,0.4+fposmod(time*3+i*0.21,1.3),sin(i*2.4)*0.45)

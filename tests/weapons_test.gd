@@ -47,7 +47,7 @@ func run() -> void:
 	game.spawn_cooldown = 9999
 	game.fire_cooldown = 9999
 	await frames(2)
-	check(Catalog.ITEMS.size() == 18 and game.armory.levels.size() == 1, "Eighteen weapon types exist, with one starter equipped")
+	check(Catalog.ITEMS.size() == 19 and game.armory.levels.size() == 1, "Nineteen weapon types exist, with one starter equipped")
 	for index in range(11):
 		enemy_at(Vector3(5, 0, 0), 2).take_damage(2)
 	await frames(2)

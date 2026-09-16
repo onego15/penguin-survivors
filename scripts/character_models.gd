@@ -16,40 +16,50 @@ static func eyes(parent: Node3D, spread: float, height: float, depth: float, rad
 		V.ellipsoid(parent, WHITE, Vector3(side * spread - radius * 0.2, height + radius * 0.35, depth + radius * 0.6), Vector3.ONE * radius * 0.3)
 
 
-static func penguin(parent: Node3D) -> Node3D:
+static func penguin(parent: Node3D, character_id: String = "classic") -> Node3D:
 	var root := V.pivot(parent, "Penguin")
-	V.ellipsoid(root, INK, Vector3(0, 0.77, 0), Vector3(0.61, 0.74, 0.48))
+	var pink:=character_id=="pink"
+	root.set_meta("character_id",character_id)
+	var feathers:=Color("ec91b6") if pink else INK
+	V.ellipsoid(root, feathers, Vector3(0, 0.77, 0), Vector3(0.61, 0.74, 0.48))
 	V.ellipsoid(root, WHITE, Vector3(0, 0.79, 0.33), Vector3(0.47, 0.58, 0.23))
 	# Golden breast and ear patches distinguish an emperor penguin.
 	V.ellipsoid(root, GOLD, Vector3(0, 1.22, 0.36), Vector3(0.33, 0.23, 0.12))
 	V.ellipsoid(root, CREAM, Vector3(0, 1.12, 0.43), Vector3(0.29, 0.19, 0.1))
 	var head := V.pivot(root, "Head", Vector3(0, 1.73, 0))
-	V.ellipsoid(head, INK, Vector3.ZERO, Vector3(0.67, 0.63, 0.56))
+	V.ellipsoid(head, feathers, Vector3.ZERO, Vector3(0.67, 0.63, 0.56))
 	for side in [-1.0, 1.0]:
-		V.ellipsoid(head, GOLD, Vector3(side * 0.55, -0.16, 0.13), Vector3(0.14, 0.29, 0.28))
+		V.ellipsoid(head, Color("ffcfdb") if pink else GOLD, Vector3(side * 0.55, -0.16, 0.13), Vector3(0.14, 0.29, 0.28))
 		V.ellipsoid(head, WHITE, Vector3(side * 0.265, 0.045, 0.46), Vector3(0.25, 0.28, 0.12))
-		V.ellipsoid(head, Color("f4b4a1"), Vector3(side * 0.39, -0.15, 0.52), Vector3(0.11, 0.055, 0.035))
+		V.ellipsoid(head, Color("e88dab") if pink else Color("f4b4a1"), Vector3(side * 0.39, -0.15, 0.52), Vector3(0.11, 0.055, 0.035))
 		# Thick circular rims and arms are geometry, so the glasses read in silhouette.
-		V.ring(head, Color("b47e36"), Vector3(side * 0.275, 0.065, 0.605), 0.235, 0.032, true)
-		V.rod(head, Color("b47e36"), Vector3(side * 0.5, 0.08, 0.59), Vector3(side * 0.62, 0.02, 0.04), 0.025)
-		V.rod(head, WHITE, Vector3(side * 0.275 - 0.1, 0.18, 0.625), Vector3(side * 0.275 - 0.045, 0.225, 0.625), 0.016)
+		if not pink:
+			V.ring(head, Color("b47e36"), Vector3(side * 0.275, 0.065, 0.605), 0.235, 0.032, true)
+		if not pink:
+			V.rod(head, Color("b47e36"), Vector3(side * 0.5, 0.08, 0.59), Vector3(side * 0.62, 0.02, 0.04), 0.025)
+		if not pink:
+			V.rod(head, WHITE, Vector3(side * 0.275 - 0.1, 0.18, 0.625), Vector3(side * 0.275 - 0.045, 0.225, 0.625), 0.016)
+	if pink:
+		for side in [-1.0,1.0]:
+			V.ellipsoid(head,Color("c793bd"),Vector3(side*0.265,0.115,0.565),Vector3(0.11,0.05,0.025))
+			for lash in range(2): V.rod(head,INK,Vector3(side*(0.33+lash*0.025),0.1,0.59),Vector3(side*(0.38+lash*0.035),0.17+lash*0.015,0.6),0.012)
 	eyes(head, 0.265, 0.035, 0.583, 0.095)
-	V.rod(head, Color("b47e36"), Vector3(-0.06, 0.1, 0.63), Vector3(0.06, 0.1, 0.63), 0.027)
+	if not pink:
+		V.rod(head, Color("b47e36"), Vector3(-0.06, 0.1, 0.63), Vector3(0.06, 0.1, 0.63), 0.027)
 	V.ellipsoid(head, Color("f3a238"), Vector3(0, -0.18, 0.6), Vector3(0.16, 0.095, 0.23))
 	V.ellipsoid(head, INK, Vector3(0, -0.2, 0.78), Vector3(0.085, 0.028, 0.065))
-	V.ring(root, TEAL, Vector3(0, 1.26, 0), 0.43, 0.095)
-	var scarf := V.ellipsoid(root, TEAL, Vector3(-0.3, 0.98, 0.49), Vector3(0.13, 0.31, 0.065))
+	V.ring(root, Color("bb74b1") if pink else TEAL, Vector3(0, 1.26, 0), 0.43, 0.095)
+	var scarf := V.ellipsoid(root, Color("bb74b1") if pink else TEAL, Vector3(-0.3, 0.98, 0.49), Vector3(0.13, 0.31, 0.065))
 	scarf.rotation.z = -0.25
 	V.ellipsoid(root, GOLD, Vector3(-0.3, 1.16, 0.57), Vector3(0.085, 0.085, 0.025))
 	for side in [-1.0, 1.0]:
 		var wing := V.pivot(root, "WingLeft" if side < 0 else "WingRight", Vector3(side * 0.5, 1.1, 0))
-		V.ellipsoid(wing, INK, Vector3(side * 0.1, -0.3, 0), Vector3(0.18, 0.47, 0.16))
+		V.ellipsoid(wing, feathers, Vector3(side * 0.1, -0.3, 0), Vector3(0.18, 0.47, 0.16))
 		var foot := V.pivot(root, "FootLeft" if side < 0 else "FootRight", Vector3(side * 0.28, 0.13, 0.16))
 		V.ellipsoid(foot, Color("eeb14e"), Vector3.ZERO, Vector3(0.25, 0.12, 0.36))
 		for toe in [-1.0, 0.0, 1.0]:
 			V.ellipsoid(foot, GOLD, Vector3(toe * 0.12, 0, 0.24), Vector3(0.07, 0.07, 0.14))
 	return root
-
 
 static func blaster(parent: Node3D) -> Node3D:
 	var root := V.pivot(parent, "FrostfinBlaster")
@@ -160,3 +170,35 @@ static func turtle(root: Node3D) -> void:
 	V.ellipsoid(head, Color("c8d69a"), Vector3(0, -0.13, 0.24), Vector3(0.25, 0.11, 0.18))
 	eyes(head, 0.19, 0.08, 0.31, 0.071)
 	V.rod(root, green, Vector3(0, 0.35, -0.8), Vector3(0, 0.35, -1.17), 0.13, 0.015)
+
+
+static func heart(parent: Node3D) -> Node3D:
+	var root:=V.pivot(parent,"Heart")
+	var vertices:=PackedVector3Array()
+	for i in range(40):
+		var a:=i*TAU/40
+		var b:=(i+1)*TAU/40
+		var p:=Vector3(pow(sin(a),3)*0.38,(13*cos(a)-5*cos(2*a)-2*cos(3*a)-cos(4*a))*0.024,0)
+		var q:=Vector3(pow(sin(b),3)*0.38,(13*cos(b)-5*cos(2*b)-2*cos(3*b)-cos(4*b))*0.024,0)
+		vertices.append_array(PackedVector3Array([Vector3(0,0,0.13),p,q,Vector3(0,0,-0.13),q,p]))
+	var arrays:=[]
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX]=vertices
+	var mesh:=ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var shape:=V.mesh(root,mesh,Color("f578b2"))
+	var material:=StandardMaterial3D.new()
+	material.albedo_color=Color("f578b2")
+	material.cull_mode=BaseMaterial3D.CULL_DISABLED
+	material.shading_mode=BaseMaterial3D.SHADING_MODE_UNSHADED
+	shape.material_override=material
+	V.ellipsoid(root,Color("fff2fb"),Vector3(-0.11,0.13,0.135),Vector3(0.07,0.10,0.025))
+	return root
+
+static func heart_wand(parent: Node3D) -> Node3D:
+	var root:=V.pivot(parent,"HeartWand")
+	V.rod(root,Color("d4a85f"),Vector3(0,-0.35,0),Vector3(0,0.3,0),0.055)
+	var top:=heart(root)
+	top.position.y=0.48
+	top.scale=Vector3.ONE*0.65
+	return root

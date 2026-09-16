@@ -1,6 +1,7 @@
 extends RefCounted
 
 const ITEMS := {
+	"heart": {"name":"ハートの波動", "description":"最寄りの敵へハートを放つ。\n直線上の敵を最大3体貫通。", "style":"自動照準 / 3体貫通", "color":Color("f578b2"), "cooldown":0.65, "damage":2},
 	"rear_fan": {"name": "しっぽの散弾", "description": "背後へ5発の散弾を放つ。\n逃げながら追手を迎撃。", "style": "後方固定 / 威力3 × 5発", "color": Color("ffba8a"), "cooldown": 1.7, "damage": 3},
 	"rear_bomb": {"name": "うしろ花火", "description": "背後4.5mへ花火を投げる。\n0.65秒後に半径3mで爆発。", "style": "後方設置 / 威力8", "color": Color("ef9fff"), "cooldown": 2.7, "damage": 8},
 	"whip": {"name": "オーロラリボン", "description": "前方を大きく薙ぎ払う。\n近距離の群れに向き直って攻撃。", "style": "前方120度 / 威力7", "color": Color("ff9fdb"), "cooldown": 1.6, "damage": 7},

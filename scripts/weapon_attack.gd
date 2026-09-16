@@ -181,6 +181,9 @@ func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
 			_explode()
 			return
 		_damage(hit.enemy)
+		if visual_kind=="heart" and hit_times.size()>=3:
+			queue_free()
+			return
 		if not piercing and mode in ["bolt", "seeker"]:
 			queue_free()
 			return
@@ -194,6 +197,7 @@ func _can_hit(enemy: Node3D, repeat: bool) -> bool:
 func _damage(enemy: Node3D) -> void:
 	hit_times[enemy.get_instance_id()] = age
 	if visual_kind=="lance": spawn_detail("lance_hit",enemy.global_position+Vector3.UP,0.25,0.5)
+	if visual_kind=="heart": spawn_detail("heart_hit",enemy.global_position+Vector3.UP,0.3,0.5)
 	enemy.take_damage(damage)
 
 

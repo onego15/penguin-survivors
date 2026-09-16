@@ -10,7 +10,7 @@ func _ready() -> void:
 	preload("res://scripts/arena.gd").build(self)
 	var camera:=Camera3D.new()
 	camera.projection=Camera3D.PROJECTION_ORTHOGONAL
-	camera.size=24
+	camera.size=28
 	camera.position=Vector3(0,23,30)
 	add_child(camera)
 	camera.look_at(Vector3(0,0,4))
@@ -23,18 +23,21 @@ func _ready() -> void:
 		_plinth(point,1.3,Color("d8b497"))
 		_label(Enemy.NAMES[kind],point+Vector3(0,0.2,1.65),38)
 		_label(Enemy.ROLES[kind],point+Vector3(0,0,2.5),25)
-	var hero:=V.pivot(self,"Hero",Vector3(-10,0,8))
+	var hero:=V.pivot(self,"Hero",Vector3(-12,0,8))
 	models.append(Models.penguin(hero))
 	_plinth(hero.position,1.3,Color("7fdacb"))
 	_label("プレイヤー",hero.position+Vector3(0,0.2,1.6),32)
 	for kind in range(3):
-		var point:=Vector3(-3+kind*6,0,8)
+		var point:=Vector3(kind*6,0,8)
 		var stand:=V.pivot(self,"FriendDisplay_%d" % kind,point)
 		stand.scale=Vector3.ONE*1.2
 		models.append(Creatures.support(stand,kind))
 		_plinth(point,1.3,Color("7fdacb"))
 		_label("%s %s" % [Friend.ICONS[kind],Friend.NAMES[kind]],point+Vector3(0,0.2,1.65),34)
 		_label(["回復","防御","攻撃援護"][kind],point+Vector3(0,0,2.5),25)
+	var pink:=V.pivot(self,"PinkHero",Vector3(-6,0,8))
+	models.append(Models.penguin(pink,"pink"))
+	_label("ピンクペンギン",pink.position+Vector3(0,0.2,1.6),28)
 	for phase in [1,2]:
 		var point:=Vector3(-5 if phase==1 else 5,0,15)
 		var minion:=preload("res://scripts/boss_minion.gd").new()

@@ -5,7 +5,7 @@ const Attack = preload("res://scripts/weapon_attack.gd")
 const Advanced = preload("res://scripts/advanced_attack.gd")
 const V = preload("res://scripts/visuals.gd")
 var game: Node3D
-var levels: Dictionary = {"frost": 1}
+var levels: Dictionary = {}
 var cooldowns: Dictionary = {}
 var mounts: Dictionary = {}
 var time := 0.0
@@ -16,13 +16,15 @@ func acquire(id: String) -> void:
 	if not Catalog.ITEMS.has(id):
 		return
 	levels[id] = int(levels.get(id, 0)) + 1
-	if id == "frost" or mounts.has(id):
+	if id=="frost": game.player.equip_frost()
+	if id == "frost" or mounts.has(id) or (id=="heart" and game.player.character_id=="pink"):
 		return
 	cooldowns[id] = 0.0
 	var mount := V.pivot(game.player, "Weapon_" + id)
 	var tint: Color = Catalog.ITEMS[id].color
 	V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
+		"heart": preload("res://scripts/character_models.gd").heart_wand(mount)
 		"beam":
 			preload("res://scripts/prism_visual.gd").build_crystal(mount)
 		"rear_fan":
@@ -92,6 +94,17 @@ func nearest(origin: Vector3, reach: float, excluded: Array = []) -> Node3D:
 func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
+	if id=="heart":
+		var enemy:=nearest(game.player.global_position,12)
+		if enemy==null: return false
+		var heart:=preload("res://scripts/heart_projectile.gd").new()
+		heart.position=game.player.global_position+Vector3.UP
+		heart.direction=(enemy.global_position-game.player.global_position).normalized()
+		heart.damage=Catalog.damage(id,levels[id])
+		heart.player=game.player
+		game.actors.add_child(heart)
+		game.sound.play_effect("magic")
+		return true
 	var origin: Vector3 = game.player.global_position
 	var aimed: bool = id in ["boomerang", "storm", "bounce", "seeker", "beam"]
 	var target: Node3D = nearest(origin, 12.0) if aimed else null

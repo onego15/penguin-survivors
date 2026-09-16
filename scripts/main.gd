@@ -72,6 +72,8 @@ func _ready() -> void:
 	armory = WeaponSystem.new()
 	armory.game = self
 	add_child(armory)
+	player.has_frost=false
+	armory.acquire(preload("res://scripts/character_roster.gd").CHARACTERS[player.character_id].weapon)
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = 20.0
@@ -263,7 +265,7 @@ func _physics_process(delta: float) -> void:
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		victory_screen=preload("res://scripts/victory_screen.gd").new()
-		victory_screen.results={"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true)}
+		victory_screen.results={"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true)}
 		victory_screen.play_again.connect(func(): get_tree().reload_current_scene())
 		victory_screen.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
 		add_child(victory_screen)
@@ -279,7 +281,7 @@ func _physics_process(delta: float) -> void:
 	support.tick(delta)
 	final_director.tick(delta)
 	fire_cooldown -= delta
-	if fire_cooldown <= 0.0:
+	if fire_cooldown <= 0.0 and armory.levels.has("frost"):
 		if fire_at_nearest():
 			fire_cooldown = Catalog.cooldown("frost", armory.levels.frost)
 	armory.tick(delta)
@@ -400,6 +402,7 @@ func _on_boss_defeated() -> void:
 
 
 func fire_at_nearest() -> bool:
+	if not armory.levels.has("frost"): return false
 	var nearest: Node3D = null
 	var best_distance := ATTACK_RANGE * ATTACK_RANGE
 	for enemy in get_tree().get_nodes_in_group("enemies"):

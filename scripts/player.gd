@@ -69,6 +69,10 @@ func _animate(delta: float) -> void:
 	recoil = maxf(0, recoil - delta * 7.0)
 	weapon.position.z = 0.12 - recoil * 0.15
 	weapon.rotation.x = -recoil * 0.12
+	weapon.position.y=0
+	if character_id=="pink" and ultimate_pose>0:
+		weapon.position.y=0.65
+		weapon.rotation.x=-0.25
 	muzzle_flash.visible = has_frost and recoil > 0.65
 	muzzle_flash.scale = Vector3.ONE * (0.12 + recoil * 0.16)
 

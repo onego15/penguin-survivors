@@ -64,8 +64,8 @@ func _ready() -> void:
 		ui.add_child(button)
 		selection_buttons.append(button)
 	character_hint=Label.new()
-	character_hint.position=Vector2(74,428)
-	character_hint.add_theme_font_size_override("font_size",16)
+	character_hint.position=Vector2(74,422)
+	character_hint.add_theme_font_size_override("font_size",15)
 	ui.add_child(character_hint)
 	select_character(Roster.selected())
 	start_button = Button.new()
@@ -136,7 +136,7 @@ func select_character(id: String) -> void:
 	hero.rotation.y=-0.25
 	var held:=Models.blaster(hero) if id=="classic" else Models.heart_wand(hero)
 	held.position=Vector3(0.83,0.95,0.15)
-	character_hint.text=Roster.CHARACTERS[id].hint
+	character_hint.text=Roster.CHARACTERS[id].hint+"\n"+Roster.ULTIMATES[Roster.CHARACTERS[id].ultimate].hint
 	for i in range(selection_buttons.size()):
 		selection_buttons[i].set_pressed_no_signal(id==["classic","pink"][i])
 func _input(event: InputEvent) -> void:

@@ -66,10 +66,10 @@ func run() -> void:
 	var udon=get_nodes_in_group("weapon_attacks")[0]
 	udon.set_physics_process(false)
 	udon._physics_process(0.35)
-	check(enemy.health==97,"Udon damages outbound once")
-	udon._physics_process(0.6)
-	check(enemy.health==94,"Udon damages return once, including low FPS")
-	check(enemy.position.length()>=2.99 and enemy.position.length()<5,"Udon pulls ordinary enemies at most two metres and keeps distance")
+	check(enemy.health==99,"Udon damages outbound once")
+	udon._physics_process(0.9)
+	check(enemy.health==98,"Udon damages return once, including low FPS")
+	check(enemy.position.length()>=2.99 and enemy.position.length()<5,"Udon pulls ordinary enemies at most four metres and keeps distance")
 	check(udon.noodles.size()==24,"Noodle visual reuses fixed segment count")
 	game.free()
 	await process_frame
@@ -94,7 +94,7 @@ func run() -> void:
 		ghost._physics_process(1.0/60)
 		ordinary._physics_process(1.0/60)
 	check(ghost.position.x<7.4 and ordinary.position.x>8.5,"Ghost crosses closed gate; ordinary pursuer detours")
-	check(o.sweep(Vector3(12,0,0),Vector3(4,0,0),0.6,true).t<1,"Ghost still collides with solid castle wall")
+	check(o.move_actor(ghost,Vector3(4,0,0),0.6)==Vector3(4,0,0),"Ghost phases through solid castle wall")
 	ghost.position=Vector3(8,0,8)
 	check(not o.occupied(o.gates[3].rect),"Ghost does not block gate closure")
 	for i in range(10): game.spawn_enemy(14)

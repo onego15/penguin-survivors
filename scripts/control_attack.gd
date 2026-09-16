@@ -37,18 +37,18 @@ func _ready() -> void:
 	if mode=="gust":
 		# Geometry and the hit test share the same fixed origin and facing.
 		for i in range(13):
-			var angle: float=deg_to_rad(-50+i*100.0/12)
+			var angle: float=deg_to_rad(-80+i*160.0/12)
 			var ray:=direction.rotated(Vector3.UP,angle)
 
 			if i<12:
-				var next:=direction.rotated(Vector3.UP,angle+deg_to_rad(100.0/12))
+				var next:=direction.rotated(Vector3.UP,angle+deg_to_rad(160.0/12))
 				C.ink(V.rod(visual,Color("86e5ee"),ray*stats.reach+Vector3.UP*0.06,next*stats.reach+Vector3.UP*0.06,0.018))
 		for i in range(56): streams.append(C.ink(V.rod(visual,Color("d3fff8"),Vector3.ZERO,Vector3.UP,0.024)))
 		animate_wind()
 		for enemy in get_tree().get_nodes_in_group("enemies"):
 			var offset: Vector3=enemy.global_position-global_position
 			offset.y=0
-			if offset.length()<=float(stats.reach)+enemy.hit_radius and (offset.length()<0.01 or direction.dot(offset.normalized())>=cos(deg_to_rad(50))):
+			if offset.length()<=float(stats.reach)+enemy.hit_radius and (offset.length()<0.01 or direction.dot(offset.normalized())>=cos(deg_to_rad(80))):
 				hit(enemy,"knockback",stats.knockback,offset.normalized() if offset.length()>0.01 else direction)
 	else:
 		build_model(visual,"popsicle")
@@ -78,7 +78,7 @@ func _physics_process(delta: float) -> void:
 	age+=delta
 	if mode=="gust":
 		animate_wind()
-		if age>=0.4: queue_free()
+		if age>=0.85: queue_free()
 		return
 	if exploded:
 		for i in range(streams.size()):
@@ -113,7 +113,7 @@ func _physics_process(delta: float) -> void:
 	if wall_t<1 or travelled>=12-0.00001: queue_free()
 
 func wind_point(lane: int, t: float) -> Vector3:
-	var ray:=direction.rotated(Vector3.UP,deg_to_rad(-43+lane*86.0/6))
+	var ray:=direction.rotated(Vector3.UP,deg_to_rad(-73+lane*146.0/6))
 	var side:=Vector3(-ray.z,0,ray.x)
 	return ray*float(stats.reach)*t+Vector3.UP*(0.3+sin(t*PI)*0.5)+side*sin(t*TAU*1.5-age*19+lane)*0.14*sin(t*PI)
 func animate_wind() -> void:

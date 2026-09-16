@@ -19,6 +19,10 @@ var flash_left:=0.0
 var crown_glow: MeshInstance3D
 var phase_armor: Node3D
 var mask_parts: Array[MeshInstance3D]=[]
+var flight_origin:=Vector3.ZERO
+var flight_via:=Vector3.ZERO
+var flight_end:=Vector3.ZERO
+var move_caption: Label3D
 func _ready() -> void:
 	kind=Kind.OWL
 	visual_scale=2.4
@@ -48,6 +52,9 @@ func _ready() -> void:
 	Visuals.rod(model,Color("7886b5"),Vector3(0.9,0,0.2),Vector3(0.9,2,0.2),0.055)
 	Visuals.rod(model,Color("d0f3ff"),Vector3(0.9,2,0.2),Vector3(0.9,2.5,0.2),0.2,0)
 	crown_glow=Visuals.ellipsoid(model,Color("d6ceff"),Vector3(0,2,0),Vector3(0.55,0.1,0.55))
+	move_caption=C.symbol(self,"",Color("e5d8ff"))
+	move_caption.position.y=5.5
+	move_caption.font_size=28
 func clear_markers() -> void:
 	for marker in markers+areas:
 		if is_instance_valid(marker): marker.hide(); marker.queue_free()
@@ -55,6 +62,12 @@ func clear_markers() -> void:
 	areas.clear()
 	centers.clear()
 func cancel_attacks() -> void:
+	if dash_left>0: global_position=flight_origin
+	dash_left=0
+	model.position.y=0
+	targetable=true
+	if not dead and not is_in_group("enemies"): add_to_group("enemies")
+	if is_instance_valid(move_caption): move_caption.text=""
 	clear_markers()
 	warning_left=0
 	flash_left=0
@@ -70,7 +83,7 @@ func safe_escape() -> bool:
 			if not obstacle.clear(point,0.5): continue
 			var safe:=true
 			for center in centers:
-				if point.distance_to(center)<=r+0.7 and O.visible_between(self,center,point): safe=false
+				if point.distance_to(center)<=r+0.7 and attack_visible(center,point): safe=false
 			if not safe: continue
 			var route: PackedVector2Array=obstacle.path(target.global_position,point,0.5)
 			var length:=0.0
@@ -82,6 +95,7 @@ func begin_attack() -> bool:
 	var obstacle=O.world(self)
 	attack_kind=["gates","fan","rings"][attack_index%3]
 	locked=(target.global_position-global_position).normalized()
+	move_caption.text={"gates":"門の勅令 → 城門跳躍","fan":"門を貫く氷羽：横へ回避","rings":"月影の氷輪：門越しも危険"}[attack_kind]
 	if attack_kind=="gates":
 		obstacle.command(8 if enraged else 6)
 		warning_left=2
@@ -108,6 +122,20 @@ func begin_attack() -> bool:
 	return true
 func release() -> void:
 	for marker in markers: marker.hide()
+	if attack_kind=="vault":
+		dash_left=0.9
+		targetable=false
+		remove_from_group("enemies")
+		return
+	if attack_kind=="gates" and plan_vault():
+		attack_index+=1
+		attack_kind="vault"
+		warning_left=0.8
+		move_caption.text="城門跳躍：着地点から離れる"
+		var marker=C.warning(self,hit_radius+0.3)
+		marker.global_position=flight_end
+		markers.append(marker)
+		return
 	if attack_kind=="fan":
 		var count:=7 if enraged else 5
 		for i in range(count):
@@ -115,6 +143,7 @@ func release() -> void:
 			bolt.target=target
 			bolt.position=global_position+Vector3.UP
 			bolt.direction=locked.rotated(Vector3.UP,(i-(count-1)/2.0)*0.2)
+			bolt.pass_gates=true
 			bolt.speed=6
 			bolt.damage=12
 			get_parent().add_child(bolt)
@@ -124,7 +153,7 @@ func release() -> void:
 			var area=C.danger(self,radius)
 			area.global_position=center
 			areas.append(area)
-			if target.global_position.distance_to(center)<=radius+0.42 and O.visible_between(self,center,target.global_position): target.take_damage(24)
+			if target.global_position.distance_to(center)<=radius+0.42 and attack_visible(center,target.global_position): target.take_damage(24)
 		flash_left=0.4
 	attack_index+=1
 	attack_cooldown=3.5
@@ -132,13 +161,33 @@ func release() -> void:
 func _physics_process(delta: float) -> void:
 	if dead or cinematic_locked or not is_instance_valid(target): return
 	age+=delta
+	if dash_left>0:
+		dash_left=maxf(0,dash_left-delta)
+		var t:=1-dash_left/0.9
+		global_position=flight_origin.lerp(flight_via,t*2) if t<0.5 else flight_via.lerp(flight_end,(t-0.5)*2)
+		model.position.y=sin(t*PI)*3.8
+		move_caption.position.y=8
+		model.get_node("WingLeft").rotation.z=sin(t*TAU*2)*0.6
+		model.get_node("WingRight").rotation.z=-sin(t*TAU*2)*0.6
+		if dash_left<=0:
+			global_position=flight_end
+			model.position.y=0
+			targetable=true
+			add_to_group("enemies")
+			clear_markers()
+			attack_kind=""
+			move_caption.text=""
+			move_caption.position.y=5.5
+			attack_cooldown=0.8
+			recovery_left=0.8
+		return
 	if flash_left>0:
 		flash_left-=delta
 		if flash_left<=0:
 			for area in areas: area.hide()
 	if warning_left>0:
 		warning_left=maxf(0,warning_left-delta)
-		for marker in markers: C.progress(marker,warning_left/(1.2 if attack_kind=="fan" else 2))
+		for marker in markers: C.progress(marker,warning_left/(0.8 if attack_kind=="vault" else (1.2 if attack_kind=="fan" else 2)))
 		if warning_left<=0:
 			if attack_kind=="gates" and O.world(self).commanding(): warning_left=0.001
 			else: release()
@@ -152,7 +201,7 @@ func _physics_process(delta: float) -> void:
 		_move_and_contact(delta,(target.position-position).normalized()*speed)
 	if position.distance_to(target.position)<hit_radius+0.42 and O.visible_between(self,position,target.position): target.take_damage(contact_damage)
 func take_damage(amount: int) -> void:
-	if cinematic_locked: return
+	if cinematic_locked or not targetable: return
 	super.take_damage(amount)
 	if dead: cancel_attacks(); return
 	if not enraged and health<=max_health/2:
@@ -171,7 +220,7 @@ func take_damage(amount: int) -> void:
 func danger_contains(point: Vector3) -> bool:
 	if attack_kind=="rings" and (warning_left>0 or flash_left>0):
 		for center in centers:
-			if center.distance_to(point)<(3 if enraged else 3.5) and O.visible_between(self,center,point): return true
+			if center.distance_to(point)<(3 if enraged else 3.5) and attack_visible(center,point): return true
 	return false
 
 func recolor(node: Node) -> void:
@@ -181,3 +230,24 @@ func recolor(node: Node) -> void:
 			node.material_override=node.material_override.duplicate()
 			node.material_override.albedo_color=Color("435982")
 	for child in node.get_children(): recolor(child)
+
+func attack_visible(a: Vector3,b: Vector3) -> bool:
+	var obstacle=O.world(self)
+	return obstacle==null or obstacle.sweep(a,b,0,true).t>=1
+func plan_vault() -> bool:
+	var obstacle=O.world(self)
+	var best:=INF
+	var found:=false
+	for gate in obstacle.gates:
+		var p: Vector2=gate.rect.get_center()
+		var sign_side: float=1 if global_position.x<p.x else -1
+		var candidate:=Vector3(p.x+sign_side*3.0,0,p.y)
+		if not obstacle.clear(candidate,hit_radius+0.1) or candidate.distance_to(target.global_position)<3.2: continue
+		var score:=global_position.distance_to(Vector3(p.x,0,p.y))+candidate.distance_to(target.global_position)*0.4+(0 if gate.state=="closed" else 40)
+		if score<best:
+			best=score
+			flight_origin=global_position
+			flight_via=Vector3(p.x,0,p.y)
+			flight_end=candidate
+			found=true
+	return found

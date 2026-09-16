@@ -7,7 +7,9 @@ var rest:=0.0
 var locked:=Vector3.ZERO
 var marker: Node3D
 func _ready() -> void:
-	if kind==14: set_meta("gate_phasing",true)
+	if kind==14:
+		set_meta("gate_phasing",true)
+		set_meta("wall_phasing",true)
 	health_multiplier=sqrt(health_multiplier)
 	super._ready()
 	marker=C.warning(self,0.7,6 if kind==13 else 1.5)

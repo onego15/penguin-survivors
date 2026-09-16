@@ -42,10 +42,10 @@ func apply(effect: String, value: float, direction: Vector3) -> bool:
 		thaw_left=0
 	elif effect=="knockback":
 		if knock_lock>0: return false
-		knock_left=0.25
-		knock_lock=0.85
+		knock_left=0.6
+		knock_lock=1.2
 		direction.y=0
-		velocity=direction.normalized()*value/0.25
+		velocity=direction.normalized()*value/0.6
 		trail.rotation.y=atan2(direction.x,direction.z)
 	else: return false
 	recovery=1.0

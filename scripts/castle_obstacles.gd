@@ -90,6 +90,9 @@ func sweep(a: Vector3, b: Vector3, radius: float=0.0, ignore_gates: bool=false) 
 	return {"t":best,"point":b if best>=1 else a.lerp(b,maxf(0,best-0.001)),"normal":normal}
 func move_actor(actor: Node3D, finish: Vector3, radius: float, slide: bool=true) -> Vector3:
 	var start:=actor.global_position
+	if actor.get_meta("wall_phasing",false):
+		actor.set_meta("wall_blocked",false)
+		return Vector3(clampf(finish.x,-23+radius,23-radius),finish.y,clampf(finish.z,-23+radius,23-radius))
 	var phasing: bool=actor.get_meta("gate_phasing",false)
 	var hit:=sweep(start,finish,radius,phasing)
 	actor.set_meta("wall_blocked",hit.t<1)
@@ -131,6 +134,7 @@ func path(a: Vector3, b: Vector3, radius: float, ignore_gates: bool=false) -> Pa
 	if start.x==999 or finish.x==999: return PackedVector2Array()
 	return nav.get_point_path(start,finish)
 func steer(actor: Node3D, goal: Vector3, radius: float) -> Vector3:
+	if actor.get_meta("wall_phasing",false): return (goal-actor.global_position).normalized()
 	var phasing: bool=actor.get_meta("gate_phasing",false)
 	if sweep(actor.global_position,goal,radius,phasing).t>=1: return (goal-actor.global_position).normalized()
 	var cache: Dictionary=actor.get_meta("castle_route",{})

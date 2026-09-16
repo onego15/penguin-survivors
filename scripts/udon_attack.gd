@@ -1,5 +1,6 @@
 extends "res://scripts/weapon_attack.gd"
-var reach:=7.0
+var reach:=11.0
+var grip: Node3D
 var splash_radius:=1.2
 var tip:=Vector3.ZERO
 var destination:=Vector3.ZERO
@@ -23,7 +24,7 @@ func _ready() -> void:
 	add_to_group("weapon_attacks")
 	piercing=true
 	radius=0.3
-	lifetime=0.95
+	lifetime=1.25
 	launch_origin=origin()
 	tip=launch_origin
 	destination=launch_origin+direction*reach
@@ -32,6 +33,9 @@ func _ready() -> void:
 	for i in range(24):
 		var segment:=V.rod(self,Color("fff0ba") if i%3 else Color("ffffeb"),Vector3.ZERO,Vector3.UP,0.055)
 		noodles.append(segment)
+	grip=V.pivot(self,"NoodleGrip")
+	for i in range(3): V.ring(grip,Color("fff0bb"),Vector3(0,0.5+i*0.2,0),0.65,0.035)
+	grip.hide()
 	preload("res://scripts/combat_visuals.gd").tail(self)
 func _damage(enemy: Node3D) -> void:
 	if not O.visible_between(self,origin(),enemy.global_position): return
@@ -44,7 +48,7 @@ func _physics_process(delta: float) -> void:
 		var step:=minf(1.0/120,end-age)
 		if age<0.35: step=minf(step,0.35-age)
 		age+=step
-		var next:=launch_origin.lerp(destination,minf(1,age/0.35)) if age<=0.35 else destination.lerp(origin(),clampf((age-0.35)/0.6,0,1))
+		var next:=launch_origin.lerp(destination,minf(1,age/0.35)) if age<=0.35 else destination.lerp(origin(),clampf((age-0.35)/0.9,0,1))
 		_segment_hit(tip,next,false)
 		if is_queued_for_deletion(): return
 		tip=next
@@ -55,14 +59,21 @@ func _physics_process(delta: float) -> void:
 			global_position=old
 			returning_noodle=true
 			hit_times.clear()
-		if returning_noodle and is_instance_valid(caught) and not caught.dead and pulled<2 and not caught.is_knocked_back():
+		if returning_noodle and is_instance_valid(caught) and not caught.dead and caught.targetable and pulled<4 and not caught.is_knocked_back():
 			var toward: Vector3=player.global_position-caught.global_position
-			var length:=minf(minf(2-pulled,3.4*step),maxf(0,toward.length()-3))
+			var length:=minf(minf(4-pulled,4.5*step),maxf(0,toward.length()-3))
 			var finish: Vector3=caught.global_position+toward.normalized()*length
 			var obstacle=O.world(self)
 			if obstacle!=null: finish=obstacle.move_actor(caught,finish,caught.hit_radius)
 			pulled+=caught.global_position.distance_to(finish)
 			caught.global_position=finish
+	if is_instance_valid(caught) and not caught.dead and caught.targetable and returning_noodle:
+		grip.show()
+		grip.global_position=caught.global_position
+		grip.rotation.y=age*12
+		grip.scale=Vector3.ONE*maxf(0.8,caught.hit_radius/0.6)
+		tip=caught.global_position+Vector3.UP
+	else: grip.hide()
 	var start:=origin()
 	for i in range(noodles.size()):
 		var a:=noodle_point(start,tip,float(i)/noodles.size())
@@ -70,7 +81,14 @@ func _physics_process(delta: float) -> void:
 		noodles[i].position=to_local((a+b)*0.5)
 		noodles[i].scale.y=maxf(0.001,a.distance_to(b))
 		if a.distance_squared_to(b)>0.000001: noodles[i].quaternion=Quaternion(Vector3.UP,(b-a).normalized())
-	if end>=lifetime-0.00001: queue_free()
+	if end>=lifetime-0.00001:
+		if is_instance_valid(caught) and not caught.dead and caught.targetable and not hit_times.has(caught.get_instance_id()): _damage(caught)
+		queue_free()
 func noodle_point(a: Vector3,b: Vector3,t: float) -> Vector3:
 	var side:=Vector3(-direction.z,0,direction.x)
 	return a.lerp(b,t)+Vector3.UP*sin(t*PI)*0.35+side*sin(t*TAU*2+age*15)*sin(t*PI)*0.1
+
+func _can_hit(enemy: Node3D, repeat: bool) -> bool:
+	# Finish the tug before the return hit can kill the captured enemy.
+	if returning_noodle and enemy==caught and age<lifetime-0.00001: return false
+	return super._can_hit(enemy,repeat)

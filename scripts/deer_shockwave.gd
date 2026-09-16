@@ -22,6 +22,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if spent: return
 	var step:=speed*minf(delta,lifetime)
+	var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
+	if obstacle!=null:
+		var wall: Dictionary=obstacle.sweep(global_position,global_position+direction*step,1.2)
+		if wall.t<1: step*=wall.t; lifetime=0
 	var offset: Vector3=target.global_position-global_position
 	var along:=offset.dot(direction)
 	var across:=absf(offset.dot(Vector3(-direction.z,0,direction.x)))

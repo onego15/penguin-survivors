@@ -44,7 +44,13 @@ func _physics_process(delta: float) -> void:
 	body.visible = invulnerability <= 0.0 or int(invulnerability * 15.0) % 2 == 0
 	var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = Vector3(input.x, 0, input.y) * SPEED
+	var before_move:=global_position
 	move_and_slide()
+	var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
+	if obstacle!=null:
+		var finish:=global_position
+		global_position=before_move
+		global_position=obstacle.move_actor(self,finish,0.45)
 	position.x = clampf(position.x, -ARENA_LIMIT, ARENA_LIMIT)
 	position.z = clampf(position.z, -ARENA_LIMIT, ARENA_LIMIT)
 	if velocity.length_squared() > 0.1:

@@ -5,7 +5,7 @@ signal rewarded(amount: int)
 const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const Effects = preload("res://scripts/hit_effect.gd")
-enum Kind { FOX, RABBIT, BOAR, TURTLE, OWL, WOLF, SKUNK, HEDGEHOG, MOLE, DEER }
+enum Kind { FOX, RABBIT, BOAR, TURTLE, OWL, WOLF, SKUNK, HEDGEHOG, MOLE, DEER, BAT, RACCOON, ERMINE, GOAT }
 enum ChargeState { APPROACH, WINDUP, CHARGE, RECOVER }
 const STATS := [
 	{"health": 2, "speed": 1.1, "radius": 0.58, "damage": 10, "color": Color("de743a")},
@@ -18,13 +18,17 @@ const STATS := [
 	{"health": 7, "speed": 0.5, "radius": 0.7, "damage": 10, "color": Color("b89969")},
 	{"health": 5, "speed": 0.65, "radius": 0.6, "damage": 10, "color": Color("a68182")},
 	{"health": 10, "speed": 0.65, "radius": 0.8, "damage": 10, "color": Color("ccad79")},
+	{"health":3,"speed":2.2,"radius":0.6,"damage":8,"color":Color("76659d")},
+	{"health":5,"speed":1.6,"radius":0.65,"damage":10,"color":Color("8c9bab")},
+	{"health":4,"speed":2.4,"radius":0.55,"damage":10,"color":Color("eef5ec")},
+	{"health":8,"speed":1.8,"radius":0.8,"damage":12,"color":Color("c5ccde")},
 ]
-const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ"]
-const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波"]
+const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ", "コウモリ", "アライグマ", "オコジョ", "ヤギ"]
+const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波", "揺れる飛行", "氷玉投げ", "横跳び", "予告付き突進"]
 static func cost(type: int) -> int:
-	return 3 if type == Kind.DEER else (2 if type >= Kind.OWL else 1)
+	return 3 if type in [Kind.DEER,Kind.GOAT] else (2 if type >= Kind.OWL else 1)
 
-@export_enum("Fox", "Rabbit", "Boar", "Turtle", "Owl", "Wolf", "Skunk", "Hedgehog", "Mole", "Deer") var kind: int = Kind.FOX
+@export_enum("Fox", "Rabbit", "Boar", "Turtle", "Owl", "Wolf", "Skunk", "Hedgehog", "Mole", "Deer", "Bat", "Raccoon", "Ermine", "Goat") var kind: int = Kind.FOX
 var target: Node3D
 var speed := 2.3
 var health := 2
@@ -123,7 +127,15 @@ func _physics_process(delta: float) -> void:
 
 func _move_and_contact(delta: float, motion: Vector3) -> void:
 	var start := global_position
-	global_position += motion * delta
+	var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
+	if obstacle!=null:
+		var charging: bool=charge_state==ChargeState.CHARGE or get_meta("wall_dash",false)
+		if not charging and obstacle.sweep(global_position,target.global_position,hit_radius).t<1:
+			if kind==Kind.OWL and motion.length()<0.01: motion=Vector3.FORWARD*speed
+			if motion.length()>0.01: motion=obstacle.steer(self,target.global_position,hit_radius)*motion.length()
+		global_position=obstacle.move_actor(self,global_position+motion*delta,hit_radius,not charging)
+		if charging and get_meta("wall_blocked",false) and kind==Kind.BOAR: charge_state=ChargeState.RECOVER; state_time=0
+	else: global_position += motion * delta
 	position.x = clampf(position.x, -24, 24)
 	position.z = clampf(position.z, -24, 24)
 	if motion.length_squared() > 0.01:
@@ -131,7 +143,7 @@ func _move_and_contact(delta: float, motion: Vector3) -> void:
 	_animate(motion.length())
 	# Sweep contact so a fast charge cannot skip the player.
 	var closest := Geometry3D.get_closest_point_to_segment(target.global_position, start, global_position)
-	if closest.distance_to(target.global_position) < hit_radius + 0.42:
+	if closest.distance_to(target.global_position) < hit_radius + 0.42 and preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position):
 		target.take_damage(contact_damage)
 
 

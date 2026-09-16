@@ -61,6 +61,10 @@ func spawn_friend(kind: int, point: Vector3) -> Node3D:
 	game.sound.play_effect("support_arrive")
 	return active
 func position_safe(point: Vector3) -> bool:
+	var obstacle=preload("res://scripts/castle_obstacles.gd").world(game)
+	if obstacle!=null and not obstacle.reachable(game.player.global_position,point,0.5): return false
+	for bomb in get_tree().get_nodes_in_group("castle_bombs"):
+		if bomb.danger_contains(point): return false
 	if absf(point.x)>22 or absf(point.z)>22: return false
 	var distance := point.distance_to(game.player.global_position)
 	if distance<6 or distance>9: return false

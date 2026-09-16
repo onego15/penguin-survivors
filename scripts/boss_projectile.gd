@@ -23,13 +23,21 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	var start := global_position
-	global_position += direction * speed * delta
+	var finish:=start+direction*speed*delta
+	var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
+	var blocked:=false
+	if obstacle!=null:
+		var wall: Dictionary=obstacle.sweep(start,finish,0.22)
+		blocked=wall.t<1
+		finish=wall.point
+	global_position=finish
 	if is_instance_valid(target):
 		var closest := Geometry3D.get_closest_point_to_segment(target.global_position + Vector3.UP, start, global_position)
 		if closest.distance_to(target.global_position + Vector3.UP) < 0.65:
 			target.take_damage(damage)
 			queue_free()
 			return
+	if blocked: queue_free(); return
 	lifetime -= delta
 	if lifetime <= 0:
 		queue_free()

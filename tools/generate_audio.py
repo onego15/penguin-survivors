@@ -97,6 +97,33 @@ def generate_finale():
     sweep('quake_charge',3.0,90,580,.18,.4)
     sweep('quake_impact',.8,130,30,.7,.65)
 
+def generate_castle():
+    # A separate Dorian/minor waltzing motif; both boss arrangements are phase aligned.
+    for name, intense in [('castle',0),('noctis',1),('noctis_phase2',2)]:
+        rng.seed(918)
+        beat=.5
+        buf=[0.]*(48*RATE)
+        motif=[0,3,7,14,12,7,5,10]
+        roots=[45,48,43,50,41,43]
+        for bar in range(24):
+            root=roots[(bar//2)%6]
+            for pitch in [root+12,root+15,root+19]: add(buf,bar*2,1.95,note(pitch),.035,'pad')
+            for b in range(4):
+                t=bar*2+b*beat
+                add(buf,t,.4,note(root+(7 if b%2 else 0)),.09,'bass')
+                add(buf,t,.45,note(root+24+motif[(bar*3+b)%8]),.095,'bell')
+                if intense:
+                    add(buf,t,.18,55,.10+.035*intense,'kick')
+                    if b%2: add(buf,t,.08,0,.045,'noise')
+                if intense==2:
+                    add(buf,t+.25,.24,note(root+36+motif[(bar*3+b+1)%8]),.06,'bell')
+                    add(buf,t+.25,.04,0,.025,'noise')
+        write(name,buf)
+    jingle('gate',[81,74,81],.16)
+    sweep('castle_throw',.25,700,240,.12)
+    jingle('noctis_cast',[69,72,79,84],.18)
+    sweep('noctis_roar',1.6,180,62,.28,.5)
+
 if __name__=='__main__':
     music('snowfield')
     music('boss',True)
@@ -117,3 +144,5 @@ if __name__=='__main__':
     jingle('bloom',[72,76,79,84,88,91,96],.16)
     jingle('ultimate_ready',[79,86,91,98],.16)
     generate_finale()
+
+    generate_castle()

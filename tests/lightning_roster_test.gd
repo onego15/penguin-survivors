@@ -79,6 +79,8 @@ func run() -> void:
 	for actor in game.actors.get_children():
 		if actor != game.player:
 			actor.free()
+	game.director.introduced[2]=true
+	game.director.introduced_at[2]=90.0
 	var names := {}
 	var kinds := {}
 	game.player.health = 100

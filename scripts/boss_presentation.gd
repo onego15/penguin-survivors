@@ -22,7 +22,7 @@ func _ready() -> void:
 	banner.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	layer.add_child(banner)
 	caption=Label.new()
-	caption.text="第二形態 — 吹雪の王" if game.run_state=="phase_transition" else "冬の王・グレイシャー"
+	caption.text="第二形態 — "+game.stage.phase_name if game.run_state=="phase_transition" else game.stage.boss_name
 	var font:=SystemFont.new()
 	font.font_names=PackedStringArray(["Yu Gothic UI","Meiryo"])
 	caption.add_theme_font_override("font",font)

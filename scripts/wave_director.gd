@@ -12,6 +12,7 @@ const WAVES := [
 	{"name":"雪原の包囲", "hint":"角と射線を避け、待ち伏せに注意", "pairs":[[9,4],[8,7]], "new":[]},
 	{"name":"冬を越える戦い", "hint":"危険な役割から減らして決戦へ", "pairs":[[9,2],[8,6],[5,7]], "new":[]},
 ]
+var waves: Array=WAVES
 var game: Node3D
 var wave := -1
 var pair: Array = []
@@ -33,12 +34,12 @@ func advance() -> void:
 	if next != wave:
 		wave=next
 		scheduled_kind=-1
-		var options: Array = WAVES[wave].pairs.duplicate(true)
+		var options: Array = waves[wave].pairs.duplicate(true)
 		options.erase(previous_pair)
-		if options.is_empty(): options=WAVES[wave].pairs.duplicate(true)
+		if options.is_empty(): options=waves[wave].pairs.duplicate(true)
 		pair=[] if options.is_empty() else options[game.rng.randi_range(0,options.size()-1)]
 		previous_pair=pair.duplicate()
-		for kind in WAVES[wave].new:
+		for kind in waves[wave].new:
 			if not introduced.has(kind) and not pending.has(kind): pending.append(kind)
 	if game.elapsed>=30 and not introduced.has(1) and not pending.has(1): pending.push_front(1)
 	if game.elapsed>=90 and not introduced.has(2) and not pending.has(2): pending.push_front(2)
@@ -56,7 +57,7 @@ func below_cap(kind: int) -> bool:
 		if enemy.dead or enemy.is_miniboss or enemy.is_in_group("final_bosses"): continue
 		if enemy.kind>=4: total+=1
 		if enemy.kind==kind: count+=1
-	var limit := 2 if kind==9 else (3 if kind in [4,6,7] else 12)
+	var limit := 2 if kind in [9,13] else (3 if kind in [4,6,7,10,11,12] else 12)
 	if kind==5: limit=3 if game.elapsed<360 else 5
 	return total<12 and count<limit
 func choose_kind() -> int:

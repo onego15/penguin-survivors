@@ -3,6 +3,9 @@ extends Node3D
 const V = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const Roster=preload("res://scripts/character_roster.gd")
+const Stages=preload("res://scripts/stage_catalog.gd")
+var stage_buttons: Array[Button]=[]
+var stage_hint: Label
 var stand: Node3D
 var selection_buttons: Array[Button]=[]
 var character_hint: Label
@@ -42,10 +45,10 @@ func _ready() -> void:
 	panel.size = Vector2(640, 720)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.add_child(panel)
-	_label(ui, "SNOWFIELD SURVIVAL", Vector2(72, 74), 17, Color("7ee6d4"))
+	_label(ui, "SURVIVAL ADVENTURE", Vector2(72, 74), 17, Color("7ee6d4"))
 	_label(ui, "PENGUIN\nSURVIVORS", Vector2(67, 114), 66, Color("f1f7ec"))
 	_label(ui, "小さなペンギン、大きなサバイバル。", Vector2(74, 278), 22, Color("ffdc94"))
-	_label(ui, "19種類の武器を組み合わせ、動物の群れを突破。\n10分後に待つ「冬の王」を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
+	_label(ui, "19種類の武器を組み合わせ、動物の群れを突破。\n10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
 	for id in ["classic","pink"]:
 		var button:=Button.new()
 		button.text=Roster.CHARACTERS[id].name
@@ -92,6 +95,32 @@ func _ready() -> void:
 	_label(ui, "WASD 移動 / 攻撃は自動 / Space 必殺技\nマウスホイール  ズーム     /     1・2・3  武器選択", Vector2(74, 570), 17, Color("bfd9df"))
 	_label(ui, "一歩ずつ、強くなる。", Vector2(822, 591), 22, Color("23485a"))
 	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 633), 16, Color("8fe5dc"))
+	_label(ui,"STAGE SELECT",Vector2(710,68),18,Color("244156"))
+	for id in ["snowfield","castle"]:
+		var button:=Button.new()
+		button.text=Stages.STAGES[id].name
+		var selected_style:=StyleBoxFlat.new()
+		selected_style.bg_color=Color("35535d")
+		selected_style.border_color=Color("f3d48e")
+		selected_style.set_border_width_all(2)
+		selected_style.set_corner_radius_all(5)
+		button.add_theme_stylebox_override("pressed",selected_style)
+		button.position=Vector2(700+stage_buttons.size()*260,100)
+		button.size=Vector2(250,48)
+		button.toggle_mode=true
+		button.focus_mode=Control.FOCUS_NONE
+		button.add_theme_font_size_override("font_size",20)
+		button.pressed.connect(select_stage.bind(id))
+		ui.add_child(button)
+		stage_buttons.append(button)
+	stage_hint=Label.new()
+	stage_hint.position=Vector2(705,157)
+	stage_hint.size=Vector2(510,70)
+	stage_hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	stage_hint.add_theme_font_size_override("font_size",19)
+	stage_hint.add_theme_color_override("font_color",Color("203d56"))
+	ui.add_child(stage_hint)
+	select_stage(Stages.selected_id)
 	fade = ColorRect.new()
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.color = Color(0.03, 0.08, 0.12, 0)
@@ -143,3 +172,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_LEFT,KEY_RIGHT]:
 		select_character("pink" if Roster.selected()=="classic" else "classic")
 		get_viewport().set_input_as_handled()
+
+func select_stage(id: String) -> void:
+	if starting or not Stages.STAGES.has(id): return
+	Stages.selected_id=id
+	stage_hint.text="氷の城：門でルートが変わる上級ステージ\n白青の鍵が点滅したら、開いた門へ！" if id=="castle" else "雪原：見晴らしのよい最初のステージ\n武器と仲間を集め、冬の王に挑もう。"
+	for i in range(stage_buttons.size()): stage_buttons[i].set_pressed_no_signal(id==["snowfield","castle"][i])

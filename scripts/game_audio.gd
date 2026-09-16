@@ -1,7 +1,7 @@
 extends Node
 ## Original generated music and bounded, rate-limited sound effects.
-const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom"]
-const MUSIC := ["snowfield","boss","final_boss","final_boss_phase2","celebration"]
+const EFFECTS := ["shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom", "gate", "castle_throw", "noctis_cast", "noctis_roar"]
+const MUSIC := ["snowfield","boss","final_boss","final_boss_phase2","celebration","castle","noctis","noctis_phase2"]
 var fading: AudioStreamPlayer
 var fade_left := 0.0
 var celebration_left := -1.0
@@ -88,7 +88,7 @@ func set_track(id: String) -> void:
 	if ended or id == track:
 		return
 	var offset:=0.0
-	if id=="final_boss_phase2" and track=="final_boss":
+	if (id=="final_boss_phase2" and track=="final_boss") or (id=="noctis_phase2" and track=="noctis"):
 		offset=fmod(music.get_playback_position(),clips[id].get_length())
 		fading.stream=music.stream
 		fading.volume_db=0
@@ -105,7 +105,7 @@ func set_track(id: String) -> void:
 func play_effect(id: String) -> void:
 	if not clips.has(id):
 		return
-	var important := id in ["level_up", "choose", "warning", "victory", "game_over", "hurt", "support_arrive", "support_join", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom"]
+	var important := id in ["level_up", "choose", "warning", "victory", "game_over", "hurt", "support_arrive", "support_join", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom", "gate", "castle_throw", "noctis_cast", "noctis_roar"]
 	if ended and id not in ["victory", "game_over"]:
 		return
 	var now := Time.get_ticks_msec()

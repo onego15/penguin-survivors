@@ -1,5 +1,10 @@
 extends Node3D
 
+const Stages=preload("res://scripts/stage_catalog.gd")
+const O=preload("res://scripts/castle_obstacles.gd")
+var stage_id:=Stages.selected_id
+var stage: Dictionary
+var obstacles: Node3D
 const Player = preload("res://scripts/player.gd")
 const Enemy = preload("res://scripts/enemy.gd")
 const Projectile = preload("res://scripts/projectile.gd")
@@ -60,9 +65,11 @@ var wave_hint: Label
 
 
 func _ready() -> void:
+	stage=Stages.STAGES.get(stage_id,Stages.STAGES.snowfield)
 	rng.randomize()
 	sound = preload("res://scripts/game_audio.gd").new()
 	add_child(sound)
+	sound.set_track(stage.music)
 	_setup_input()
 	_setup_arena()
 	actors = Node3D.new()
@@ -82,6 +89,11 @@ func _ready() -> void:
 	camera.current = true
 	_update_camera()
 	_setup_hud()
+	if stage_id=="castle":
+		for label in [phase_label,wave_hint,boss_label,sound.status]:
+			label.add_theme_color_override("font_color",Color("eff7ff"))
+			label.add_theme_color_override("font_outline_color",Color("203449"))
+			label.add_theme_constant_override("outline_size",3)
 	ultimate=preload("res://scripts/ultimate.gd").new()
 	ultimate.game=self
 	add_child(ultimate)
@@ -90,6 +102,7 @@ func _ready() -> void:
 	choice_ui.selected.connect(choose_weapon)
 	director = preload("res://scripts/wave_director.gd").new()
 	director.game = self
+	if stage.wave_set=="castle": director.waves=Stages.CASTLE_WAVES
 	final_director=preload("res://scripts/final_battle_director.gd").new()
 	final_director.game=self
 	director.advance()
@@ -110,7 +123,12 @@ func _setup_input() -> void:
 
 
 func _setup_arena() -> void:
-	preload("res://scripts/arena.gd").build(self)
+	if stage.obstacles:
+		preload("res://scripts/castle_models.gd").arena(self)
+		obstacles=O.new()
+		obstacles.game=self
+		add_child(obstacles)
+	else: preload("res://scripts/arena.gd").build(self)
 
 
 func _setup_hud() -> void:
@@ -205,7 +223,7 @@ func _setup_hud() -> void:
 	var legend := Label.new()
 	legend.text = "PENGUIN SURVIVORS  /  10 WAVES  /  3 FRIENDS"
 	legend.add_theme_font_size_override("font_size", 16)
-	legend.add_theme_color_override("font_color", Color("233f50"))
+	legend.add_theme_color_override("font_color", Color("e1edff") if stage_id=="castle" else Color("233f50"))
 	layer.add_child(legend)
 	legend.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	legend.offset_left = 24
@@ -248,6 +266,7 @@ func _physics_process(delta: float) -> void:
 		run_state="dead"
 		_cancel_presentation()
 		final_director.stop()
+		if obstacles!=null: obstacles.open_all()
 		support.clear()
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
@@ -261,11 +280,12 @@ func _physics_process(delta: float) -> void:
 		run_state="victory"
 		_cancel_presentation()
 		final_director.stop()
+		if obstacles!=null: obstacles.open_all()
 		support.clear()
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		victory_screen=preload("res://scripts/victory_screen.gd").new()
-		victory_screen.results={"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true)}
+		victory_screen.results={"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true)}
 		victory_screen.play_again.connect(func(): get_tree().reload_current_scene())
 		victory_screen.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
 		add_child(victory_screen)
@@ -278,6 +298,7 @@ func _physics_process(delta: float) -> void:
 	elapsed += delta
 	_tick_director(delta)
 	if run_state!="combat": return
+	if obstacles!=null: obstacles.tick(delta)
 	support.tick(delta)
 	final_director.tick(delta)
 	fire_cooldown -= delta
@@ -302,7 +323,7 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 		return null
 	var chosen: int = forced_kind if forced_kind>=0 else (director.choose_kind() if director!=null else Difficulty.pick_kind(elapsed,rng))
 	if not as_boss and director!=null and not director.below_cap(chosen): return null
-	var enemy: Node3D = Miniboss.new() if as_boss else (preload("res://scripts/special_enemy.gd").new() if chosen>=4 else Enemy.new())
+	var enemy: Node3D = load(stage.midboss_script).new() if as_boss else (preload("res://scripts/castle_enemy.gd").new() if chosen>=10 else preload("res://scripts/special_enemy.gd").new() if chosen>=4 else Enemy.new())
 	if as_boss:
 		enemy.encounter = boss_encounters
 	else:
@@ -313,6 +334,7 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 	enemy.movement_phase = rng.randf_range(0.0, TAU)
 	enemy.target = player
 	enemy.speed = rng.randf_range(0.9, 1.1) * profile.speed
+	if chosen>=10 and not as_boss: enemy.speed=Enemy.STATS[chosen].speed*profile.speed/1.65
 	if as_boss:
 		enemy.speed = Miniboss.ROSTER[boss_encounters].speed
 	# Reject positions outside the arena instead of clamping them near the player.
@@ -320,7 +342,7 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 	for attempt in range(64):
 		var angle := rng.randf_range(0.0, TAU)
 		spawn_position = player.position + Vector3(cos(angle), 0, sin(angle)) * rng.randf_range(14.0, 19.0)
-		if absf(spawn_position.x) <= 23.0 and absf(spawn_position.z) <= 23.0:
+		if absf(spawn_position.x) <= 23.0 and absf(spawn_position.z) <= 23.0 and O.placement(self,spawn_position,1.7 if as_boss else Enemy.STATS[chosen].radius):
 			break
 		if attempt == 63:
 			enemy.free()
@@ -359,8 +381,8 @@ func _start_final_boss() -> void:
 	if final_boss_spawned: return
 	notify_event()
 	support.begin_final()
-	sound.set_track("final_boss")
-	sound.play_effect("boss_roar")
+	sound.set_track(stage.boss_music)
+	sound.play_effect("noctis_roar" if stage_id=="castle" else "boss_roar")
 	# Transition to a duel without treating removed enemies as defeated rewards.
 	for actor in actors.get_children():
 		if actor == player:
@@ -371,10 +393,12 @@ func _start_final_boss() -> void:
 		actor.queue_free()
 	final_boss_spawned = true
 	recovery_until = 0
-	active_boss = FinalBoss.new()
+	if obstacles!=null: obstacles.open_all()
+	active_boss = load(stage.boss_script).new()
 	active_boss.target = player
 	var inward: Vector3 = -player.position.normalized() if player.position.length() > 0.1 else Vector3.FORWARD
 	active_boss.position = player.position + inward * 14.0
+	if obstacles!=null and not obstacles.clear(active_boss.position,1.7): active_boss.position=Vector3(0,0,-18 if player.position.z>0 else 18)
 	active_boss.defeated.connect(_on_final_boss_defeated)
 	active_boss.phase_changed.connect(_on_phase_changed)
 	actors.add_child(active_boss)
@@ -383,6 +407,7 @@ func _start_final_boss() -> void:
 
 func _on_final_boss_defeated() -> void:
 	final_director.stop()
+	if obstacles!=null: obstacles.open_all()
 	if final_boss_defeated:
 		return
 	final_boss_defeated = true
@@ -390,7 +415,7 @@ func _on_final_boss_defeated() -> void:
 
 
 func _on_boss_defeated() -> void:
-	sound.set_track("snowfield")
+	sound.set_track(stage.music)
 	sound.play_effect("choose")
 	kills += 1
 	experience += 8
@@ -479,14 +504,14 @@ func _update_hud() -> void:
 		inventory_label.text += "\n%s  Lv.%d" % [Catalog.ITEMS[id].name, armory.levels[id]]
 	var profile := Difficulty.profile(elapsed)
 	if director!=null:
-		wave_hint.text = director.WAVES[director.wave].hint if director.wave>=0 else ""
+		wave_hint.text = director.waves[director.wave].hint if director.wave>=0 else ""
 		if elapsed<director.notification_until: wave_hint.text=director.notice
 		if final_boss_spawned:
-			wave_hint.text="大氷震：範囲の外へ！" if is_instance_valid(active_boss) and active_boss.attack_kind=="quake" and active_boss.warning_left>0 else "冬の王を倒そう / 予告を見て回避"
+			wave_hint.text="大氷震：範囲の外へ！" if is_instance_valid(active_boss) and active_boss.attack_kind=="quake" and active_boss.warning_left>0 else stage.boss_name+" / 予告を見て回避"
 		elif not choice_open: wave_hint.text += "  /  次Wave %d秒" % maxi(0,60-int(elapsed)%60)
-	phase_label.text = "WAVE %d  /  %s" % [profile.phase, profile.name]
+	phase_label.text = "%s / WAVE %d %s" % [stage.name,profile.phase,director.waves[director.wave].name]
 	if final_boss_spawned:
-		phase_label.text = "FINAL BATTLE  /  冬の王" if not victory else "CLEAR  /  冬の王を討伐！"
+		phase_label.text = ("FINAL BATTLE  /  " if not victory else "CLEAR / ")+stage.boss_name
 	var boss_alive: bool = is_instance_valid(active_boss) and not active_boss.dead
 	boss_bar.visible = boss_alive
 	if boss_alive:
@@ -494,11 +519,11 @@ func _update_hud() -> void:
 		if not final_boss_spawned:
 			boss_label.text += active_boss.status_label()
 		if final_boss_spawned and active_boss.enraged:
-			phase_label.text = "FINAL BATTLE  /  冬の王・第二形態"
+			phase_label.text = "FINAL BATTLE / "+stage.phase_name
 		boss_bar.max_value = active_boss.max_health
 		boss_bar.value = active_boss.health
 	elif final_boss_spawned:
-		boss_label.text = "冬の王・討伐完了" if victory else "決着"
+		boss_label.text = stage.boss_name+"・討伐完了" if victory else "決着"
 	elif elapsed < recovery_until:
 		boss_label.text = "中ボス撃破！ HP +25 / XP +8   増援休止 %d秒" % ceili(recovery_until - elapsed)
 	else:
@@ -512,12 +537,13 @@ func notify_event() -> void:
 
 func _on_phase_changed() -> void:
 	final_director.stop()
+	if obstacles!=null: obstacles.open_all()
 	if player.health<=0 or final_boss_defeated: return
 	for bolt in get_tree().get_nodes_in_group("hostile_projectiles"):
 		bolt.process_mode=Node.PROCESS_MODE_DISABLED
 		bolt.queue_free()
-	sound.set_track("final_boss_phase2")
-	sound.play_effect("boss_transform")
+	sound.set_track(stage.phase_music)
+	sound.play_effect("noctis_roar" if stage_id=="castle" else "boss_transform")
 	_begin_presentation("phase_transition")
 func _begin_presentation(state: String) -> void:
 	if is_instance_valid(presentation): return

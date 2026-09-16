@@ -82,6 +82,7 @@ func run() -> void:
 		if enemy.kind==9: deer_count+=1
 	check(deer_count==2,"Deer population cannot exceed two")
 	for i in range(20): game.spawn_enemy(5)
+	for i in range(20): game.spawn_enemy(8)
 	check(get_nodes_in_group("all_enemies").size()==12,"Combined special enemy population cannot exceed twelve")
 	game._start_final_boss()
 	await process_frame

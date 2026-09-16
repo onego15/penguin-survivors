@@ -42,7 +42,8 @@ func _ready() -> void:
 			lifetime = 1.3
 			radius = 0.45
 			prism = preload("res://scripts/prism_visual.gd").new()
-			prism.direction = direction
+			prism.direction = Vector3.BACK
+			prism.rotation.y=atan2(direction.x,direction.z)
 			prism.length = beam_length
 			visual.add_child(prism)
 
@@ -76,6 +77,12 @@ func _physics_process(delta: float) -> void:
 				if absf(finish.z) > 23:
 					finish.z = signf(finish.z) * (46 - absf(finish.z))
 					direction.z *= -1
+				var obstacle=O.world(self)
+				if obstacle!=null:
+					var wall: Dictionary=obstacle.sweep(start,finish,radius)
+					if wall.t<1:
+						finish=wall.point
+						direction=direction.bounce(wall.normal)
 				_segment_hit(start, finish, true)
 				global_position = finish
 		"turret":
@@ -105,6 +112,10 @@ func _physics_process(delta: float) -> void:
 			if not hit_times.is_empty():
 				queue_free()
 		"beam":
+			var obstacle=O.world(self)
+			var visible_length:=beam_length
+			if obstacle!=null: visible_length*=float(obstacle.sweep(global_position,global_position+direction*beam_length,0).t)
+			prism.scale.z=maxf(0.001,visible_length/beam_length)
 			prism.animate(age, lifetime)
 			_segment_hit(global_position, global_position + direction * beam_length, true)
 	if age >= lifetime:

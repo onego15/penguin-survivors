@@ -85,7 +85,7 @@ func _physics_process(delta: float) -> void:
 			var offset := target.global_position - global_position
 			offset.y = 0
 			if offset.length() <= stomp_radius + 0.42:
-				target.take_damage(22 + mini(encounter * 2, 10))
+				if preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position): target.take_damage(22 + mini(encounter * 2, 10))
 			stomp_ring.hide()
 			active_area.show()
 			stomp_flash = 0.3
@@ -151,7 +151,7 @@ func _rabbit_attack(delta: float) -> void:
 		stomp_ring.global_position = jump_target + Vector3(0, 0.05, 0)
 		if progress >= 1:
 			if global_position.distance_to(target.global_position) < stomp_radius + 0.42:
-				target.take_damage(24)
+				if preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position): target.take_damage(24)
 			stomp_ring.hide()
 			active_area.position=Vector3(0,0.09,0)
 			active_area.show()
@@ -176,6 +176,8 @@ func _rabbit_attack(delta: float) -> void:
 		var offset := target.global_position - jump_start
 		offset.y = 0
 		jump_target = jump_start + offset.limit_length(8.0)
+		var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
+		if obstacle!=null: jump_target=obstacle.sweep(jump_start,jump_target,hit_radius).point
 		rabbit_state = "warn"
 		special_warning = 0.95
 		stomp_ring.global_position = jump_target + Vector3(0, 0.05, 0)

@@ -55,6 +55,8 @@ func tick(delta: float) -> void:
 		var angle: float=heading+game.rng.randf_range(-PI/3,PI/3)
 		var candidate: Vector3=game.player.global_position+Vector3(cos(angle),0,sin(angle))*game.rng.randf_range(12,16)
 		if absf(candidate.x)>23 or absf(candidate.z)>23: continue
+		var obstacle=preload("res://scripts/castle_obstacles.gd").world(game)
+		if obstacle!=null and not obstacle.reachable(game.player.global_position,candidate,0.8): continue
 		var crowded:=false
 		for existing in points:
 			if candidate.distance_to(existing)<2: crowded=true

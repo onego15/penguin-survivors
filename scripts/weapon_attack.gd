@@ -1,4 +1,5 @@
 extends Node3D
+const O=preload("res://scripts/castle_obstacles.gd")
 ## Temporary attacks share collision/lifetime handling, but retain distinct movement.
 
 const V = preload("res://scripts/visuals.gd")
@@ -164,9 +165,15 @@ func _move_projectile(delta: float) -> void:
 
 
 func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
+	var obstacle=O.world(self)
+	var blocked:=false
+	if obstacle!=null:
+		var wall: Dictionary=obstacle.sweep(start,finish,0.05)
+		blocked=wall.t<1
+		finish=wall.point
 	var hits: Array[Dictionary] = []
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy.dead or not _can_hit(enemy, repeat):
+		if enemy.dead or not _can_hit(enemy, repeat) or not O.visible_between(self,start,enemy.global_position):
 			continue
 		var center: Vector3 = enemy.global_position + Vector3.UP
 		var closest := Geometry3D.get_closest_point_to_segment(center, start, finish)
@@ -188,6 +195,7 @@ func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
 			queue_free()
 			return
 
+	if blocked and mode in ["bolt","seeker","boomerang"]: queue_free()
 
 func _can_hit(enemy: Node3D, repeat: bool) -> bool:
 	var id := enemy.get_instance_id()
@@ -195,6 +203,7 @@ func _can_hit(enemy: Node3D, repeat: bool) -> bool:
 
 
 func _damage(enemy: Node3D) -> void:
+	if not O.visible_between(self,global_position,enemy.global_position): return
 	hit_times[enemy.get_instance_id()] = age
 	if visual_kind=="lance": spawn_detail("lance_hit",enemy.global_position+Vector3.UP,0.25,0.5)
 	if visual_kind=="heart": spawn_detail("heart_hit",enemy.global_position+Vector3.UP,0.3,0.5)
@@ -273,6 +282,7 @@ func _move_ellipse(delta: float) -> void:
 			finish=start.move_toward(destination,speed*(next-cursor))
 			caught=finish.distance_to(destination)<=0.3
 		_segment_hit(start,finish,false)
+		if is_queued_for_deletion(): return
 		global_position=finish
 		var tangent:=finish-start
 		if tangent.length_squared()>0.000001:

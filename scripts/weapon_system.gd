@@ -202,6 +202,9 @@ func fire(id: String) -> bool:
 				attack.position = target.global_position
 				attack.area_radius = 2.6
 				attack.lifetime = 3.2
+		if not preload("res://scripts/castle_obstacles.gd").placement(game,attack.position,0.1):
+			attack.free()
+			return false
 		game.actors.add_child(attack)
 	game.sound.play_effect("shot" if id in ["fan", "rear_fan", "spear"] else "magic")
 	return true
@@ -220,7 +223,7 @@ func random_visible_ground() -> Vector3:
 			continue
 		var distance := -start.y / ray.y
 		var point := start + ray * distance
-		if distance > 0 and absf(point.x) <= 23 and absf(point.z) <= 23:
+		if distance > 0 and absf(point.x) <= 23 and absf(point.z) <= 23 and preload("res://scripts/castle_obstacles.gd").placement(game,point,0.1):
 			point.y = 0
 			return point
 	return game.player.global_position

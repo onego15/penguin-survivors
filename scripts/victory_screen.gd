@@ -75,7 +75,7 @@ func _ready() -> void:
 			var a:=ray*TAU/5
 			V.rod(star,Color("e7b859"),Vector3.ZERO,Vector3(sin(a),cos(a),0)*0.2,0.055,0)
 	_label("CLEAR!",Vector2(72,38),58,Color("255864"))
-	_label("冬の王を倒した！",Vector2(76,110),27,Color("42666b"))
+	_label(results.get("boss_name","冬の王")+"を倒した！",Vector2(76,110),27,Color("42666b"))
 	_label("みんなで、冬を越えた。",Vector2(76,620),24,Color("315e62"))
 	_label("M：BGM切替   /   N：効果音切替",Vector2(76,662),15,Color("41676b"))
 	var panel:=Panel.new()
@@ -86,7 +86,7 @@ func _ready() -> void:
 	style.set_corner_radius_all(18)
 	panel.add_theme_stylebox_override("panel",style)
 	ui.add_child(panel)
-	_label("SNOWFIELD CHAMPION",Vector2(853,59),20,Color("f7d888"))
+	_label(results.get("stage_name","雪原")+" CHAMPION",Vector2(853,59),20,Color("f7d888"))
 	_label("TIME  %02d:%02d   /   Lv.%d\nDEFEATED  %d" % [int(results.elapsed)/60,int(results.elapsed)%60,results.level,results.kills],Vector2(853,101),21,Color("effbf8"))
 	_label("一緒に戦った武器",Vector2(853,174),19,Color("9de4d5"))
 	var index:=0

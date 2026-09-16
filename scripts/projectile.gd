@@ -26,11 +26,17 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	var start := global_position
 	var finish := start + direction * SPEED * delta
+	var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
+	var blocked:=false
+	if obstacle!=null:
+		var wall: Dictionary=obstacle.sweep(start,finish,0.15)
+		blocked=wall.t<1
+		finish=wall.point
 	# Sweep the whole movement segment to avoid skipping targets at low frame rates.
 	var hit: Node3D = null
 	var nearest_distance := INF
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy.dead:
+		if enemy.dead or not preload("res://scripts/castle_obstacles.gd").visible_between(self,start,enemy.global_position):
 			continue
 		var center: Vector3 = enemy.global_position + Vector3(0, 1.0, 0)
 		var closest := Geometry3D.get_closest_point_to_segment(center, start, finish)
@@ -43,6 +49,7 @@ func _physics_process(delta: float) -> void:
 		hit.take_damage(damage)
 		queue_free()
 		return
+	if blocked: queue_free(); return
 	global_position = finish
 	lifetime -= delta
 	if lifetime <= 0.0:

@@ -34,7 +34,7 @@ func run() -> void:
 	game.elapsed=0
 	game.player.position=Vector3(6.5,0,0)
 	var o=game.obstacles
-	# All 19 weapon entry points are exercised near a wall.
+	# All 22 weapon entry points are exercised near a wall.
 	for id in game.Catalog.ITEMS:
 		var enemy=game.spawn_enemy(0)
 		enemy.position=Vector3(9.2,0,0)

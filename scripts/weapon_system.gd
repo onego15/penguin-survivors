@@ -24,6 +24,7 @@ func acquire(id: String) -> void:
 	var tint: Color = Catalog.ITEMS[id].color
 	V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
+		"gust", "popsicle": preload("res://scripts/control_attack.gd").build_model(mount,id)
 		"udon": preload("res://scripts/udon_attack.gd").bowl(mount)
 		"heart": preload("res://scripts/character_models.gd").heart_wand(mount)
 		"beam":
@@ -69,6 +70,7 @@ func tick(delta: float) -> void:
 		if id=="udon":
 			mounts[id].position=Vector3(-0.75,1,0.35)
 			continue
+		if id=="gust": mounts[id].get_node("ControlModel/Rotor").rotation.z=time*14
 		var angle := time * 0.35 + (index % 8) * TAU / mini(8, mounts.size())
 		var reach := 1.2 + 0.65 * floori(index / 8.0)
 		mounts[id].position = Vector3(cos(angle) * reach, 1.35 + sin(time * 2 + index) * 0.08, sin(angle) * reach)
@@ -99,6 +101,17 @@ func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
 	var stats:=Catalog.stats(id,levels[id])
+	if id in ["gust","popsicle"]:
+		var enemy:=nearest(game.player.global_position,12) if id=="popsicle" else null
+		if id=="popsicle" and enemy==null: return false
+		var attack:=preload("res://scripts/control_attack.gd").new()
+		attack.mode=id
+		attack.stats=stats
+		attack.direction=game.player.facing_direction() if id=="gust" else (enemy.global_position-game.player.global_position).normalized()
+		attack.position=game.player.global_position+(Vector3.UP if id=="popsicle" else Vector3.ZERO)
+		game.actors.add_child(attack)
+		game.sound.play_effect("gust" if id=="gust" else "ice_cast")
+		return true
 	if id=="udon":
 		var enemy:=nearest(game.player.global_position,stats.reach)
 		if enemy==null: return false

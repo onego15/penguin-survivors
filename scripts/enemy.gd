@@ -57,6 +57,7 @@ var visual_scale := 1.0
 var is_miniboss := false
 var windup_duration := 0.8
 var recovery_duration := 1.1
+var control: Node3D
 
 
 func _ready() -> void:
@@ -87,6 +88,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if dead or not is_instance_valid(target):
 		return
+	if control_step(delta): return
 	age += delta
 	hurt_time = maxf(0.0, hurt_time - delta)
 	var offset := target.global_position - global_position
@@ -225,3 +227,23 @@ func take_damage(amount: int) -> void:
 		rewarded.emit(reward_value)
 		defeated.emit()
 		queue_free()
+
+# Shared control status is stepped by every ordinary enemy subclass before its AI.
+func apply_control(effect: String, duration_or_distance: float, direction:=Vector3.ZERO) -> bool:
+	if dead or not targetable or is_miniboss or is_in_group("final_bosses"): return false
+	if not is_instance_valid(control):
+		control=preload("res://scripts/enemy_control.gd").new()
+		add_child(control)
+	return control.apply(effect,duration_or_distance,direction)
+func control_step(delta: float) -> bool:
+	return control.step(delta) if is_instance_valid(control) else false
+func is_knocked_back() -> bool:
+	return is_instance_valid(control) and control.knock_left>0
+func cancel_control_action() -> void:
+	charge_state=ChargeState.APPROACH
+	state_time=0
+	hop_phase=0.62
+	set_meta("wall_dash",false)
+	if is_instance_valid(charge_marker): charge_marker.hide()
+	model.position.y=0
+	model.rotation.x=0

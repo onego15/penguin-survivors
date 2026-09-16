@@ -1,0 +1,164 @@
+extends SceneTree
+const Catalog=preload("res://scripts/weapon_catalog.gd")
+const Attack=preload("res://scripts/control_attack.gd")
+var failures:=0
+var game: Node3D
+func _initialize() -> void: call_deferred("run")
+func check(ok: bool, label: String) -> void:
+	print(("PASS: " if ok else "FAIL: ")+label)
+	if not ok: failures+=1
+func actor(kind: int, point: Vector3) -> Node3D:
+	var enemy=game.spawn_enemy(kind)
+	enemy.position=point
+	enemy.health=100
+	enemy.max_health=100
+	enemy.set_physics_process(false)
+	return enemy
+func setup(stage: String) -> void:
+	preload("res://scripts/stage_catalog.gd").selected_id=stage
+	game=load("res://scenes/main.tscn").instantiate()
+	root.add_child(game)
+	current_scene=game
+	game.set_physics_process(false)
+	game.player.set_physics_process(false)
+func shot(mode: String, point: Vector3, direction: Vector3, rank:=1) -> Node3D:
+	var attack:=Attack.new()
+	attack.mode=mode
+	attack.stats=Catalog.stats(mode,rank)
+	attack.direction=direction
+	attack.position=point
+	game.actors.add_child(attack)
+	attack.set_physics_process(false)
+	return attack
+func clear_actors() -> void:
+	for enemy in get_nodes_in_group("all_enemies"): enemy.free()
+	for attack in get_nodes_in_group("weapon_attacks"): attack.free()
+func run() -> void:
+	setup("snowfield")
+	check(Catalog.ITEMS.size()==22,"Both control weapons in mixed pool")
+	check(Catalog.stats("gust",5).damage==3 and Catalog.stats("gust",5).knockback==3 and Catalog.stats("popsicle",5).freeze==1.4,"Dedicated capped low damage curves")
+	var front=actor(0,Vector3(0,0,3))
+	var side=actor(0,Vector3(3,0,0))
+	var far=actor(0,Vector3(0,0,6))
+	var wind=shot("gust",Vector3.ZERO,Vector3.BACK)
+	check(front.health==99 and side.health==100 and far.health==100,"Fixed forward cone hits once, excludes side and far targets")
+	game.player.position=Vector3(10,0,0)
+	front._physics_process(0.25)
+	check(front.position.is_equal_approx(Vector3(0,0,5)) and front.health==99,"Push travels exactly two metres without extra damage")
+	check(not front.apply_control("knockback",3,Vector3.RIGHT),"Push reapplication blocked")
+	front.control.step(0.61)
+	check(front.apply_control("knockback",3,Vector3.RIGHT),"Push resistance expires")
+	wind._physics_process(0.5)
+	check(wind.is_queued_for_deletion(),"Wind visual expires independently of effect")
+	clear_actors()
+	game.player.position=Vector3.ZERO
+	var victim=actor(0,Vector3(0,0,5))
+	var nearby=actor(0,Vector3(1.2,0,5))
+	var rear=actor(0,Vector3(0,0,-3))
+	var ice=shot("popsicle",Vector3.UP,Vector3.BACK)
+	ice._physics_process(1.0)
+	check(ice.exploded and victim.health==99 and nearby.health==99 and rear.health==100,"Low FPS earliest hit bursts once and ignores enemies behind flight")
+	check(victim.control.frozen==1 and nearby.control.frozen==1,"Burst freezes neighbours")
+	victim.position=Vector3(0,0,0.3)
+	var hp: int=game.player.health
+	var old_age: float=victim.age
+	victim._physics_process(0.4)
+	check(victim.age==old_age and victim.position==Vector3(0,0,0.3) and game.player.health==hp,"Frozen actor movement, AI clock and contact stop")
+	victim.take_damage(2)
+	check(victim.health==97 and not victim.apply_control("freeze",1.4),"Damage does not thaw and repeated freeze cannot extend")
+	victim.apply_control("knockback",2,Vector3.RIGHT)
+	victim._physics_process(0.25)
+	check(victim.position.x>1.99 and victim.control.frozen>0,"Frozen actor can still be pushed")
+	victim.control.step(0.36)
+	check(victim.control.frozen==0 and not victim.apply_control("freeze",1),"Thaw starts two second immunity")
+	victim.control.step(2.0)
+	check(victim.apply_control("freeze",1),"Freeze can apply after immunity expires")
+	victim.set_physics_process(true)
+	paused=true
+	await create_timer(0.1,true).timeout
+	check(victim.control.frozen==1,"Weapon menu pause stops status timer")
+	paused=false
+	game.actors.process_mode=Node.PROCESS_MODE_DISABLED
+	await create_timer(0.1).timeout
+	check(victim.control.frozen==1,"Cinematic actor suspension stops status timer")
+	game.actors.process_mode=Node.PROCESS_MODE_INHERIT
+	victim.set_physics_process(false)
+	clear_actors()
+	var boar=actor(2,Vector3(0,0,4))
+	boar.charge_state=boar.ChargeState.CHARGE
+	boar.apply_control("freeze",1)
+	check(boar.charge_state==boar.ChargeState.APPROACH and not boar.charge_marker.visible,"Freeze cancels boar charge and warning")
+	var mole=actor(8,Vector3(3,0,4))
+	mole.special_state="dig"
+	mole.model.position.y=-0.5
+	mole.apply_control("freeze",1)
+	check(mole.special_state=="move" and mole.model.position.y==0 and mole.targetable,"Digging mole returns above ground")
+	mole.targetable=false
+	check(not mole.apply_control("knockback",2,Vector3.RIGHT),"Underground mole excludes control")
+	var owl=actor(4,Vector3(-3,0,4))
+	owl._begin_warning(0.9)
+	owl.apply_control("knockback",2,Vector3.BACK)
+	check(owl.special_state=="move" and not owl.warning.visible,"Pending ranged warning cancelled")
+	boar.is_miniboss=true
+	check(not boar.apply_control("freeze",1) and not boar.apply_control("knockback",2,Vector3.BACK),"Miniboss immunity")
+	var boss=preload("res://scripts/final_boss.gd").new()
+	boss.target=game.player
+	game.actors.add_child(boss)
+	boss.set_physics_process(false)
+	check(not boss.apply_control("freeze",1),"Final boss immune")
+	var minion=preload("res://scripts/boss_minion.gd").new()
+	minion.target=game.player
+	game.actors.add_child(minion)
+	minion.set_physics_process(false)
+	check(minion.apply_control("freeze",1),"Final minions remain vulnerable")
+	clear_actors()
+	var lethal=actor(0,Vector3(0,0,2))
+	lethal.health=1
+	var kills: int=game.kills
+	shot("gust",Vector3.ZERO,Vector3.BACK)
+	check(lethal.dead and game.kills==kills+1 and not is_instance_valid(lethal.control),"Lethal damage rewards once without applying status")
+	game.free()
+	await process_frame
+	setup("castle")
+	var gate=game.obstacles.gates[3]
+	gate.state="closed"
+	var normal=actor(0,Vector3(6,0,8))
+	var ghost=actor(14,Vector3(6,0,8))
+	normal.apply_control("knockback",3,Vector3.RIGHT)
+	ghost.apply_control("knockback",3,Vector3.RIGHT)
+	normal._physics_process(0.25)
+	ghost._physics_process(0.25)
+	check(normal.position.x<7 and ghost.position.x>8.9,"Closed gate blocks ordinary push but not ghost")
+	ghost.control.step(0.61)
+	ghost.position=Vector3(6,0,0)
+	ghost.apply_control("knockback",3,Vector3.RIGHT)
+	ghost._physics_process(0.25)
+	check(ghost.position.x<7,"Solid wall blocks pushed ghost")
+	clear_actors()
+	var beyond=actor(0,Vector3(10,0,0))
+	var blocked=shot("popsicle",Vector3(6,1,0),Vector3.RIGHT)
+	blocked._physics_process(1)
+	check(blocked.is_queued_for_deletion() and not blocked.exploded and beyond.health==100,"Wall destroys ice projectile without burst")
+	var goat=actor(13,Vector3.ZERO)
+	goat.warning_left=1
+	goat.dash_left=0.5
+	goat.apply_control("freeze",1)
+	check(goat.warning_left==0 and goat.dash_left==0,"Castle dash and warning cancelled")
+	var edge=actor(0,Vector3(22,0,20))
+	edge.apply_control("knockback",3,Vector3.RIGHT)
+	edge._physics_process(0.25)
+	check(edge.position.x<=23-edge.hit_radius+0.00001,"Push respects arena boundary with actor radius")
+	clear_actors()
+	var empty=shot("popsicle",Vector3(0,1,-20),Vector3.BACK)
+	empty._physics_process(2)
+	check(empty.is_queued_for_deletion() and not empty.exploded and is_equal_approx(empty.position.z,-8),"Ice expires at exact range without bursting")
+	var victim2=actor(0,Vector3(0,0,2))
+	victim2.apply_control("freeze",1)
+	game.player.health=0
+	game._physics_process(0.01)
+	check(game.game_over and not is_instance_valid(victim2.control),"Player death clears all control state and visuals")
+	check(game.sound.clips.has("gust") and game.sound.clips.has("ice_cast") and game.sound.clips.has("ice_break"),"Dedicated SFX loaded through shared mute bus")
+	game.free()
+	await process_frame
+	print("CONTROL WEAPONS TEST: %d failure(s)"%failures)
+	quit(1 if failures else 0)

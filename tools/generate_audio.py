@@ -124,7 +124,13 @@ def generate_castle():
     jingle('noctis_cast',[69,72,79,84],.18)
     sweep('noctis_roar',1.6,180,62,.28,.5)
 
+def generate_control():
+    sweep('gust', .4, 250, 90, .85, .28)
+    sweep('ice_cast', .2, 750, 1450, .05, .25)
+    jingle('ice_break', [91, 98, 103], .045)
+
 if __name__=='__main__':
+    generate_control()
     music('snowfield')
     music('boss',True)
     for args in [('shot',.075,1300,460,.05),('magic',.14,520,1000,.08),('hit',.065,440,130,.35),('defeat',.15,620,180,.3),('hurt',.28,190,70,.4),('blast',.32,110,35,.8),('thunder',.45,140,40,.85),('slash',.17,950,180,.65)]: sweep(*args)

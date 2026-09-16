@@ -37,6 +37,7 @@ func _ready() -> void:
 	add_to_group("final_minions")
 func _physics_process(delta: float) -> void:
 	if dead or not is_instance_valid(target): return
+	if control_step(delta): return
 	age+=delta
 	hurt_time=maxf(0,hurt_time-delta)
 	var toward: Vector3=(target.global_position-global_position).normalized()

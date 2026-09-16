@@ -55,7 +55,7 @@ func _physics_process(delta: float) -> void:
 			global_position=old
 			returning_noodle=true
 			hit_times.clear()
-		if returning_noodle and is_instance_valid(caught) and not caught.dead and pulled<2:
+		if returning_noodle and is_instance_valid(caught) and not caught.dead and pulled<2 and not caught.is_knocked_back():
 			var toward: Vector3=player.global_position-caught.global_position
 			var length:=minf(minf(2-pulled,3.4*step),maxf(0,toward.length()-3))
 			var finish: Vector3=caught.global_position+toward.normalized()*length

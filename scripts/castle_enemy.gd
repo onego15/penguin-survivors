@@ -14,6 +14,7 @@ func _ready() -> void:
 	marker.hide()
 func _physics_process(delta: float) -> void:
 	if dead or not is_instance_valid(target): return
+	if control_step(delta): return
 	age+=delta
 	hurt_time=maxf(0,hurt_time-delta)
 	var offset:=target.global_position-global_position
@@ -79,3 +80,11 @@ func _physics_process(delta: float) -> void:
 
 func danger_contains(point: Vector3) -> bool:
 	return kind==13 and (warning_left>0 or dash_left>0) and Geometry3D.get_closest_point_to_segment(point,global_position,global_position+locked*6).distance_to(point)<1.4
+
+func cancel_control_action() -> void:
+	super.cancel_control_action()
+	warning_left=0
+	dash_left=0
+	rest=0
+	cooldown=maxf(cooldown,1.0)
+	marker.hide()

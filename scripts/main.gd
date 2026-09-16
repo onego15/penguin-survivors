@@ -268,6 +268,7 @@ func _physics_process(delta: float) -> void:
 		final_director.stop()
 		if obstacles!=null: obstacles.open_all()
 		support.clear()
+		_clear_control_states()
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\nR: Restart   /   Esc: Title" % [kills, elapsed]
@@ -282,6 +283,7 @@ func _physics_process(delta: float) -> void:
 		final_director.stop()
 		if obstacles!=null: obstacles.open_all()
 		support.clear()
+		_clear_control_states()
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		victory_screen=preload("res://scripts/victory_screen.gd").new()
@@ -512,7 +514,7 @@ func _update_hud() -> void:
 	xp_label.text="XP %d / %d" % [experience,xp_needed]
 	xp_bar.max_value = xp_needed
 	xp_bar.value = experience
-	inventory_label.add_theme_font_size_override("font_size",13 if armory.levels.size()>18 else 14)
+	inventory_label.add_theme_font_size_override("font_size",12 if armory.levels.size()>20 else (13 if armory.levels.size()>18 else 14))
 	inventory_label.text = "装備武器 / すべて自動攻撃"
 	for id in armory.levels:
 		inventory_label.text += "\n%s  %s" % [Catalog.ITEMS[id].name, "MAX" if armory.levels[id]>=Catalog.MAX_RANK else "Lv.%d"%armory.levels[id]]
@@ -590,3 +592,10 @@ func _cancel_presentation() -> void:
 		presentation.restore()
 		presentation.queue_free()
 		presentation=null
+
+func _clear_control_states() -> void:
+	for enemy in get_tree().get_nodes_in_group("all_enemies"):
+		if is_instance_valid(enemy.control):
+			enemy.control.free()
+			enemy.control=null
+	for attack in get_tree().get_nodes_in_group("control_attacks"): attack.queue_free()

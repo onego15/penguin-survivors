@@ -48,7 +48,7 @@ func _ready() -> void:
 	_label(ui, "SURVIVAL ADVENTURE", Vector2(72, 74), 17, Color("7ee6d4"))
 	_label(ui, "PENGUIN\nSURVIVORS", Vector2(67, 114), 66, Color("f1f7ec"))
 	_label(ui, "小さなペンギン、大きなサバイバル。", Vector2(74, 278), 22, Color("ffdc94"))
-	_label(ui, "20種類の武器を組み合わせ、動物の群れを突破。\n10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
+	_label(ui, "22種類の武器を組み合わせ、動物の群れを突破。\n10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
 	for id in ["classic","pink"]:
 		var button:=Button.new()
 		button.text=Roster.CHARACTERS[id].name

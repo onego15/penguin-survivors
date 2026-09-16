@@ -29,6 +29,7 @@ func _ready() -> void:
 		warning.hide()
 func _physics_process(delta: float) -> void:
 	if dead or not is_instance_valid(target): return
+	if control_step(delta): return
 	age += delta
 	hurt_time = maxf(0,hurt_time-delta)
 	var offset := target.global_position-global_position
@@ -210,3 +211,12 @@ func antlers_contain(point: Vector3) -> bool:
 	offset.y=0
 	var along:=offset.dot(locked)
 	return along>=-0.42 and along<=14.42 and absf(offset.dot(Vector3(-locked.z,0,locked.x)))<=1.62
+
+func cancel_control_action() -> void:
+	super.cancel_control_action()
+	special_state="move"
+	timer=0
+	cooldown=maxf(cooldown,2.0 if kind==Kind.MOLE else 1.0)
+	warning.hide()
+	if is_instance_valid(digging): digging.hide()
+	if model.has_node("Head"): model.get_node("Head").rotation=Vector3.ZERO

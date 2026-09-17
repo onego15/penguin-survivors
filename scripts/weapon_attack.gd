@@ -9,6 +9,7 @@ var max_hits:=3
 var ellipse_reach:=9.1
 var flourish: Node3D
 var visual_kind := ""
+var cosmetic: Node3D
 var detail: Node3D
 var launch_direction:=Vector3.BACK
 var mode := "bolt"
@@ -54,10 +55,8 @@ func _ready() -> void:
 		"nova", "storm", "mine", "orbit":
 			ring = preload("res://scripts/combat_visuals.gd").friendly(visual, 1.0)
 			if mode == "mine":
-				V.ellipsoid(visual, tint, Vector3(0, 0.2, 0), Vector3(0.28, 0.25, 0.28))
-				V.ellipsoid(visual, Color("775340"), Vector3(0, 0.38, 0), Vector3(0.31, 0.1, 0.31))
-				V.rod(visual, Color("ffe88b"), Vector3(0, 0.4, 0), Vector3(0.08, 0.65, 0), 0.035)
-			if mode == "orbit" or mode == "storm":
+				cosmetic=preload("res://scripts/weapon_models.gd").build(visual,"mine")
+			if mode == "orbit":
 				for index in range(orbit_count if mode == "orbit" else 6):
 					orbiters.append(V.ellipsoid(visual, tint, Vector3.ZERO, Vector3.ONE * (0.28 if mode == "orbit" else 0.12)))
 		"boomerang":
@@ -72,6 +71,10 @@ func _ready() -> void:
 			else:
 				V.rod(visual, tint, Vector3(0, 0, -0.45 if piercing else -0.2), Vector3(0, 0, 0.6), 0.16, 0)
 				V.rod(visual, Color("fff0cf"), Vector3(0, 0, -0.7), Vector3(0, 0, 0), 0.045)
+	if visual_kind in ["feather","confetti","snowball"]:
+		for part in visual.get_children(): part.free()
+		if visual_kind=="snowball": V.ellipsoid(visual,Color("effaff"),Vector3.ZERO,Vector3.ONE*0.16)
+		else: cosmetic=preload("res://scripts/weapon_models.gd").build(visual,"fan" if visual_kind=="feather" else "rear_fan")
 	if visual_kind=="lance":
 		for part in visual.get_children(): part.free()
 		detail=make_detail("lance",visual)
@@ -118,6 +121,9 @@ func _physics_process(delta: float) -> void:
 		ring.scale = Vector3(expansion, 1, expansion)
 		_area_hit(expansion, false)
 	elif mode == "mine":
+		var settling:=clampf(age/0.35,0,1)
+		cosmetic.position.z=-0.45*(1-settling)
+		cosmetic.rotation.x=-TAU*(1-settling)
 		ring.scale = Vector3.ONE * (0.35 + 0.12 * sin(age * 9.0))
 		if age > 0.65:
 			for enemy in get_tree().get_nodes_in_group("enemies"):
@@ -209,6 +215,10 @@ func _can_hit(enemy: Node3D, repeat: bool) -> bool:
 func _damage(enemy: Node3D) -> void:
 	if not O.visible_between(self,global_position,enemy.global_position): return
 	hit_times[enemy.get_instance_id()] = age
+	if visual_kind in ["feather","confetti","snowball"]:
+		for part in visual.get_children(): part.free()
+		if visual_kind=="snowball": V.ellipsoid(visual,Color("effaff"),Vector3.ZERO,Vector3.ONE*0.16)
+		else: cosmetic=preload("res://scripts/weapon_models.gd").build(visual,"fan" if visual_kind=="feather" else "rear_fan")
 	if visual_kind=="lance": spawn_detail("lance_hit",enemy.global_position+Vector3.UP,0.25,0.5)
 	if visual_kind=="heart": spawn_detail("heart_hit",enemy.global_position+Vector3.UP,0.3,0.5)
 	enemy.take_damage(damage)

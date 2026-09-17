@@ -62,22 +62,14 @@ static func penguin(parent: Node3D, character_id: String = "classic") -> Node3D:
 	return root
 
 static func blaster(parent: Node3D) -> Node3D:
-	var root := V.pivot(parent, "FrostfinBlaster")
-	V.ellipsoid(root, TEAL, Vector3(0, 0, 0.05), Vector3(0.25, 0.26, 0.48))
-	V.ellipsoid(root, CREAM, Vector3(0, -0.13, 0.1), Vector3(0.2, 0.1, 0.34))
-	V.rod(root, INK, Vector3(0, 0, 0.28), Vector3(0, 0, 0.7), 0.18)
-	V.ring(root, GOLD, Vector3(0, 0, 0.55), 0.19, 0.035, true)
-	V.ring(root, GOLD, Vector3(0, 0, 0.72), 0.17, 0.04, true)
-	V.ellipsoid(root, Color("92f5ff"), Vector3(0, 0, 0.71), Vector3(0.13, 0.13, 0.03))
-	V.rod(root, Color("68dbe5"), Vector3(0, 0.17, -0.1), Vector3(0, 0.46, -0.21), 0.15, 0.0)
-	for side in [-1.0, 1.0]:
-		var fin := V.ellipsoid(root, GOLD, Vector3(side * 0.2, 0, -0.38), Vector3(0.22, 0.055, 0.23))
-		fin.rotation.y = side * 0.6
-		V.ellipsoid(root, INK, Vector3(side * 0.24, 0.075, 0.22), Vector3(0.025, 0.07, 0.07))
-		V.ellipsoid(root, WHITE, Vector3(side * 0.261, 0.095, 0.24), Vector3(0.013, 0.021, 0.023))
-	V.rod(root, Color("926348"), Vector3(0, -0.1, -0.15), Vector3(0, -0.43, -0.25), 0.09)
-	var crystal := V.rod(root, Color("a8faff"), Vector3(0, 0.19, 0.09), Vector3(0, 0.49, 0.09), 0.12, 0)
-	crystal.mesh.radial_segments = 6
+	var root:=V.pivot(parent,"FrostfinBlaster")
+	V.ellipsoid(root,TEAL,Vector3.ZERO,Vector3(0.25,0.25,0.38))
+	V.rod(root,Color("a8dce7"),Vector3(0,0,0.2),Vector3(0,0,0.62),0.18)
+	V.ring(root,Color("ffdba3"),Vector3(0,0,0.62),0.19,0.05,true)
+	V.ellipsoid(root,Color("6cb8d7"),Vector3(0,0,0.64),Vector3(0.12,0.12,0.025))
+	V.rod(root,Color("e8cba5"),Vector3(0,-0.1,-0.12),Vector3(0,-0.43,-0.21),0.1)
+	for side in [-1,1]:
+		V.ellipsoid(root,CREAM,Vector3(side*0.24,0,0),Vector3(0.025,0.1,0.1))
 	return root
 
 

@@ -57,6 +57,11 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size",25)
 	title.add_theme_color_override("font_color",Color("203e50"))
 	layer.add_child(title)
+	var weapons:=Button.new()
+	weapons.text="23武器のモデル一覧"
+	weapons.position=Vector2(950,24)
+	weapons.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/weapon_gallery.tscn"))
+	layer.add_child(weapons)
 func _plinth(point: Vector3, radius: float, color: Color) -> void:
 	V.rod(self,color,point-Vector3(0,0.2,0),point+Vector3(0,0.04,0),radius)
 func _label(caption: String, point: Vector3, size: int) -> void:

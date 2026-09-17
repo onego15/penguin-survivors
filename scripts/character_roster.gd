@@ -1,8 +1,8 @@
 extends RefCounted
 static var selected_id: String = "classic"
 const CHARACTERS := {
-	"classic": {"name":"メガネペンギン", "weapon":"frost", "ultimate":"blizzard", "hint":"氷ブラスター：最寄りの敵へ連射"},
-	"pink": {"name":"ピンクペンギン", "weapon":"heart", "ultimate":"bloom", "hint":"ハートの波動：大きなハートで3体貫通"},
+	"classic": {"name":"メガネペンギン", "weapon":"frost", "ultimate":"blizzard", "hint":"こおりのポップガン：最寄りの敵へ連射"},
+	"pink": {"name":"ピンクペンギン", "weapon":"heart", "ultimate":"bloom", "hint":"ときめきハート：大きなハートで3体貫通"},
 }
 const ULTIMATES := {
 	"blizzard":{"name":"エンペラー・ブリザード", "damage":100, "heal":0, "visual":preload("res://scripts/ultimate_visual.gd"), "sound":"ultimate", "hint":"必殺技：範囲攻撃100ダメージ"},

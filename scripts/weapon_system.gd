@@ -10,6 +10,8 @@ var cooldowns: Dictionary = {}
 var mounts: Dictionary = {}
 var orbit_attack: Node3D
 var gust_attack: Node3D
+const Motifs=preload("res://scripts/weapon_models.gd")
+var cast_times: Dictionary={}
 var time := 0.0
 var last_trail := Vector3.INF
 
@@ -24,45 +26,30 @@ func acquire(id: String) -> void:
 	cooldowns[id] = Catalog.cooldown(id,1) if id=="starfall" else 0.0
 	var mount := V.pivot(game.player.body if id=="udon" else game.player, "Weapon_" + id)
 	var tint: Color = Catalog.ITEMS[id].color
-	V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
+	if id in ["spear","boomerang"]: V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
+		"ember","lightning","nova","mine","storm","whip","trail","bounce","turret","seeker","fan":
+			var motif:=Motifs.build(mount,id)
+			if id=="turret": motif.scale=Vector3.ONE*0.48
+			if id=="fan": motif.rotation.x=PI/2
 		"starfall": preload("res://scripts/starfall_attack.gd").star(mount,0.3)
 		"gust", "popsicle": preload("res://scripts/control_attack.gd").build_model(mount,id)
 		"udon": preload("res://scripts/udon_attack.gd").bowl(mount)
 		"heart": preload("res://scripts/character_models.gd").heart_wand(mount)
-		"beam":
-			preload("res://scripts/prism_visual.gd").build_crystal(mount)
+		"beam": preload("res://scripts/prism_visual.gd").build_crystal(mount)
 		"rear_fan":
-			for index in range(3):
-				V.rod(mount, tint, Vector3((index - 1) * 0.14, 0, 0), Vector3((index - 1) * 0.2, 0.4, 0), 0.07)
+			V.rod(mount,Color("b695d7"),Vector3(0,0,-0.15),Vector3(0,0,0.35),0.06,0.2)
+			var seal:=Motifs.build(mount,"rear_fan")
+			seal.scale=Vector3.ONE*0.45; seal.position=Vector3(0,0.13,0.15)
 		"rear_bomb":
-			V.rod(mount, tint, Vector3.ZERO, Vector3(0, 0.35, 0), 0.18)
-			V.rod(mount, Color("fff4be"), Vector3(0, 0.35, 0), Vector3(0, 0.6, 0), 0.18, 0)
-		"whip":
-			V.ring(mount, tint, Vector3(0, 0.25, 0), 0.28, 0.045, true)
-			V.rod(mount, tint, Vector3.ZERO, Vector3(0, 0.55, 0), 0.1, 0)
-		"turret":
-			V.ellipsoid(mount, tint, Vector3.ZERO, Vector3.ONE * 0.23)
-			V.ellipsoid(mount, tint, Vector3(0, 0.3, 0), Vector3.ONE * 0.16)
-		"trail":
-			for index in range(3):
-				V.rod(mount, tint, Vector3((index - 1) * 0.15, 0, 0), Vector3((index - 1) * 0.15, 0.4, 0), 0.1, 0)
-		"seeker":
-			V.ellipsoid(mount, tint, Vector3(0, 0.2, 0), Vector3(0.14, 0.14, 0.28))
-			V.ellipsoid(mount, Color.WHITE, Vector3(0, 0.3, 0), Vector3(0.4, 0.04, 0.12))
-		"fan":
-			for index in range(3):
-				V.rod(mount, tint, Vector3.ZERO, Vector3((index - 1) * 0.19, 0.4, 0), 0.1, 0)
+			V.ellipsoid(mount,Color("bc8fd7"),Vector3.ZERO,Vector3.ONE*0.23)
+			V.rod(mount,Color("ffe4bd"),Vector3(0,0.2,0),Vector3(0.1,0.43,0),0.025)
+		"orbit":
+			for i in range(3): V.ellipsoid(mount,Color("c5ddf8"),Vector3((i-1)*0.17,0,0),Vector3.ONE*0.085)
 		"spear": V.rod(mount, tint, Vector3(0, 0.1, 0), Vector3(0, 0.65, 0), 0.14, 0)
-		"lightning", "nova":
-			V.rod(mount, tint, Vector3(0, 0.05, 0), Vector3(0, 0.4, 0), 0.24, 0.06)
-			V.ring(mount, Color("ffe0a0"), Vector3(0, 0.05, 0), 0.23, 0.025)
 		"boomerang":
 			V.ellipsoid(mount, tint, Vector3(0, 0.2, 0), Vector3(0.3, 0.12, 0.1))
 			V.rod(mount, tint, Vector3(-0.25, 0.2, 0), Vector3(-0.45, 0.2, 0), 0.02, 0.13)
-		_:
-			V.ellipsoid(mount, tint, Vector3(0, 0.23, 0), Vector3.ONE * 0.2)
-			V.ring(mount, Color("ffe0a0"), Vector3(0, 0.1, 0), 0.21, 0.025)
 	mounts[id] = mount
 
 
@@ -79,10 +66,18 @@ func tick(delta: float) -> void:
 			mounts[id].rotation.y=atan2(facing.x,facing.z)
 			mounts[id].get_node("ControlModel/Rotor").rotation.z=time*14
 			continue
-		var angle := time * 0.35 + (index % 8) * TAU / mini(8, mounts.size())
+		var angle := (index % 8) * TAU / mini(8, mounts.size())
 		var reach := 1.2 + 0.65 * floori(index / 8.0)
 		mounts[id].position = Vector3(cos(angle) * reach, 1.35 + sin(time * 2 + index) * 0.08, sin(angle) * reach)
 		mounts[id].rotation.y = -angle
+		if id=="rear_fan":
+			mounts[id].position=-game.player.facing_direction()*0.85+Vector3.UP*0.85
+			mounts[id].rotation.y=atan2(-game.player.facing_direction().x,-game.player.facing_direction().z)
+		if mounts[id].has_node("Motif"):
+			var elapsed_cast: float=time-float(cast_times.get(id,-100))
+			var pulse:=maxf(0,1-elapsed_cast/0.55)
+			if id=="lightning": pulse=maxf(0,1-absf(elapsed_cast-0.37)/0.35)
+			Motifs.animate(mounts[id].get_node("Motif"),id,time,pulse)
 		index += 1
 	for id in levels:
 		if id == "frost":
@@ -93,6 +88,7 @@ func tick(delta: float) -> void:
 		cooldowns[id] = float(cooldowns.get(id, 0.0)) - delta
 		if cooldowns[id] <= 0 and fire(id):
 			cooldowns[id] = Catalog.cooldown(id, levels[id])
+			cast_times[id]=time
 
 
 func nearest(origin: Vector3, reach: float, excluded: Array = []) -> Node3D:
@@ -230,6 +226,7 @@ func fire(id: String) -> bool:
 		attack.direction = direction
 		match id:
 			"fan", "rear_fan":
+				attack.visual_kind="feather" if id=="fan" else "confetti"
 				attack.direction = direction.rotated(Vector3.UP, (index - (int(stats.count)-1)/2.0) * 0.18)
 				attack.speed = 16.0
 				attack.lifetime = stats.reach/16.0

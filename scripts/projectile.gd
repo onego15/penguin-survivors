@@ -19,7 +19,8 @@ func _ready() -> void:
 	# A faceted ice bolt with a tapered tail replaces the plain sphere.
 	Visuals.rod(self, Color("b4faff"), Vector3(0, 0, -0.1), Vector3(0, 0, 0.32), 0.15, 0.0)
 	Visuals.rod(self, Color("5cbfd6"), Vector3(0, 0, -0.65), Vector3(0, 0, -0.1), 0.015, 0.12)
-	Visuals.ring(self, Color("f9f5da"), Vector3.ZERO, 0.14, 0.025, true)
+	var crystal:=Visuals.rod(self,Color("dcfaff"),Vector3(0,0,-0.08),Vector3(0,0,0.24),0.12,0)
+	crystal.mesh.radial_segments=5
 	rotation.y = atan2(direction.x, direction.z)
 
 
@@ -46,6 +47,7 @@ func _physics_process(delta: float) -> void:
 				nearest_distance = distance
 				hit = enemy
 	if hit != null:
+		if not support_star: preload("res://scripts/weapon_spark.gd").spawn(self,hit.global_position+Vector3.UP)
 		hit.take_damage(damage)
 		queue_free()
 		return

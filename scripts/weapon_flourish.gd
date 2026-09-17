@@ -51,6 +51,7 @@ func _ready() -> void:
 		rotation.y=atan2(direction.x,direction.z)
 		for i in range(4): bands.append(ribbon([Color("bb66ef"),Color("ff70bc"),Color("75e9ff"),Color.WHITE][i],3.45+i*0.08,0.63 if i<3 else 0.095,-PI/3,PI/3,-0.12+i*0.1))
 	elif mode=="trail":
+		for side in [-1,1]: materialize(V.rod(self,Color("d4f4ff"),Vector3(side*0.24,0.03,-0.6),Vector3(side*0.24,0.03,0.6),0.025),0.6)
 		for i in range(5):
 			var flame:=V.pivot(self,"Flame")
 			flame.position=Vector3(cos(i*2.4),0,sin(i*2.4))*0.7

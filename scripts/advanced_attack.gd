@@ -1,6 +1,8 @@
 extends "res://scripts/weapon_attack.gd"
 
 const Shot = preload("res://scripts/weapon_attack.gd")
+const Motifs=preload("res://scripts/weapon_models.gd")
+var motif: Node3D
 var pulse := 0.0
 var target_reach:=12.0
 var whip_reach:=3.8
@@ -30,21 +32,16 @@ func _ready() -> void:
 			lifetime = stats.duration
 			speed = 16
 			radius = 0.45
-			V.ellipsoid(visual, tint, Vector3.ZERO, Vector3.ONE * radius)
-			V.ring(visual, Color.WHITE, Vector3.ZERO, radius, 0.04, true)
+			motif=Motifs.build(visual,"bounce")
 		"turret":
 			lifetime = stats.duration
-			V.ellipsoid(visual, tint, Vector3(0, -0.5, 0), Vector3.ONE * 0.5)
-			V.ellipsoid(visual, tint, Vector3(0, 0.15, 0), Vector3.ONE * 0.35)
-			V.rod(visual, Color("ffb767"), Vector3(0, 0.15, 0), Vector3(0, 0.15, 0.65), 0.13, 0.06)
+			motif=Motifs.build(visual,"turret")
 		"seeker":
 			piercing = false
 			lifetime = stats.duration
 			speed = 11
 			radius = 0.25
-			V.ellipsoid(visual, tint, Vector3.ZERO, Vector3(0.2, 0.2, 0.4))
-			for side in [-1, 1]:
-				V.ellipsoid(visual, Color.WHITE, Vector3(side * 0.25, 0.12, 0), Vector3(0.3, 0.07, 0.2))
+			motif=Motifs.build(visual,"seeker")
 		"beam":
 			lifetime = stats.duration
 			beam_length=stats.reach
@@ -60,6 +57,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	age += delta
+	if is_instance_valid(motif): Motifs.animate(motif,mode,age,clampf((pulse-0.35)/0.2,0,1))
 	if is_instance_valid(flourish): flourish.animate(age,lifetime)
 	if mode in ["bounce","seeker"]: visual.rotation.y=atan2(direction.x,direction.z)
 	match mode:
@@ -82,15 +80,18 @@ func _physics_process(delta: float) -> void:
 				if absf(finish.x) > 23:
 					finish.x = signf(finish.x) * (46 - absf(finish.x))
 					direction.x *= -1
+					ice_spark(finish)
 				if absf(finish.z) > 23:
 					finish.z = signf(finish.z) * (46 - absf(finish.z))
 					direction.z *= -1
+					ice_spark(finish)
 				var obstacle=O.world(self)
 				if obstacle!=null:
 					var wall: Dictionary=obstacle.sweep(start,finish,radius)
 					if wall.t<1:
 						finish=wall.point
 						direction=direction.bounce(wall.normal)
+						ice_spark(finish)
 				_segment_hit(start, finish, true)
 				global_position = finish
 		"turret":
@@ -103,6 +104,7 @@ func _physics_process(delta: float) -> void:
 					bullet.direction = (enemy.global_position + Vector3.UP - global_position).normalized()
 					bullet.damage = damage
 					bullet.tint = tint
+					bullet.visual_kind="snowball"
 					bullet.lifetime = maxf(0.8,target_reach/16.0)
 					get_parent().add_child(bullet)
 					visual.rotation.y = atan2(bullet.direction.x, bullet.direction.z)
@@ -111,6 +113,8 @@ func _physics_process(delta: float) -> void:
 			var enemy := closest_enemy()
 			if enemy != null:
 				var desired := (enemy.global_position + Vector3.UP - global_position).normalized()
+				var turn:=direction.cross(desired).y
+				motif.rotation.z=clampf(-turn,-0.5,0.5)
 				direction = direction.lerp(desired, minf(1, delta * 7)).normalized()
 			var start := global_position
 			var finish := start + direction * speed * delta
@@ -138,3 +142,6 @@ func closest_enemy() -> Node3D:
 			best = enemy
 			distance = d
 	return best
+
+func ice_spark(point: Vector3) -> void:
+	preload("res://scripts/weapon_spark.gd").spawn(self,point)

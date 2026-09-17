@@ -1,6 +1,6 @@
 extends Node
 ## Original generated music and bounded, rate-limited sound effects.
-const EFFECTS := ["star_fall", "star_impact", "gust", "ice_cast", "ice_break", "shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom", "gate", "castle_throw", "noctis_cast", "noctis_roar"]
+const EFFECTS := ["den_stomp", "star_fall", "star_impact", "gust", "ice_cast", "ice_break", "shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom", "gate", "castle_throw", "noctis_cast", "noctis_roar"]
 const MUSIC := ["snowfield","boss","final_boss","final_boss_phase2","celebration","castle","noctis","noctis_phase2"]
 var fading: AudioStreamPlayer
 var fade_left := 0.0

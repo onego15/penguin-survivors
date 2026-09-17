@@ -16,13 +16,13 @@ func run() -> void:
 	var bags_ok:=true
 	for i in range(20):
 		var picks := {}
-		for j in range(3):
+		for j in range(manager.Friend.NAMES.size()):
 			var previous: int=manager.last_kind
 			var kind: int=manager.draw_kind()
 			bags_ok=bags_ok and kind!=previous
 			picks[kind]=true
-		bags_ok=bags_ok and picks.size()==3
-	check(bags_ok,"Every bag contains all three friends without adjacent repeats")
+		bags_ok=bags_ok and picks.size()==4
+	check(bags_ok,"Every bag contains all four friends without adjacent repeats")
 	var locations_ok:=true
 	for corner in [Vector3.ZERO,Vector3(23,0,23),Vector3(-23,0,-23)]:
 		game.player.position=corner

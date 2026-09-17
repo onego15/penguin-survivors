@@ -17,16 +17,16 @@ func _ready() -> void:
 	notice.hide()
 func draw_kind() -> int:
 	if bag.is_empty():
-		bag.assign([0,1,2])
-		for i in range(2,0,-1):
+		bag.assign(range(Friend.NAMES.size()))
+		for i in range(bag.size()-1,0,-1):
 			var j: int=game.rng.randi_range(0,i)
 			var value:=bag[i]
 			bag[i]=bag[j]
 			bag[j]=value
 		if bag.back()==last_kind:
 			var value:=bag[0]
-			bag[0]=bag[2]
-			bag[2]=value
+			bag[0]=bag[-1]
+			bag[-1]=value
 	last_kind=bag.pop_back()
 	return last_kind
 func announce(joined: bool) -> void:

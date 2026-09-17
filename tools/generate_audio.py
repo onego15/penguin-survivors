@@ -129,12 +129,16 @@ def generate_control():
     sweep('ice_cast', .2, 750, 1450, .05, .25)
     jingle('ice_break', [91, 98, 103], .045)
 
+def generate_den():
+    sweep("den_stomp", .45, 140, 45, .06, .3)
+
 def generate_starfall():
     sweep('star_fall', 1.2, 1600, 180, .14, .35)
     jingle('star_impact', [48, 60, 67, 76, 84], .11)
 
 if __name__=='__main__':
     generate_starfall()
+    generate_den()
     generate_control()
     music('snowfield')
     music('boss',True)

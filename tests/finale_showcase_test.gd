@@ -91,8 +91,8 @@ func run() -> void:
 	game.player.health=100
 	boss.take_damage(9999)
 	game._physics_process(0)
-	check(game.victory and is_instance_valid(game.victory_screen) and game.victory_screen.characters.size()==4,"Victory shows penguin and all three friends")
-	check(game.victory_screen.results.weapons.size()==19 and not is_instance_valid(game.support.active),"Victory carries all weapon results and clears combat support")
+	check(game.victory and is_instance_valid(game.victory_screen) and game.victory_screen.characters.size()==5,"Victory shows penguin and all four friends")
+	check(game.victory_screen.results.weapons.size()==game.Catalog.ITEMS.size() and not is_instance_valid(game.support.active),"Victory carries all weapon results and clears combat support")
 	var hero_y: float=game.victory_screen.characters[0].position.y
 	game.victory_screen._process(0.2)
 	check(game.victory_screen.characters[0].position.y!=hero_y,"Celebration animates independently of the frozen battle")

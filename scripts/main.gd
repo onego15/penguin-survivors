@@ -221,7 +221,7 @@ func _setup_hud() -> void:
 	wave_hint.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	layer.add_child(wave_hint)
 	var legend := Label.new()
-	legend.text = "PENGUIN SURVIVORS  /  10 WAVES  /  3 FRIENDS"
+	legend.text = "PENGUIN SURVIVORS  /  10 WAVES  /  %d FRIENDS" % preload("res://scripts/support_friend.gd").NAMES.size()
 	legend.add_theme_font_size_override("font_size", 16)
 	legend.add_theme_color_override("font_color", Color("e1edff") if stage_id=="castle" else Color("233f50"))
 	layer.add_child(legend)

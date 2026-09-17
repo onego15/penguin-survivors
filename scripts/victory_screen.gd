@@ -58,10 +58,10 @@ func _ready() -> void:
 	hero.position=Vector3(-2,0,0)
 	hero.scale=Vector3.ONE*1.5
 	characters.append(hero)
-	for kind in range(3):
+	for kind in range(preload("res://scripts/support_friend.gd").NAMES.size()):
 		var friend:=Friends.support(stage,kind)
-		friend.position=[Vector3(-4,1.9,0),Vector3(-4,0,1),Vector3(0.3,0,1)][kind]
-		friend.scale=Vector3.ONE*1.35
+		friend.position=[Vector3(-4,1.9,0),Vector3(-4,0,1),Vector3(0.3,0,1),Vector3(-5.4,0,-1.8)][kind]
+		friend.scale=Vector3.ONE*(1.0 if kind==3 else 1.35)
 		characters.append(friend)
 	for i in range(65):
 		var paper:=BoxMesh.new()
@@ -124,6 +124,7 @@ func _process(delta: float) -> void:
 	if characters[2].has_node("WaveArm"):
 		characters[2].get_node("WaveArm").rotation.z=-1.8+sin(time*6)*0.4
 	characters[3].position.y=absf(sin(time*5))*0.35
+	Friends.animate_den(characters[4],time,-1,true)
 	for i in range(confetti.size()):
 		confetti[i].position.y=5-fmod(time*(0.6+(i%3)*0.2)+i*0.17,5)
 		confetti[i].rotation+=Vector3(delta,delta*0.6,delta*1.2)

@@ -80,7 +80,9 @@ static func build(parent: Node3D, kind: int) -> void:
 
 static func support(parent: Node3D, kind: int) -> Node3D:
 	var root := V.pivot(parent, "SupportModel")
-	if kind == 1: # Small friendly polar bear, distinct from the crowned boss.
+	if kind==3:
+		build_den(root)
+	elif kind == 1: # Small friendly polar bear, distinct from the crowned boss.
 		V.ellipsoid(root, WHITE, Vector3(0,0.65,0),Vector3(0.47,0.6,0.38))
 		V.ellipsoid(root, WHITE, Vector3(0,1.25,0.08),Vector3(0.49,0.43,0.39))
 		for side in [-1,1]:
@@ -107,3 +109,31 @@ static func support(parent: Node3D, kind: int) -> Node3D:
 		else:
 			V.rod(root,Color("ffc05a"),Vector3(0,1.02,0),Vector3(0.1,1.22,0),0.08,0)
 	return root
+
+static func build_den(root: Node3D) -> void:
+	var teal:=Color("285d69")
+	var cream:=Color("f1e2bd")
+	var belly:=V.pivot(root,"Belly")
+	V.ellipsoid(belly,teal,Vector3(0,1.02,0),Vector3(0.9,1.0,0.65))
+	V.ellipsoid(belly,cream,Vector3(0,0.94,0.44),Vector3(0.72,0.75,0.29))
+	V.ellipsoid(root,teal,Vector3(0,1.96,0),Vector3(0.67,0.59,0.5))
+	for side in [-1,1]:
+		V.rod(root,teal,Vector3(side*0.46,2.29,0),Vector3(side*0.6,2.7,-0.02),0.22,0.045)
+		V.ellipsoid(root,cream,Vector3(side*0.25,1.99,0.36),Vector3(0.34,0.32,0.19))
+		V.rod(root,INK,Vector3(side*0.24-0.12,2.07,0.55),Vector3(side*0.24+0.12,2.065,0.55),0.022)
+		var arm:=V.pivot(root,"WaveArm" if side<0 else "OtherArm",Vector3(side*0.8,1.25,0))
+		V.ellipsoid(arm,teal,Vector3(side*0.06,-0.23,0.04),Vector3(0.24,0.43,0.26))
+		V.ellipsoid(root,cream,Vector3(side*0.52,0.18,0.4),Vector3(0.34,0.22,0.42))
+		for toe in range(3): V.rod(root,WHITE,Vector3(side*0.52+(toe-1)*0.12,0.21,0.69),Vector3(side*0.52+(toe-1)*0.12,0.2,0.84),0.045,0)
+	V.rod(root,INK,Vector3(-0.12,1.83,0.54),Vector3(0.12,1.83,0.54),0.017)
+
+static func animate_den(root: Node3D, time: float, charging: float=-1.0, celebrating: bool=false) -> void:
+	root.get_node("Belly").scale=Vector3(1+sin(time*1.8)*0.025,1+sin(time*1.8)*0.018,1)
+	root.position.y=0
+	root.scale=Vector3.ONE
+	if charging>=0:
+		root.scale=Vector3(1+sin(charging*PI)*0.09,1-sin(charging*PI)*0.1,1)
+		root.position.y=sin(charging*PI)*0.38
+	for side in ["WaveArm","OtherArm"]:
+		root.get_node(side).rotation.z=(sin(time*5)*0.22 if celebrating else sin(time*2)*0.07)*(1 if side=="WaveArm" else -1)
+	if celebrating: root.get_node("WaveArm").rotation.z=-1.3+sin(time*5)*0.3

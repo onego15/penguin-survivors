@@ -27,14 +27,14 @@ func _ready() -> void:
 	models.append(Models.penguin(hero))
 	_plinth(hero.position,1.3,Color("7fdacb"))
 	_label("プレイヤー",hero.position+Vector3(0,0.2,1.6),32)
-	for kind in range(3):
-		var point:=Vector3(kind*6,0,8)
+	for kind in range(Friend.NAMES.size()):
+		var point:=Vector3(kind*6 if kind<3 else -12,0,8 if kind<3 else 14)
 		var stand:=V.pivot(self,"FriendDisplay_%d" % kind,point)
 		stand.scale=Vector3.ONE*1.2
 		models.append(Creatures.support(stand,kind))
 		_plinth(point,1.3,Color("7fdacb"))
 		_label("%s %s" % [Friend.ICONS[kind],Friend.NAMES[kind]],point+Vector3(0,0.2,1.65),34)
-		_label(["回復","防御","攻撃援護"][kind],point+Vector3(0,0,2.5),25)
+		_label(["回復","防御","攻撃援護","押し返し援護"][kind],point+Vector3(0,0,2.5),25)
 	var pink:=V.pivot(self,"PinkHero",Vector3(-6,0,8))
 	models.append(Models.penguin(pink,"pink"))
 	_label("ピンクペンギン",pink.position+Vector3(0,0.2,1.6),28)
@@ -52,7 +52,7 @@ func _ready() -> void:
 	var layer:=CanvasLayer.new()
 	add_child(layer)
 	var title:=Label.new()
-	title.text="PENGUIN SURVIVORS  /  10 ENEMIES + 2 BOSS MINIONS + 3 FRIENDS"
+	title.text="PENGUIN SURVIVORS  /  10 ENEMIES + 2 BOSS MINIONS + 4 FRIENDS"
 	title.position=Vector2(32,22)
 	title.add_theme_font_size_override("font_size",25)
 	title.add_theme_color_override("font_color",Color("203e50"))

@@ -67,6 +67,13 @@ func _card() -> StyleBoxFlat:
 	style.set_corner_radius_all(14)
 	return style
 func _face(center: Vector2, kind: int, radius: float) -> void:
+	if kind==3:
+		for side in [-1,1]: draw_circle(center+Vector2(side*radius*0.65,-radius*0.7),radius*0.3,Color("285d69"))
+		draw_circle(center,radius,Color("285d69"))
+		draw_circle(center+Vector2(0,radius*0.2),radius*0.77,Color("f1e2bd"))
+		for side in [-1,1]: draw_line(center+Vector2(side*radius*0.34-radius*0.15,0),center+Vector2(side*radius*0.34+radius*0.15,0),Color("20343e"),2)
+		draw_line(center+Vector2(-radius*0.13,radius*0.35),center+Vector2(radius*0.13,radius*0.35),Color("20343e"),2)
+		return
 	var color:=Color("ffe477") if kind==2 else Color("f4fcff")
 	if kind==1:
 		for side in [-1,1]: draw_circle(center+Vector2(side*radius*0.7,-radius*0.65),radius*0.4,color)

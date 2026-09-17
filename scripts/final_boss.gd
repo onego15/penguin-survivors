@@ -124,7 +124,7 @@ func _physics_process(delta: float) -> void:
 		return
 	age += delta
 	hurt_time = maxf(0, hurt_time - delta)
-	if not enraged and health<=max_health/2:
+	if not get_meta("phase_locked",false) and not enraged and health<=max_health/2:
 		_enter_phase_two()
 		return
 	quake_flash=maxf(0,quake_flash-delta)
@@ -288,7 +288,7 @@ func _enter_phase_two() -> void:
 func take_damage(amount: int) -> void:
 	if cinematic_locked: return
 	super.take_damage(amount)
-	if not dead and health<=max_health/2 and not enraged: _enter_phase_two()
+	if not get_meta("phase_locked",false) and not dead and health<=max_health/2 and not enraged: _enter_phase_two()
 
 func sample_quake_center(center: Vector3) -> Vector3:
 	var random: RandomNumberGenerator=get_parent().get_parent().rng
@@ -305,3 +305,10 @@ func danger_contains(point: Vector3) -> bool:
 	if dash_left>0 or (warning_left>0 and attack_kind=="dash"):
 		return Geometry3D.get_closest_point_to_segment(point,global_position,global_position+locked_direction*dash_distance).distance_to(point)<hit_radius+0.7
 	return false
+
+# Preserve the real phase appearance and attack order without inflicting damage.
+func initialize_training_phase(second: bool) -> void:
+	set_meta("phase_locked",true)
+	if second:
+		_enter_phase_two()
+		health=max_health/2

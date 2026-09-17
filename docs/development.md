@@ -26,6 +26,7 @@
 | `scripts/enemy.gd` / `special_enemy.gd` / `castle_enemy.gd` | 通常敵の共通処理と固有行動 |
 | `scripts/final_boss.gd` / `noctis.gd` / `final_battle_director.gd` | ラスボス・決戦増援と援護枠 |
 | `scripts/game_audio.gd` / `assets/audio/` | BGM・効果音・ミュート |
+| `scenes/sandbox.tscn` / `scripts/sandbox.gd` / `scripts/sandbox_ui.gd` | 練習場・配置と補充・設定UI。本編の戦闘を共用 |
 | `tests/` | 自動テスト・自動操作による比較 |
 | `tools/` | 音源生成・撮影・描画負荷の点検 |
 
@@ -36,6 +37,7 @@
 プロジェクトのルートから実行します。以下の `godot` はPATHに登録したGodot実行ファイル名です。Windowsでは使用するGodotのコンソール版exeのパスへ置き換えられます。
 
 ```sh
+godot --headless --path . --script tests/sandbox_test.gd
 godot --headless --path . --script tests/weapons_test.gd
 godot --headless --path . --script tests/control_weapons_test.gd
 godot --headless --path . --script tests/castle_control_rebalance_test.gd
@@ -44,6 +46,7 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 
 | テスト | 主な確認内容 |
 |---|---|
+| `sandbox_test.gd` | キャラ分離・22武器・全敵・形態固定・補充・停止・死亡・設定保持・ランダム配置と連続クリック |
 | `weapons_test.gd` | XP・抽選・蓄積・一時停止・武器の命中と寿命 |
 | `upgrade_udon_ghost_test.gd` | Lv.5上限・候補枯渇・実際の強化値・麺・ゴースト |
 | `control_weapons_test.gd` | ノックバック・凍結・耐性・中断・死亡解除 |
@@ -72,3 +75,12 @@ python tools/generate_audio.py
 直近の撮影スクリプトは `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
 
 デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。既存動画は雪原の過去バージョンです。最新機能の証拠として扱わず、現在の画面は各ガイドを参照してください。
+
+### サンドボックスの確認
+
+`tools/capture_sandbox.gd` で設定画面・敵プレビュー・100体配置・配置プレビューを撮影できます。2026-09-17、Godot 4.7.2 / Compatibility / RTX 4060 Laptop GPUで実画面を確認しました。敵100体（行動停止・撮影用HP10000）、ピンク＋ハート・扇風機・アイスキャンディLv.3、城壁ありの限定条件で、ウォームアップ後120フレームは平均約6.9msでした。通常AI100体や全武器同時使用の性能保証ではありません。
+
+サンドボックス専用テストと、キャラ・制御武器・城門跳躍・本編ラスボス進行・タイトルの回帰テストは失敗0件。実行環境では証明書ストアの読み取り警告と、一部の既存テストでも発生する終了時ObjectDB警告が出ます。
+
+![100体配置の確認](screenshots/sandbox-field.png)
+![床への配置プレビュー](screenshots/sandbox-placement.png)

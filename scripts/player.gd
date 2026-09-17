@@ -2,6 +2,8 @@ extends CharacterBody3D
 
 const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
+signal damage_received(amount: int)
+var training_invincible := false
 const SPEED := 7.0
 const ARENA_LIMIT := 23.0
 var character_id:=preload("res://scripts/character_roster.gd").selected()
@@ -103,10 +105,11 @@ func fire_feedback() -> void:
 
 
 func take_damage(amount: int) -> void:
-	if cinematic_locked: return
+	if cinematic_locked or training_invincible: return
 	if invulnerability > 0.0 or health <= 0:
 		return
 	amount = maxi(1, ceili(amount * support_damage_multiplier))
+	damage_received.emit(mini(health,amount))
 	health = maxi(0, health - amount)
 	get_tree().call_group("game_audio", "play_effect", "hurt")
 	invulnerability = 0.8

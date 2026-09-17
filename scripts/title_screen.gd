@@ -121,6 +121,15 @@ func _ready() -> void:
 	stage_hint.add_theme_color_override("font_color",Color("203d56"))
 	ui.add_child(stage_hint)
 	select_stage(Stages.selected_id)
+	var sandbox_button:=Button.new()
+	sandbox_button.text="サンドボックス"
+	sandbox_button.position=Vector2(825,635)
+	sandbox_button.size=Vector2(330,48)
+	sandbox_button.pressed.connect(func():
+		if starting: return
+		starting=true
+		get_tree().change_scene_to_file("res://scenes/sandbox.tscn"))
+	ui.add_child(sandbox_button)
 	fade = ColorRect.new()
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.color = Color(0.03, 0.08, 0.12, 0)

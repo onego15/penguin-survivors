@@ -204,19 +204,23 @@ func take_damage(amount: int) -> void:
 	if cinematic_locked or not targetable: return
 	super.take_damage(amount)
 	if dead: cancel_attacks(); return
-	if not enraged and health<=max_health/2:
-		enraged=true
-		speed=2.4
-		cancel_attacks()
-		phase_armor.show()
-		for part in mask_parts:
-			part.material_override=part.material_override.duplicate()
-			part.material_override.albedo_color=Color("efb6ff")
-		crown_glow.material_override=crown_glow.material_override.duplicate()
-		crown_glow.material_override.albedo_color=Color("eab3ff")
-		attack_index=0
-		attack_cooldown=2
-		phase_changed.emit()
+	if not get_meta("phase_locked",false) and not enraged and health<=max_health/2:
+		_enter_phase_two()
+
+func _enter_phase_two() -> void:
+	if enraged or dead: return
+	enraged=true
+	speed=2.4
+	cancel_attacks()
+	phase_armor.show()
+	for part in mask_parts:
+		part.material_override=part.material_override.duplicate()
+		part.material_override.albedo_color=Color("efb6ff")
+	crown_glow.material_override=crown_glow.material_override.duplicate()
+	crown_glow.material_override.albedo_color=Color("eab3ff")
+	attack_index=0
+	attack_cooldown=2
+	phase_changed.emit()
 func danger_contains(point: Vector3) -> bool:
 	if attack_kind=="rings" and (warning_left>0 or flash_left>0):
 		for center in centers:
@@ -251,3 +255,10 @@ func plan_vault() -> bool:
 			flight_end=candidate
 			found=true
 	return found
+
+# Called only after construction, before the first combat tick in the sandbox.
+func initialize_training_phase(second: bool) -> void:
+	set_meta("phase_locked",true)
+	if second:
+		_enter_phase_two()
+		health=max_health/2

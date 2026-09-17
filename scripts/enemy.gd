@@ -1,5 +1,6 @@
 extends Node3D
 
+signal damage_received(amount: int)
 signal defeated
 signal rewarded(amount: int)
 const Visuals = preload("res://scripts/visuals.gd")
@@ -208,6 +209,7 @@ func _animate(motion_speed: float) -> void:
 func take_damage(amount: int) -> void:
 	if dead or not targetable:
 		return
+	damage_received.emit(mini(health,maxi(0,amount)))
 	health -= amount
 	get_tree().call_group("game_audio", "play_effect", "defeat" if health <= 0 else "hit")
 	hurt_time = 0.16

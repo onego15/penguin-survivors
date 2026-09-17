@@ -117,9 +117,10 @@ static func build_den(root: Node3D) -> void:
 	V.ellipsoid(belly,teal,Vector3(0,1.02,0),Vector3(0.9,1.0,0.65))
 	V.ellipsoid(belly,cream,Vector3(0,0.94,0.44),Vector3(0.72,0.75,0.29))
 	V.ellipsoid(root,teal,Vector3(0,1.96,0),Vector3(0.67,0.59,0.5))
+	# One continuous face patch prevents a seam between the cheeks.
+	V.ellipsoid(root,cream,Vector3(0,1.99,0.36),Vector3(0.59,0.32,0.19))
 	for side in [-1,1]:
 		V.rod(root,teal,Vector3(side*0.46,2.29,0),Vector3(side*0.6,2.7,-0.02),0.22,0.045)
-		V.ellipsoid(root,cream,Vector3(side*0.25,1.99,0.36),Vector3(0.34,0.32,0.19))
 		V.rod(root,INK,Vector3(side*0.24-0.12,2.07,0.55),Vector3(side*0.24+0.12,2.065,0.55),0.022)
 		var arm:=V.pivot(root,"WaveArm" if side<0 else "OtherArm",Vector3(side*0.8,1.25,0))
 		V.ellipsoid(arm,teal,Vector3(side*0.06,-0.23,0.04),Vector3(0.24,0.43,0.26))

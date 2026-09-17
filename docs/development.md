@@ -75,7 +75,7 @@ python tools/generate_audio.py
 
 直近の撮影スクリプトは `tools/capture_starfall.gd`、 `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
 
-デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。既存動画は雪原の過去バージョンです。最新機能の証拠として扱わず、現在の画面は各ガイドを参照してください。
+デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。2026-09-18の動画はデン・現在の武器モデル・両ステージを収録しています。撮影用に進行を制御した紹介映像です。
 
 ### サンドボックスの確認
 

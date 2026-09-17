@@ -138,10 +138,10 @@ HP100・移動速度・当たり判定は共通。初期装備と必殺技が異
 
 ## デモ動画
 
-[![雪原デモのプレビュー](docs/videos/demo-preview.gif)](docs/videos/penguin-survivors-demo.mp4)
+[![最新デモのプレビュー](docs/videos/demo-preview.gif)](docs/videos/penguin-survivors-demo.mp4)
 
-**[音声付きMP4を見る（32秒・720p/60fps）](docs/videos/penguin-survivors-demo.mp4)**
+**[音声付きMP4を見る（60秒・720p/60fps）](docs/videos/penguin-survivors-demo.mp4)**
 
-雪原の戦闘・援護・必殺技・ラスボス・祝勝画面を収録した過去バージョンの動画です。城や最新の武器調整は含みません。撮影用に時間・装備・敵配置・HPを設定しており、通常プレイの攻略記録ではありません。**終盤・クリア画面のネタバレを含みます。** [収録方法](docs/videos/README.md)
+デンの押し返し援護、新しい武器モデル、両キャラの必殺技、雪原と氷の城、ノクティスの第二形態、4匹の祝勝画面を収録しています。撮影用に時間・装備・敵配置・HPを設定しており、通常プレイの攻略記録ではありません。**終盤・クリア画面のネタバレを含みます。** [収録方法](docs/videos/README.md)
 
 掲載画像もGodot実画面を撮影用の配置で収録しています。ゲームの詳細は各ガイド、過去の比較数値やスクリーンショットは[検証記録](docs/development-history.md)にまとめています。

@@ -11,6 +11,14 @@ var exploded:=false
 var visual: Node3D
 var streams: Array[Node3D]=[]
 var hit_ids: Dictionary={}
+var wind_boundary: Node3D
+var initial_reach:=1.0
+var player: Node3D
+const WIND_HALF_ANGLE:=35.0
+const SWING_ANGLE:=45.0
+const SWING_PERIOD:=4.0
+func swing_angle() -> float:
+	return sin(age*TAU/SWING_PERIOD)*deg_to_rad(SWING_ANGLE)
 static func build_model(parent: Node3D, kind: String) -> Node3D:
 	var root:=V.pivot(parent,"ControlModel")
 	if kind=="gust":
@@ -35,28 +43,23 @@ func _ready() -> void:
 	add_to_group("control_attacks")
 	visual=V.pivot(self,"ControlVisual")
 	if mode=="gust":
-		# Geometry and the hit test share the same fixed origin and facing.
-		for i in range(13):
-			var angle: float=deg_to_rad(-80+i*160.0/12)
-			var ray:=direction.rotated(Vector3.UP,angle)
-
-			if i<12:
-				var next:=direction.rotated(Vector3.UP,angle+deg_to_rad(160.0/12))
-				C.ink(V.rod(visual,Color("86e5ee"),ray*stats.reach+Vector3.UP*0.06,next*stats.reach+Vector3.UP*0.06,0.018))
+		# Local geometry rotates with the live cone, without rebuilding meshes.
+		wind_boundary=V.pivot(visual,"WindBoundary")
+		initial_reach=stats.reach
+		for i in range(12):
+			var a:=deg_to_rad(-WIND_HALF_ANGLE+i*WIND_HALF_ANGLE*2/12)
+			var b:=deg_to_rad(-WIND_HALF_ANGLE+(i+1)*WIND_HALF_ANGLE*2/12)
+			C.ink(V.rod(wind_boundary,Color("86e5ee"),Vector3.BACK.rotated(Vector3.UP,a)*stats.reach+Vector3.UP*0.06,Vector3.BACK.rotated(Vector3.UP,b)*stats.reach+Vector3.UP*0.06,0.018))
 		for i in range(56): streams.append(C.ink(V.rod(visual,Color("d3fff8"),Vector3.ZERO,Vector3.UP,0.024)))
-		animate_wind()
-		for enemy in get_tree().get_nodes_in_group("enemies"):
-			var offset: Vector3=enemy.global_position-global_position
-			offset.y=0
-			if offset.length()<=float(stats.reach)+enemy.hit_radius and (offset.length()<0.01 or direction.dot(offset.normalized())>=cos(deg_to_rad(80))):
-				hit(enemy,"knockback",stats.knockback,offset.normalized() if offset.length()>0.01 else direction)
+		update_wind()
+
 	else:
 		build_model(visual,"popsicle")
 		visual.rotation.y=atan2(direction.x,direction.z)
 		C.tail(visual)
 func hit(enemy: Node3D, effect: String, value: float, push:=Vector3.ZERO) -> void:
-	if enemy.dead or hit_ids.has(enemy.get_instance_id()) or not O.visible_between(self,global_position,enemy.global_position): return
-	hit_ids[enemy.get_instance_id()]=true
+	if enemy.dead or not enemy.targetable or hit_ids.has(enemy.get_instance_id()) or not O.visible_between(self,global_position,enemy.global_position): return
+	hit_ids[enemy.get_instance_id()]=age+float(stats.cooldown) if mode=="gust" else INF
 	enemy.take_damage(int(stats.damage))
 	if is_instance_valid(enemy) and not enemy.dead and enemy.has_method("apply_control"):
 		enemy.apply_control(effect,value,push)
@@ -77,8 +80,7 @@ func burst(center: Vector3) -> void:
 func _physics_process(delta: float) -> void:
 	age+=delta
 	if mode=="gust":
-		animate_wind()
-		if age>=0.85: queue_free()
+		update_wind()
 		return
 	if exploded:
 		for i in range(streams.size()):
@@ -113,7 +115,7 @@ func _physics_process(delta: float) -> void:
 	if wall_t<1 or travelled>=12-0.00001: queue_free()
 
 func wind_point(lane: int, t: float) -> Vector3:
-	var ray:=direction.rotated(Vector3.UP,deg_to_rad(-73+lane*146.0/6))
+	var ray:=Vector3.BACK.rotated(Vector3.UP,deg_to_rad(-32+lane*64.0/6))
 	var side:=Vector3(-ray.z,0,ray.x)
 	return ray*float(stats.reach)*t+Vector3.UP*(0.3+sin(t*PI)*0.5)+side*sin(t*TAU*1.5-age*19+lane)*0.14*sin(t*PI)
 func animate_wind() -> void:
@@ -124,3 +126,18 @@ func animate_wind() -> void:
 		streams[i].position=(a+b)*0.5
 		streams[i].scale.y=a.distance_to(b)
 		streams[i].quaternion=Quaternion(Vector3.UP,(b-a).normalized())
+
+func update_wind() -> void:
+	if is_instance_valid(player):
+		global_position=player.global_position
+		direction=player.facing_direction().rotated(Vector3.UP,swing_angle())
+	visual.rotation.y=atan2(direction.x,direction.z)
+	wind_boundary.scale=Vector3(float(stats.reach)/initial_reach,1,float(stats.reach)/initial_reach)
+	for id in hit_ids.keys():
+		if float(hit_ids[id])<=age: hit_ids.erase(id)
+	animate_wind()
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		var offset: Vector3=enemy.global_position-global_position
+		offset.y=0
+		if offset.length()<=float(stats.reach)+enemy.hit_radius and (offset.length()<0.01 or direction.dot(offset.normalized())>=cos(deg_to_rad(WIND_HALF_ANGLE))):
+			hit(enemy,"knockback",stats.knockback,offset.normalized() if offset.length()>0.01 else direction)

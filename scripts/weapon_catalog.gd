@@ -1,7 +1,7 @@
 extends RefCounted
 
 const ITEMS := {
-	"gust":{"name":"ぱたぱた扇風機","description":"前方160度へ風を放ち、押し返す。\nボスにはダメージのみ。","style":"前方固定 / ノックバック","color":Color("a8efdc"),"cooldown":2.6,"damage":1},
+	"gust":{"name":"ぱたぱた扇風機","description":"常時送風し、左右に首を振って押し返す。\nボスにはダメージのみ。","style":"常時首振り / ノックバック","color":Color("a8efdc"),"cooldown":3.0,"damage":1},
 	"popsicle":{"name":"ひえひえアイスキャンディ","description":"近い敵へ氷菓を発射し、周囲を凍結。\nボスにはダメージのみ。","style":"自動照準 / 凍結","color":Color("99cfff"),"cooldown":3.8,"damage":1},
 	"udon":{"name":"ちゅるちゅるおうどん","description":"どんぶりから麺を伸ばして巻き戻す。\n通常敵を少し引き寄せ、往復で攻撃。","style":"自動照準 / 巻き込み・往復","color":Color("f2de9c"),"cooldown":2.4,"damage":1},
 	"heart": {"name":"ハートの波動", "description":"最寄りの敵へハートを放つ。\n直線上の敵を最大3体貫通。", "style":"自動照準 / 3体貫通", "color":Color("f578b2"), "cooldown":0.65, "damage":2},
@@ -41,7 +41,7 @@ const SHAPES={
 }
 static func stats(id: String, rank: int) -> Dictionary:
 	var n:=clampi(rank,1,MAX_RANK)-1
-	if id=="gust": return {"damage":[1,2,2,3,3][n],"cooldown":[2.6,2.45,2.3,2.15,2.0][n],"reach":[6.0,6.5,7.0,7.5,8.0][n],"knockback":[3.0,3.0,3.5,4.0,4.5][n]}
+	if id=="gust": return {"damage":[1,2,2,3,3][n],"cooldown":[3.0,2.85,2.7,2.55,2.4][n],"reach":[6.0,6.5,7.0,7.5,8.0][n],"knockback":[3.0,3.0,3.5,4.0,4.5][n]}
 	if id=="popsicle": return {"damage":[1,2,2,3,3][n],"cooldown":[3.8,3.6,3.4,3.2,3.0][n],"reach":12.0,"radius":[1.3,1.45,1.6,1.75,1.9][n],"freeze":[1.0,1.0,1.2,1.2,1.4][n]}
 	var result: Dictionary=SHAPES[id].duplicate()
 	var many:=id in ["fan","rear_fan","seeker","lightning","orbit"]
@@ -65,6 +65,7 @@ static func upgrade_text(id: String, rank: int) -> String:
 	for key in ["damage","cooldown","reach","radius","count","duration","pierce","travel","knockback","freeze"]:
 		if not before.has(key) or before[key]==after[key]: continue
 		var names:={"damage":"威力","cooldown":"間隔","reach":"射程","radius":"半径","count":"数","duration":"持続","pierce":"貫通数","travel":"到達距離","knockback":"押し返し","freeze":"凍結時間"}
+		if id=="gust" and key=="cooldown": names.cooldown="同じ敵への命中間隔"
 		if key in ["damage","count","pierce"]: lines.append("%s %d → %d"%[names[key],before[key],after[key]])
 		else: lines.append("%s %.2f → %.2f%s"%[names[key],before[key],after[key],"m" if key in ["reach","radius","travel","knockback"] else "秒"])
 	return "\n".join(lines)

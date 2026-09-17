@@ -36,12 +36,15 @@ func clear_actors() -> void:
 func run() -> void:
 	setup("snowfield")
 	check(Catalog.ITEMS.size()==22,"Both control weapons in mixed pool")
+	for rank in range(1,6):
+		check(is_equal_approx(Catalog.stats("gust",rank).cooldown,[3.0,2.85,2.7,2.55,2.4][rank-1]),"Fan hit interval rank %d"%rank)
+	check(Catalog.ITEMS.gust.cooldown==Catalog.stats("gust",1).cooldown,"Fan catalog matches first rank")
 	check(Catalog.stats("gust",5).damage==3 and Catalog.stats("gust",5).knockback==4.5 and Catalog.stats("popsicle",5).freeze==1.4,"Dedicated capped low damage curves")
 	var front=actor(0,Vector3(0,0,3))
 	var side=actor(0,Vector3(3,0,0))
 	var far=actor(0,Vector3(0,0,8))
 	var wind=shot("gust",Vector3.ZERO,Vector3.BACK)
-	check(front.health==99 and side.health==100 and far.health==100,"Fixed forward cone hits once, excludes side and far targets")
+	check(front.health==99 and side.health==100 and far.health==100,"Wind cone hits once, excludes side and far targets")
 	game.player.position=Vector3(10,0,0)
 	front._physics_process(0.6)
 	check(front.position.is_equal_approx(Vector3(0,0,6)) and front.health==99,"Push travels exactly three metres without extra damage")
@@ -49,16 +52,67 @@ func run() -> void:
 	front.control.step(0.61)
 	check(front.apply_control("knockback",3,Vector3.RIGHT),"Push resistance expires")
 	wind._physics_process(0.9)
-	check(wind.is_queued_for_deletion(),"Wind visual expires independently of effect")
+	check(not wind.is_queued_for_deletion(),"Wind remains continuously active")
+	clear_actors()
+	game.player.position=Vector3.ZERO
+	game.player.body.rotation.y=0
+	game.armory.acquire("gust")
+	game.armory.fire("gust")
+	var continuous=game.armory.gust_attack
+	continuous.set_physics_process(false)
+	var first_id: int=continuous.get_instance_id()
+	for i in range(20): game.armory.tick(0.1)
+	check(game.armory.gust_attack.get_instance_id()==first_id,"One persistent fan, no repeated creation")
+	continuous._physics_process(1.0)
+	check(is_equal_approx(continuous.direction.x,sin(deg_to_rad(45))),"Fan swings to one side")
+	continuous._physics_process(2.0)
+	check(is_equal_approx(continuous.direction.x,-sin(deg_to_rad(45))),"Fan swings to opposite side")
+	game.player.position=Vector3(2,0,1)
+	continuous._physics_process(0)
+	check(continuous.position==game.player.position,"Wind follows moving player")
+	var target=actor(0,game.player.position+continuous.direction*3)
+	continuous._physics_process(0)
+	check(target.health==99,"Moving cone damages enemy")
+	continuous._physics_process(0)
+	check(target.health==99,"Persistent cone does not deal damage each frame")
+	continuous.age+=2.6
+	continuous.update_wind()
+	target.position=game.player.position+continuous.direction*3
+	continuous.update_wind()
+	check(target.health==99,"Old 2.6 second interval cannot trigger another wind hit")
+	continuous.age+=0.4
+	continuous.update_wind()
+	target.position=game.player.position+continuous.direction*3
+	continuous.update_wind()
+	check(target.health==98,"Per-enemy damage interval expires")
+	game.armory.levels.gust=5
+	game.armory.fire("gust"); continuous.update_wind()
+	check(continuous.stats.reach==8 and continuous.wind_boundary.scale.x>1,"Upgrade expands live cone and boundary")
+	continuous.set_physics_process(true)
+	var frozen_age: float=continuous.age
+	paused=true
+	await create_timer(0.05,true).timeout
+	check(continuous.age==frozen_age,"Pause freezes oscillation")
+	paused=false
 	clear_actors()
 	game.player.position=Vector3.ZERO
 	var victim=actor(0,Vector3(0,0,5))
 	var nearby=actor(0,Vector3(1.2,0,5))
 	var rear=actor(0,Vector3(0,0,-3))
+	var original_mesh: MeshInstance3D
+	for child in victim.model.get_children():
+		if child is MeshInstance3D: original_mesh=child; break
+	var original_material=original_mesh.material_override
 	var ice=shot("popsicle",Vector3.UP,Vector3.BACK)
 	ice._physics_process(1.0)
 	check(ice.exploded and victim.health==99 and nearby.health==99 and rear.health==100,"Low FPS earliest hit bursts once and ignores enemies behind flight")
 	check(victim.control.frozen==1 and nearby.control.frozen==1,"Burst freezes neighbours")
+	check(original_mesh.material_override!=original_material and victim.control.body_iced,"Frozen body uses separate icy materials")
+	var unfrozen=actor(0,Vector3(-5,0,-5))
+	var shared_original_found:=false
+	for child in unfrozen.model.get_children():
+		if child is MeshInstance3D and child.material_override==original_material: shared_original_found=true
+	check(shared_original_found,"Frozen palette does not mutate other enemies")
 	victim.position=Vector3(0,0,0.3)
 	var hp: int=game.player.health
 	var old_age: float=victim.age
@@ -71,6 +125,7 @@ func run() -> void:
 	check(victim.position.x>0.8 and victim.control.frozen>0,"Frozen actor can still be pushed")
 	victim.control.step(0.36)
 	check(victim.control.frozen==0 and not victim.apply_control("freeze",1),"Thaw starts two second immunity")
+	check(original_mesh.material_override==original_material,"Thaw restores exact original material")
 	victim.control.step(2.0)
 	check(victim.apply_control("freeze",1),"Freeze can apply after immunity expires")
 	victim.set_physics_process(true)

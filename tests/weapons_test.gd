@@ -183,7 +183,8 @@ func run() -> void:
 	check(scheduled and get_nodes_in_group("weapon_attacks").size() > 0, "All additional weapons run beside the initial blaster")
 	game.set_physics_process(false)
 	await frames(510)
-	check(get_nodes_in_group("weapon_attacks").is_empty(), "Projectiles, mines, storms, pearls and effects expire")
+	var remaining=get_nodes_in_group("weapon_attacks")
+	check(remaining.size()==1 and remaining[0]==game.armory.gust_attack, "Timed attacks expire; only the continuously equipped fan remains")
 	game.player.health = 0
 	game.experience = game.xp_needed
 	game.set_physics_process(true)

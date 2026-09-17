@@ -12,6 +12,8 @@ var icon: Node3D
 var icon_material: StandardMaterial3D
 var trail: Node3D
 var thaw_left:=0.0
+var ice_materials: Array[Dictionary]=[]
+var body_iced:=false
 func _ready() -> void:
 	icon=V.pivot(self,"Snowflake",Vector3(0,2.6,0))
 	for i in range(6):
@@ -74,6 +76,7 @@ func step(delta: float) -> bool:
 	update_visuals()
 	return stopped
 func update_visuals() -> void:
+	set_body_iced(frozen>0)
 	icon.visible=freeze_lock>0
 	icon_material.albedo_color=Color(0.77,0.97,1,1.0 if frozen>0 else 0.35)
 	icon.scale=Vector3.ONE*(1.0 if frozen>0 else 0.48)
@@ -87,3 +90,26 @@ func update_visuals() -> void:
 		shard.position=Vector3(cos(angle)*r,0.65+spread*0.3,sin(angle)*r)
 		shard.rotation=Vector3(spread*0.8,angle,0.2+spread)
 		shard.scale=Vector3.ONE*(1-spread*0.9)
+
+func cache_ice_materials(node: Node) -> void:
+	if node is MeshInstance3D and node.material_override is StandardMaterial3D:
+		var original: StandardMaterial3D=node.material_override
+		var ice: StandardMaterial3D=original.duplicate()
+		var shade:=original.albedo_color.get_luminance()
+		ice.albedo_color=Color("378fbd").lerp(Color("d5faff"),clampf(0.3+shade*0.65,0,1))
+		ice.albedo_color.a=original.albedo_color.a
+		ice.roughness=0.2
+		ice.metallic=0.15
+		ice.emission_enabled=true
+		ice.emission=Color("3b7796")
+		ice.emission_energy_multiplier=0.18
+		ice_materials.append({"mesh":node,"original":original,"ice":ice})
+	for child in node.get_children(): cache_ice_materials(child)
+func set_body_iced(enabled: bool) -> void:
+	if enabled==body_iced: return
+	if enabled and ice_materials.is_empty(): cache_ice_materials(get_parent().model)
+	for entry in ice_materials:
+		if is_instance_valid(entry.mesh): entry.mesh.material_override=entry.ice if enabled else entry.original
+	body_iced=enabled
+func _exit_tree() -> void:
+	set_body_iced(false)

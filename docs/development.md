@@ -84,3 +84,7 @@ python tools/generate_audio.py
 
 ![100体配置の確認](screenshots/sandbox-field.png)
 ![床への配置プレビュー](screenshots/sandbox-placement.png)
+
+### 常時首振りと凍結色の確認
+
+`control_weapons_test.gd` で風の常時維持・左右首振り・移動追従・同じ敵への命中間隔・強化時の境界拡大・停止を確認。凍結材質の個体分離と解凍時の復元、既存の制御・耐性テストも失敗0件。`sandbox_test.gd` も通過しました。`tools/capture_fan_freeze.gd` でCompatibilityの実画面を収録しています。

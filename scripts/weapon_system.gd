@@ -8,6 +8,7 @@ var game: Node3D
 var levels: Dictionary = {}
 var cooldowns: Dictionary = {}
 var mounts: Dictionary = {}
+var gust_attack: Node3D
 var time := 0.0
 var last_trail := Vector3.INF
 
@@ -70,7 +71,12 @@ func tick(delta: float) -> void:
 		if id=="udon":
 			mounts[id].position=Vector3(-0.75,1,0.35)
 			continue
-		if id=="gust": mounts[id].get_node("ControlModel/Rotor").rotation.z=time*14
+		if id=="gust":
+			mounts[id].position=game.player.facing_direction()*0.9+Vector3.UP*0.8
+			var facing: Vector3=gust_attack.direction if is_instance_valid(gust_attack) else game.player.facing_direction()
+			mounts[id].rotation.y=atan2(facing.x,facing.z)
+			mounts[id].get_node("ControlModel/Rotor").rotation.z=time*14
+			continue
 		var angle := time * 0.35 + (index % 8) * TAU / mini(8, mounts.size())
 		var reach := 1.2 + 0.65 * floori(index / 8.0)
 		mounts[id].position = Vector3(cos(angle) * reach, 1.35 + sin(time * 2 + index) * 0.08, sin(angle) * reach)
@@ -78,6 +84,9 @@ func tick(delta: float) -> void:
 		index += 1
 	for id in levels:
 		if id == "frost":
+			continue
+		if id=="gust":
+			fire(id)
 			continue
 		cooldowns[id] = float(cooldowns.get(id, 0.0)) - delta
 		if cooldowns[id] <= 0 and fire(id):
@@ -101,12 +110,18 @@ func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
 	var stats:=Catalog.stats(id,levels[id])
+	if id=="gust" and is_instance_valid(gust_attack) and not gust_attack.is_queued_for_deletion():
+		gust_attack.stats=stats
+		return true
 	if id in ["gust","popsicle"]:
 		var enemy:=nearest(game.player.global_position,12) if id=="popsicle" else null
 		if id=="popsicle" and enemy==null: return false
 		var attack:=preload("res://scripts/control_attack.gd").new()
 		attack.mode=id
 		attack.stats=stats
+		if id=="gust":
+			attack.player=game.player
+			gust_attack=attack
 		attack.direction=game.player.facing_direction() if id=="gust" else (enemy.global_position-game.player.global_position).normalized()
 		attack.position=game.player.global_position+(Vector3.UP if id=="popsicle" else Vector3.ZERO)
 		game.actors.add_child(attack)

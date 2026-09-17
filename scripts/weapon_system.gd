@@ -8,6 +8,7 @@ var game: Node3D
 var levels: Dictionary = {}
 var cooldowns: Dictionary = {}
 var mounts: Dictionary = {}
+var orbit_attack: Node3D
 var gust_attack: Node3D
 var time := 0.0
 var last_trail := Vector3.INF
@@ -20,11 +21,12 @@ func acquire(id: String) -> void:
 	if id=="frost": game.player.equip_frost()
 	if id == "frost" or mounts.has(id) or (id=="heart" and game.player.character_id=="pink"):
 		return
-	cooldowns[id] = 0.0
+	cooldowns[id] = Catalog.cooldown(id,1) if id=="starfall" else 0.0
 	var mount := V.pivot(game.player.body if id=="udon" else game.player, "Weapon_" + id)
 	var tint: Color = Catalog.ITEMS[id].color
 	V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
+		"starfall": preload("res://scripts/starfall_attack.gd").star(mount,0.3)
 		"gust", "popsicle": preload("res://scripts/control_attack.gd").build_model(mount,id)
 		"udon": preload("res://scripts/udon_attack.gd").bowl(mount)
 		"heart": preload("res://scripts/character_models.gd").heart_wand(mount)
@@ -85,7 +87,7 @@ func tick(delta: float) -> void:
 	for id in levels:
 		if id == "frost":
 			continue
-		if id=="gust":
+		if id in ["gust","orbit"]:
 			fire(id)
 			continue
 		cooldowns[id] = float(cooldowns.get(id, 0.0)) - delta
@@ -97,7 +99,7 @@ func nearest(origin: Vector3, reach: float, excluded: Array = []) -> Node3D:
 	var result: Node3D
 	var best := reach * reach
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy.dead or excluded.has(enemy):
+		if enemy.dead or not enemy.targetable or excluded.has(enemy):
 			continue
 		var distance := origin.distance_squared_to(enemy.global_position)
 		if distance <= best:
@@ -110,6 +112,32 @@ func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
 	var stats:=Catalog.stats(id,levels[id])
+	if id=="orbit":
+		if not is_instance_valid(orbit_attack) or orbit_attack.is_queued_for_deletion():
+			orbit_attack=preload("res://scripts/pearl_orbit.gd").new()
+			orbit_attack.player=game.player
+			orbit_attack.stats=stats
+			game.actors.add_child(orbit_attack)
+		else: orbit_attack.configure(stats)
+		return true
+	if id=="starfall":
+		if float(cooldowns.get(id,stats.cooldown))>0: return false
+		var excluded: Array=[]
+		var enemy:=nearest(game.player.global_position,18)
+		while enemy!=null and not preload("res://scripts/castle_obstacles.gd").placement(game,enemy.global_position,0.1):
+			excluded.append(enemy)
+			enemy=nearest(game.player.global_position,18,excluded)
+		if enemy==null: return false
+		var center: Vector3=enemy.global_position
+		center.y=0
+		if not preload("res://scripts/castle_obstacles.gd").placement(game,center,0.1): return false
+		var star_attack:=preload("res://scripts/starfall_attack.gd").new()
+		star_attack.position=center
+		star_attack.damage=stats.damage
+		star_attack.radius=stats.radius
+		game.actors.add_child(star_attack)
+		cooldowns[id]=stats.cooldown
+		return true
 	if id=="gust" and is_instance_valid(gust_attack) and not gust_attack.is_queued_for_deletion():
 		gust_attack.stats=stats
 		return true

@@ -110,6 +110,7 @@ func rebuild_player(reset_health: bool=false) -> void:
 	add_child(armory)
 	for id in settings.weapons:
 		for rank in range(int(settings.weapons[id])): armory.acquire(id)
+	if armory.levels.has("starfall"): armory.cooldowns.starfall=Catalog.cooldown("starfall",armory.levels.starfall)
 	player.weapon.visible=armory.levels.has("frost" if settings.character=="classic" else "heart")
 	if is_instance_valid(player.frost_weapon): player.frost_weapon.visible=armory.levels.has("frost")
 	for enemy in get_tree().get_nodes_in_group("all_enemies"): enemy.target=player

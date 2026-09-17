@@ -1,6 +1,7 @@
 extends RefCounted
 
 const ITEMS := {
+	"starfall":{"name":"おほしさまメテオ","description":"長く待って巨大な星を落とす。\n固定地点の広範囲へ一度に大ダメージ。","style":"遠隔着弾 / 長い待ち時間","color":Color("ffe9ae"),"cooldown":24.0,"damage":30},
 	"gust":{"name":"ぱたぱた扇風機","description":"常時送風し、左右に首を振って押し返す。\nボスにはダメージのみ。","style":"常時首振り / ノックバック","color":Color("a8efdc"),"cooldown":3.0,"damage":1},
 	"popsicle":{"name":"ひえひえアイスキャンディ","description":"近い敵へ氷菓を発射し、周囲を凍結。\nボスにはダメージのみ。","style":"自動照準 / 凍結","color":Color("99cfff"),"cooldown":3.8,"damage":1},
 	"udon":{"name":"ちゅるちゅるおうどん","description":"どんぶりから麺を伸ばして巻き戻す。\n通常敵を少し引き寄せ、往復で攻撃。","style":"自動照準 / 巻き込み・往復","color":Color("f2de9c"),"cooldown":2.4,"damage":1},
@@ -18,7 +19,7 @@ const ITEMS := {
 	"spear": {"name": "つららランス", "description": "向いている方向へ貫通槍。\n敵を正面に並べて一掃。", "style": "前方固定 / 威力5・貫通", "color": Color("7ac7f9"), "cooldown": 1.8, "damage": 5},
 	"ember": {"name": "おひさまロッド", "description": "前方8mに火球を落とす。\n予告地点で0.7秒後に爆発。", "style": "固定地点 / 威力6・半径3.2m", "color": Color("ffac65"), "cooldown": 2.1, "damage": 6},
 	"lightning": {"name": "かみなりベル", "description": "画面内のランダム3地点に落雷。\n半径3mをまとめて攻撃。", "style": "画面内ランダム / 威力5", "color": Color("ffe47d"), "cooldown": 1.65, "damage": 5},
-	"orbit": {"name": "真珠のまもり", "description": "2つの真珠が体の周囲を旋回。\n近づく敵を繰り返し攻撃。", "style": "周回 / 近距離", "color": Color("c5b8ff"), "cooldown": 4.0, "damage": 2},
+	"orbit": {"name": "真珠のまもり", "description": "真珠が常時周回して接触攻撃。\n強化で最大6個に増加。", "style": "周回 / 近距離", "color": Color("c5b8ff"), "cooldown": 0.0, "damage": 2},
 	"nova": {"name": "氷河のチャイム", "description": "体を中心に冷気の輪が広がる。\n全方向の敵をまとめて攻撃。", "style": "全方位 / 波紋", "color": Color("91f4d0"), "cooldown": 2.8, "damage": 2},
 	"mine": {"name": "どんぐりボム", "description": "足元に爆弾を置く。\n敵が踏むと周囲ごと爆発。", "style": "設置 / 待ち伏せ", "color": Color("d7ad76"), "cooldown": 2.3, "damage": 4},
 	"boomerang": {"name": "おさかなブーメラン", "description": "近い敵の方向へ楕円を描く。\n一周してから手元に戻る。", "style": "自動照準 / 往復", "color": Color("f5a8bd"), "cooldown": 2.2, "damage": 2},
@@ -41,6 +42,8 @@ const SHAPES={
 }
 static func stats(id: String, rank: int) -> Dictionary:
 	var n:=clampi(rank,1,MAX_RANK)-1
+	if id=="orbit": return {"damage":[2,2,2,3,3][n],"cooldown":0.0,"radius":[2.2,2.3,2.4,2.5,2.6][n],"count":2+n}
+	if id=="starfall": return {"damage":[30,36,44,52,60][n],"cooldown":[24.0,23.0,22.0,21.0,20.0][n],"radius":[5.0,5.3,5.6,5.9,6.2][n],"reach":18.0}
 	if id=="gust": return {"damage":[1,2,2,3,3][n],"cooldown":[3.0,2.85,2.7,2.55,2.4][n],"reach":[6.0,6.5,7.0,7.5,8.0][n],"knockback":[3.0,3.0,3.5,4.0,4.5][n]}
 	if id=="popsicle": return {"damage":[1,2,2,3,3][n],"cooldown":[3.8,3.6,3.4,3.2,3.0][n],"reach":12.0,"radius":[1.3,1.45,1.6,1.75,1.9][n],"freeze":[1.0,1.0,1.2,1.2,1.4][n]}
 	var result: Dictionary=SHAPES[id].duplicate()

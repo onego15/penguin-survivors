@@ -22,7 +22,7 @@ func run() -> void:
 	game.rebuild_player()
 	for id in game.Catalog.ITEMS:
 		game.set_weapon(id,5)
-	check(game.armory.levels.size()==22,"22 weapons")
+	check(game.armory.levels.size()==23,"23 weapons")
 	for id in game.Catalog.ITEMS: check(game.armory.levels[id]==5,"rank "+id)
 	game.settings.character="pink"; game.rebuild_player(true)
 	check(game.player.character_id=="pink" and roster.selected()==original,"character isolation")

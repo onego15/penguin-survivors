@@ -462,14 +462,14 @@ func open_weapon_choice() -> void:
 	if run_state!="combat" or choice_open or game_over or victory or final_boss_defeated or player.health <= 0 or experience < xp_needed:
 		return
 	var pool: Array[String] = []
-	for id in Catalog.ITEMS:
+	for id in Stages.weapon_pool(stage_id):
 		if int(armory.levels.get(id,0))<Catalog.MAX_RANK: pool.append(id)
 	offered_weapons.clear()
 	# Every weapon is equally eligible: unowned = acquisition, owned = upgrade.
 	if pool.is_empty():
 		var before: int=player.health
 		player.heal(20)
-		director.notice="全武器MAX / HP +%d"%(player.health-before)
+		director.notice="このステージの全武器MAX / HP +%d"%(player.health-before)
 		director.notification_until=elapsed+3
 		sound.play_effect("level_up")
 		experience-=xp_needed
@@ -485,6 +485,7 @@ func open_weapon_choice() -> void:
 	sound.play_effect("level_up")
 	_update_hud()
 	get_tree().paused = true
+	choice_ui.pool_size=Stages.weapon_pool(stage_id).size()
 	choice_ui.show_choices(offered_weapons, armory.levels, level + 1)
 
 
@@ -518,6 +519,7 @@ func _update_hud() -> void:
 	inventory_label.text = "装備武器 / すべて自動攻撃"
 	for id in armory.levels:
 		inventory_label.text += "\n%s  %s" % [Catalog.ITEMS[id].name, "MAX" if armory.levels[id]>=Catalog.MAX_RANK else "Lv.%d"%armory.levels[id]]
+		if id=="starfall": inventory_label.text+="  %ds"%ceili(maxf(0,armory.cooldowns.get(id,0)))
 	var profile := Difficulty.profile(elapsed)
 	if director!=null:
 		wave_hint.text = director.waves[director.wave].hint if director.wave>=0 else ""

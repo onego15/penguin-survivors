@@ -13,6 +13,7 @@ var hero: Node3D
 var sound: Node
 var start_button: Button
 var fade: ColorRect
+var weapon_list: AcceptDialog
 var starting := false
 var time := 0.0
 
@@ -48,7 +49,7 @@ func _ready() -> void:
 	_label(ui, "SURVIVAL ADVENTURE", Vector2(72, 74), 17, Color("7ee6d4"))
 	_label(ui, "PENGUIN\nSURVIVORS", Vector2(67, 114), 66, Color("f1f7ec"))
 	_label(ui, "小さなペンギン、大きなサバイバル。", Vector2(74, 278), 22, Color("ffdc94"))
-	_label(ui, "22種類の武器を組み合わせ、動物の群れを突破。\n10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
+	_label(ui, "ステージごとの16武器で、動物の群れを突破。\n全23種類。10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
 	for id in ["classic","pink"]:
 		var button:=Button.new()
 		button.text=Roster.CHARACTERS[id].name
@@ -130,6 +131,22 @@ func _ready() -> void:
 		starting=true
 		get_tree().change_scene_to_file("res://scenes/sandbox.tscn"))
 	ui.add_child(sandbox_button)
+	weapon_list=AcceptDialog.new()
+	weapon_list.title="出現武器16種"
+	weapon_list.min_size=Vector2i(560,450)
+	ui.add_child(weapon_list)
+	var weapon_button:=Button.new()
+	weapon_button.text="出現武器16種を見る"
+	weapon_button.position=Vector2(705,220); weapon_button.size=Vector2(280,38)
+	weapon_button.pressed.connect(func():
+		var catalog=preload("res://scripts/weapon_catalog.gd")
+		var lines:="【共通9種】\n"
+		for id in Stages.COMMON_WEAPONS: lines+=catalog.ITEMS[id].name+"\n"
+		lines+="\n【"+Stages.STAGES[Stages.selected_id].name+"限定7種】\n"
+		for id in Stages.STAGES[Stages.selected_id].weapons: lines+=catalog.ITEMS[id].name+"\n"
+		weapon_list.dialog_text=lines
+		weapon_list.popup_centered())
+	ui.add_child(weapon_button)
 	fade = ColorRect.new()
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.color = Color(0.03, 0.08, 0.12, 0)
@@ -157,7 +174,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func start_game() -> void:
-	if starting:
+	if starting or (is_instance_valid(weapon_list) and weapon_list.visible):
 		return
 	starting = true
 	start_button.disabled = true
@@ -178,6 +195,7 @@ func select_character(id: String) -> void:
 	for i in range(selection_buttons.size()):
 		selection_buttons[i].set_pressed_no_signal(id==["classic","pink"][i])
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(weapon_list) and weapon_list.visible: return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_LEFT,KEY_RIGHT]:
 		select_character("pink" if Roster.selected()=="classic" else "classic")
 		get_viewport().set_input_as_handled()

@@ -47,7 +47,7 @@ func run() -> void:
 	game.spawn_cooldown = 9999
 	game.fire_cooldown = 9999
 	await frames(2)
-	check(Catalog.ITEMS.size() == 22 and game.armory.levels.size() == 1, "Twenty-two weapon types exist, with one starter equipped")
+	check(Catalog.ITEMS.size() == 23 and game.armory.levels.size() == 1, "Twenty-three weapon types exist, with one starter equipped")
 	for index in range(11):
 		enemy_at(Vector3(5, 0, 0), 2).take_damage(2)
 	await frames(2)
@@ -87,7 +87,8 @@ func run() -> void:
 	var all_options_unique := true
 	var all_prior_retained := true
 	var draws := 0
-	while game.armory.levels.size() < Catalog.ITEMS.size() and draws < 200:
+	var pool_size: int=game.Stages.weapon_pool(game.stage_id).size()
+	while game.armory.levels.size() < pool_size and draws < 200:
 		draws += 1
 		game.experience = game.xp_needed + 2
 		game.open_weapon_choice()
@@ -103,14 +104,16 @@ func run() -> void:
 		for id in before:
 			all_prior_retained = all_prior_retained and game.armory.levels.get(id) >= before[id]
 		check(game.experience == 2, "Overflow XP survives a level-up")
-	check(all_options_unique and all_prior_retained and game.armory.levels.size() == Catalog.ITEMS.size() and game.armory.mounts.size() == Catalog.ITEMS.size() - 1, "All catalog weapons accumulate without replacement; final menus still have three unique cards")
+	check(all_options_unique and all_prior_retained and game.armory.levels.size() == pool_size and game.armory.mounts.size() == pool_size - 1, "All catalog weapons accumulate without replacement; final menus still have three unique cards")
 	game.experience = game.xp_needed
 	game.open_weapon_choice()
 	var upgrade: String = game.offered_weapons[0]
 	var old_rank: int = game.armory.levels[upgrade]
 	game.choice_ui.cards[0].pressed.emit()
-	check(game.armory.levels.size() == Catalog.ITEMS.size() and game.armory.levels[upgrade] == old_rank + 1 and not paused, "Full collection offers upgrades and remains playable")
-	check(Catalog.cooldown(upgrade, 2) < Catalog.cooldown(upgrade, 1) and Catalog.damage(upgrade, 3) > Catalog.damage(upgrade, 1), "Upgrades improve fire rate and eventually damage")
+	check(game.armory.levels.size() == pool_size and game.armory.levels[upgrade] == old_rank + 1 and not paused, "Full collection offers upgrades and remains playable")
+	check(not Catalog.upgrade_text(upgrade,1).is_empty(), "Upgrades show meaningful changes")
+	for id in Catalog.ITEMS:
+		if not game.armory.levels.has(id): game.armory.acquire(id)
 	for id in game.armory.levels:
 		game.armory.levels[id] = 1
 	clear_actors()
@@ -184,7 +187,7 @@ func run() -> void:
 	game.set_physics_process(false)
 	await frames(510)
 	var remaining=get_nodes_in_group("weapon_attacks")
-	check(remaining.size()==1 and remaining[0]==game.armory.gust_attack, "Timed attacks expire; only the continuously equipped fan remains")
+	check(remaining.size()==2 and remaining.has(game.armory.gust_attack) and remaining.has(game.armory.orbit_attack), "Timed attacks expire; only the equipped fan and pearls remain")
 	game.player.health = 0
 	game.experience = game.xp_needed
 	game.set_physics_process(true)

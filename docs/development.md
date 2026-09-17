@@ -18,7 +18,7 @@
 | `scenes/title.tscn` / `scripts/title_screen.gd` | タイトル・キャラとステージの選択 |
 | `scenes/main.tscn` / `scripts/main.gd` | ゲーム進行・HUD・シーン間の接続 |
 | `scripts/player.gd` / `character_roster.gd` | 移動・HP・キャラ定義 |
-| `scripts/weapon_catalog.gd` / `weapon_system.gd` | 22武器の定義・強化・自動発動 |
+| `scripts/weapon_catalog.gd` / `weapon_system.gd` | 23武器の定義・強化・自動発動 |
 | `scripts/weapon_attack.gd` / `advanced_attack.gd` | 武器の移動・命中・寿命 |
 | `scripts/control_attack.gd` / `enemy_control.gd` / `udon_attack.gd` | 制御武器・状態異常・麺の往復と引き寄せ |
 | `scripts/difficulty.gd` / `wave_director.gd` / `stage_catalog.gd` | 難易度・Wave・ステージ定義 |
@@ -46,7 +46,8 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 
 | テスト | 主な確認内容 |
 |---|---|
-| `sandbox_test.gd` | キャラ分離・22武器・全敵・形態固定・補充・停止・死亡・設定保持・ランダム配置と連続クリック |
+| `sandbox_test.gd` | キャラ分離・23武器・全敵・形態固定・補充・停止・死亡・設定保持・ランダム配置と連続クリック |
+| `starfall_pool_test.gd` | 23種・ステージ16種・複数シード抽選・候補枯渇・真珠の継続と壁・メテオの待機と単発着弾 |
 | `weapons_test.gd` | XP・抽選・蓄積・一時停止・武器の命中と寿命 |
 | `upgrade_udon_ghost_test.gd` | Lv.5上限・候補枯渇・実際の強化値・麺・ゴースト |
 | `control_weapons_test.gd` | ノックバック・凍結・耐性・中断・死亡解除 |
@@ -72,7 +73,7 @@ python tools/generate_audio.py
 
 ## スクリーンショット・動画
 
-直近の撮影スクリプトは `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
+直近の撮影スクリプトは `tools/capture_starfall.gd`、 `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
 
 デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。既存動画は雪原の過去バージョンです。最新機能の証拠として扱わず、現在の画面は各ガイドを参照してください。
 
@@ -88,3 +89,22 @@ python tools/generate_audio.py
 ### 常時首振りと凍結色の確認
 
 `control_weapons_test.gd` で風の常時維持・左右首振り・移動追従・同じ敵への命中間隔・強化時の境界拡大・停止を確認。凍結材質の個体分離と解凍時の復元、既存の制御・耐性テストも失敗0件。`sandbox_test.gd` も通過しました。`tools/capture_fan_freeze.gd` でCompatibilityの実画面を収録しています。
+
+### 真珠・メテオ・ステージ抽選（2026-09-18）
+
+専用テスト、武器、制御武器、成長、ピンクキャラ、サンドボックスの回帰テストは失敗0件。Compatibility実画面で真珠6個、メテオ予告・着弾、タイトルの16武器一覧、サンドボックス23武器を確認しました。基礎表と成長表は同じ23種を同じ順序で掲載しています。
+
+`tests/starfall_balance_audit.gd` は同じ5回分の取得・強化（初期ブラスターLv.3＋比較武器Lv.3）で60秒測定。6分相当のキツネ／オオカミを0.5秒ごと、半径12mから投入し、プレイヤーはその場で回転。HPを毎ステップ100に戻して継続測定します。全武器比較用のサンドボックスなので本編の限定プールは適用しません。
+
+| 地形 | 比較武器 | 撃破 | 累計被ダメージ | 実与ダメージ |
+|---|---|---:|---:|---:|
+| 雪原 | 真珠 | 106 | 691 | 875 |
+| 雪原 | リボン | 114 | 313 | 918 |
+| 雪原 | メテオ | 102 | 785 | 837 |
+| 雪原 | チャイム | 111 | 645 | 903 |
+| 城 | 真珠 | 104 | 749 | 855 |
+| 城 | リボン | 110 | 261 | 883 |
+| 城 | メテオ | 100 | 721 | 821 |
+| 城 | チャイム | 109 | 504 | 883 |
+
+HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3の初回22秒に届きませんでした。メテオは単独で近接防御を担う武器ではなく、通常火力や制御と組み合わせる必要があります。これらは固定条件の比較であり、人間の回避操作や10分間の難易度を保証する測定ではありません。

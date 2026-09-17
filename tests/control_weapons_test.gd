@@ -35,7 +35,7 @@ func clear_actors() -> void:
 	for attack in get_nodes_in_group("weapon_attacks"): attack.free()
 func run() -> void:
 	setup("snowfield")
-	check(Catalog.ITEMS.size()==22,"Both control weapons in mixed pool")
+	check(Catalog.ITEMS.size()==23,"Both control weapons in mixed pool")
 	for rank in range(1,6):
 		check(is_equal_approx(Catalog.stats("gust",rank).cooldown,[3.0,2.85,2.7,2.55,2.4][rank-1]),"Fan hit interval rank %d"%rank)
 	check(Catalog.ITEMS.gust.cooldown==Catalog.stats("gust",1).cooldown,"Fan catalog matches first rank")

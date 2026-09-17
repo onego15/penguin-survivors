@@ -1,9 +1,11 @@
 extends CanvasLayer
 
+var pool_size:=16
 signal selected(index: int)
 const Catalog = preload("res://scripts/weapon_catalog.gd")
 var backdrop: Control
 var title: Label
+var description: Label
 var cards: Array[Button] = []
 var opened := false
 
@@ -32,8 +34,8 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 34)
 	title.add_theme_color_override("font_color", Color("ffe5a9"))
 	layout.add_child(title)
-	var description := Label.new()
-	description.text = "新しい武器を追加するか、所持武器を強化。全%d種類からランダムに3候補。" % Catalog.ITEMS.size()
+	description = Label.new()
+	description.text = "新しい武器を追加するか、所持武器を強化。このステージの%d種類から最大3候補。" % pool_size
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	description.add_theme_font_size_override("font_size", 18)
 	layout.add_child(description)
@@ -60,6 +62,7 @@ func _ready() -> void:
 
 func show_choices(ids: Array[String], levels: Dictionary, next_level: int) -> void:
 	opened = true
+	description.text="新しい武器を追加するか、所持武器を強化。このステージの%d種類から最大3候補。"%pool_size
 	title.text = "LEVEL UP!   Lv.%d   /   武器を選ぼう" % next_level
 	for index in range(3):
 		cards[index].visible=index<ids.size()

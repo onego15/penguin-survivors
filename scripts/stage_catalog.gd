@@ -1,8 +1,15 @@
 extends RefCounted
 static var selected_id: String="snowfield"
+const COMMON_WEAPONS: Array[String]=["beam","frost","heart","fan","nova","boomerang","udon","gust","popsicle"]
+const SNOW_WEAPONS: Array[String]=["spear","ember","orbit","mine","trail","bounce","rear_bomb"]
+const CASTLE_WEAPONS: Array[String]=["lightning","storm","whip","turret","seeker","rear_fan","starfall"]
+static func weapon_pool(id: String) -> Array[String]:
+	var result: Array[String]=COMMON_WEAPONS.duplicate()
+	result.append_array(STAGES.get(id,STAGES.snowfield).weapons)
+	return result
 const STAGES={
-	"snowfield":{"name":"雪原", "background":"snowfield", "obstacles":false, "difficulty":"res://scripts/difficulty.gd", "wave_set":"snowfield", "boss_script":"res://scripts/final_boss.gd", "midboss_script":"res://scripts/miniboss.gd", "music":"snowfield", "boss_music":"final_boss", "phase_music":"final_boss_phase2", "boss_name":"冬の王・グレイシャー", "phase_name":"吹雪の王"},
-	"castle":{"name":"夜の氷の城", "background":"castle", "obstacles":true, "difficulty":"res://scripts/difficulty.gd", "wave_set":"castle", "boss_script":"res://scripts/noctis.gd", "midboss_script":"res://scripts/castle_miniboss.gd", "music":"castle", "boss_music":"noctis", "phase_music":"noctis_phase2", "boss_name":"氷城の梟王・ノクティス", "phase_name":"月影の支配者"},
+	"snowfield":{"name":"雪原", "background":"snowfield", "weapons":SNOW_WEAPONS, "obstacles":false, "difficulty":"res://scripts/difficulty.gd", "wave_set":"snowfield", "boss_script":"res://scripts/final_boss.gd", "midboss_script":"res://scripts/miniboss.gd", "music":"snowfield", "boss_music":"final_boss", "phase_music":"final_boss_phase2", "boss_name":"冬の王・グレイシャー", "phase_name":"吹雪の王"},
+	"castle":{"name":"夜の氷の城", "background":"castle", "weapons":CASTLE_WEAPONS, "obstacles":true, "difficulty":"res://scripts/difficulty.gd", "wave_set":"castle", "boss_script":"res://scripts/noctis.gd", "midboss_script":"res://scripts/castle_miniboss.gd", "music":"castle", "boss_music":"noctis", "phase_music":"noctis_phase2", "boss_name":"氷城の梟王・ノクティス", "phase_name":"月影の支配者"},
 }
 const CASTLE_WAVES=[
 	{"name":"城門の羽音","hint":"揺れるコウモリを迎え撃とう","pairs":[[0,10]],"new":[10]},

@@ -12,13 +12,13 @@ func run() -> void:
 	game.set_physics_process(false)
 	game.player.set_physics_process(false)
 	game.player.invulnerability=999
-	check(Catalog.ITEMS.size()==22,"Twenty-two weapons including udon")
+	check(Catalog.ITEMS.size()==23,"Twenty-three weapons including udon")
 	for id in Catalog.ITEMS:
 		var previous:=Catalog.stats(id,1)
 		var meaningful:=true
 		for rank in range(2,6):
 			var next:=Catalog.stats(id,rank)
-			meaningful=meaningful and next.damage>=previous.damage and next.cooldown<previous.cooldown and Catalog.upgrade_text(id,rank-1).contains("→")
+			meaningful=meaningful and next.damage>=previous.damage and (next.count>previous.count if id=="orbit" else next.cooldown<previous.cooldown) and Catalog.upgrade_text(id,rank-1).contains("→")
 			previous=next
 		check(meaningful and Catalog.stats(id,99)==Catalog.stats(id,5),"Bounded upgrade curve: "+id)
 		for i in range(8): game.armory.acquire(id)

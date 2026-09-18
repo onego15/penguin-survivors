@@ -102,6 +102,7 @@ func _select(index: int) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if Settings.opened: return
 	if not opened or not event is InputEventKey or not event.pressed or event.echo:
 		return
 	var index: int = [KEY_1, KEY_2, KEY_3].find(event.physical_keycode)

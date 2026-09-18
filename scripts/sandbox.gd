@@ -52,7 +52,7 @@ func _update_hud() -> void: pass
 func _process(_delta: float) -> void: pass
 func _unhandled_input(event: InputEvent) -> void:
 	if get_tree().paused: return
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_SPACE:
+	if event.is_action_pressed("ultimate") and not event.is_echo() and Settings.allows_action("ultimate"):
 		ultimate.activate()
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index==MOUSE_BUTTON_WHEEL_UP: camera.size=maxf(12,camera.size-1.5)

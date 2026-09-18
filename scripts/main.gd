@@ -243,12 +243,9 @@ func _style_bar(bar: ProgressBar, color: Color) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_SPACE:
+	if event.is_action_pressed("ultimate") and not event.is_echo() and Settings.allows_action("ultimate"):
 		ultimate.activate()
 	if run_state in ["boss_intro","phase_transition"]: return
-	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE and (game_over or victory):
-		get_tree().change_scene_to_file("res://scenes/title.tscn")
-		return
 	if event is InputEventMouseButton and event.pressed and not (game_over or victory):
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			camera.size = maxf(12.0, camera.size - 1.5)
@@ -258,7 +255,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if game_over or victory:
-		if Input.is_action_just_pressed("restart"):
+		if Input.is_action_just_pressed("restart") and Settings.allows_action("restart"):
 			get_tree().reload_current_scene()
 		return
 	if player.health <= 0:
@@ -271,7 +268,7 @@ func _physics_process(delta: float) -> void:
 		_clear_control_states()
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
-		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\nR: Restart   /   Esc: Title" % [kills, elapsed]
+		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\n%s / Y: Restart   /   Esc: Settings" % [kills, elapsed, Settings.binding_label("restart")]
 		game_over_label.show()
 		end_backdrop.show()
 		_update_hud()

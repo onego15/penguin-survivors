@@ -53,7 +53,7 @@ func tick(delta: float) -> void:
 	game.camera.position=camera_start.origin.lerp(target_position,blend)
 	game.camera.look_at(game.player.position.lerp(center,blend)+Vector3.UP*0.7)
 	game.camera.size=lerpf(zoom_start,maxf(zoom_start,26),blend)
-	if time>0.55 and time<0.9: game.camera.position.x+=sin(time*80)*0.045
+	if Settings.camera_shake and time>0.55 and time<0.9: game.camera.position.x+=sin(time*80)*0.045
 	if is_instance_valid(game.active_boss):
 		game.active_boss.model.rotation.x=sin(p*PI)*-0.12
 		game.active_boss.crown_glow.scale=Vector3.ONE*(1+sin(p*PI)*0.65)

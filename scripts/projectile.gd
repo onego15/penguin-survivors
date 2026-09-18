@@ -9,6 +9,7 @@ var support_star := false
 
 
 func _ready() -> void:
+	add_to_group("friendly_effects")
 	preload("res://scripts/combat_visuals.gd").tail(self)
 	rotation.y=atan2(direction.x,direction.z)
 	if support_star:

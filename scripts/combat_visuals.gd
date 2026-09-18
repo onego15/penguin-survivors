@@ -27,7 +27,9 @@ static func symbol(parent: Node3D, text: String, color: Color) -> Label3D:
 	parent.add_child(label)
 	return label
 static func friendly(parent: Node3D, radius: float) -> MeshInstance3D:
-	return ink(V.ring(parent,FRIEND,Vector3(0,0.09,0),radius,0.035))
+	var ring:=ink(V.ring(parent,FRIEND,Vector3(0,0.09,0),radius,0.035))
+	ring.set_meta("readability_boundary",true)
+	return ring
 static func tail(parent: Node3D) -> Node3D:
 	return ink(V.rod(parent,FRIEND,Vector3(0,0,-0.85),Vector3(0,0,-0.2),0.015,0.07))
 static func warning(parent: Node3D, radius: float, length:=0.0) -> Node3D:

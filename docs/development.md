@@ -27,6 +27,7 @@
 | `scripts/final_boss.gd` / `noctis.gd` / `final_battle_director.gd` | ラスボス・決戦増援と援護枠 |
 | `scripts/game_audio.gd` / `assets/audio/` | BGM・効果音・ミュート |
 | `scenes/sandbox.tscn` / `scripts/sandbox.gd` / `scripts/sandbox_ui.gd` | 練習場・配置と補充・設定UI。本編の戦闘を共用 |
+| `scripts/settings.gd` / `settings_menu.gd` | 設定保存・入力割当・ポーズと味方エフェクトの濃さ |
 | `tests/` | 自動テスト・自動操作による比較 |
 | `tools/` | 音源生成・撮影・描画負荷の点検 |
 
@@ -37,6 +38,7 @@
 プロジェクトのルートから実行します。以下の `godot` はPATHに登録したGodot実行ファイル名です。Windowsでは使用するGodotのコンソール版exeのパスへ置き換えられます。
 
 ```sh
+godot --headless --path . --script tests/settings_test.gd
 godot --headless --path . --script tests/sandbox_test.gd
 godot --headless --path . --script tests/weapons_test.gd
 godot --headless --path . --script tests/control_weapons_test.gd
@@ -46,6 +48,7 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 
 | テスト | 主な確認内容 |
 |---|---|
+| `settings_test.gd` | 二重の停止・ボス演出停止・設定保存・入力割当・パッド入力・味方の濃さと警告の維持 |
 | `sandbox_test.gd` | キャラ分離・23武器・全敵・形態固定・補充・停止・死亡・設定保持・ランダム配置と連続クリック |
 | `starfall_pool_test.gd` | 23種・ステージ16種・複数シード抽選・候補枯渇・真珠の継続と壁・メテオの待機と単発着弾 |
 | `weapons_test.gd` | XP・抽選・蓄積・一時停止・武器の命中と寿命 |
@@ -63,7 +66,7 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 
 ## 音源
 
-オリジナルの合成WAVを同梱。通常BGM・中ボス曲・ステージ別ラスボス第一／第二形態・祝勝曲があります。形態別曲は同じ再生位置から0.8秒でクロスフェード。M／Nのミュート設定は同一起動中の再挑戦へ引き継ぎます。
+オリジナルの合成WAVを同梱。通常BGM・中ボス曲・ステージ別ラスボス第一／第二形態・祝勝曲があります。形態別曲は同じ再生位置から0.8秒でクロスフェード。音量・ミュートは設定ファイルへ保存し、次回起動にも引き継ぎます。M／Nは既定のミュートキーで、設定から変更できます。
 
 再生成はプロジェクトルートで次を実行します。既存の音源ファイルを書き換えます。
 
@@ -127,3 +130,7 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 `den_test.gd` で16シード・各6巡の非重複抽選、回数・範囲・潜行除外・ボス耐性・手下・壁遮断・凍結併用・押し返し待ち時間・撃破報酬・停止・死亡・ボス移行を確認。既存のサポート、決戦管理、祝勝画面の回帰テストも実行。祝勝テストの旧19武器固定値は、現在のカタログ件数に修正しました。
 
 `tools/capture_den.gd` で登場・着地・4匹の祝勝画面を撮影。Compatibilityで敵予告と友好表示が区別でき、デンや土煙がプレイヤーを覆わない配置・密度を確認しました。モデル一覧にもデンを追加。サンドボックスのサポート選択とデモ動画の再収録は含みません。
+
+## ポーズ・設定の検証
+
+設定・タイトル・サンドボックス・祝勝画面・音楽・必殺技・デンの7テストを実行し、すべて成功。Compatibility実画面で音・表示タブと操作タブを確認しました。ゲームパッドは入力イベントによる確認で、物理コントローラーを使った試遊は未実施です。

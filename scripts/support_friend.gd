@@ -54,6 +54,7 @@ func _ready() -> void:
 	heart.hide()
 	if kind==3:
 		stomp_effect=preload("res://scripts/den_stomp.gd").new()
+		stomp_effect.add_to_group("friendly_effects")
 		add_child(stomp_effect)
 func recruit() -> void:
 	if state!="waiting" or game.player.health<=0: return

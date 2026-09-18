@@ -25,9 +25,11 @@ func run() -> void:
 	game.player.health = 0
 	game._physics_process(0.01)
 	event.physical_keycode = KEY_ESCAPE
-	game._unhandled_input(event)
+	root.get_node("Settings")._input(event)
+	check(paused and root.get_node("Settings").opened,"Escape opens settings after game over")
+	root.get_node("Settings").menu.confirm.confirmed.emit()
 	await create_timer(0.15).timeout
-	check(current_scene.scene_file_path == "res://scenes/title.tscn", "Escape returns to the opening after game over")
+	check(current_scene.scene_file_path == "res://scenes/title.tscn", "Settings returns to the opening after game over")
 	print("TITLE TEST: %d failure(s)" % failures)
 	current_scene.queue_free()
 	await create_timer(0.3).timeout

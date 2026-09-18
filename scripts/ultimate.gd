@@ -48,6 +48,7 @@ func _ready() -> void:
 	notice.add_theme_constant_override("outline_size",8)
 	notice.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	game.hud_layer.add_child(notice)
+	Settings.changed.connect(refresh)
 	refresh()
 func _process(delta: float) -> void:
 	if game.run_state in ["dead","victory"] or game.player.health<=0 or game.final_boss_defeated:
@@ -61,7 +62,7 @@ func _process(delta: float) -> void:
 	if ready_pending:
 		ready_pending=false
 		notice_left=4
-		notice.text=definition.name+" READY!\n[ Space ] で発動"
+		notice.text=definition.name+" READY!\n[ "+Settings.binding_label("ultimate")+" / パッドX ] で発動"
 		ready_audio.play()
 		ready_notifications+=1
 	notice_left=maxf(0,notice_left-delta)
@@ -74,6 +75,7 @@ func refresh() -> void:
 	gauge.size=Vector2(280.0*charge/THRESHOLD,2)
 	label.text="必殺技：使用済み" if uses>=MAX_USES else "%s　残り%d回\n%d / 200" % ["READY! [Space] 必殺技" if charge==THRESHOLD else definition.name,MAX_USES-uses,charge]
 	if charge==THRESHOLD and uses<MAX_USES: label.text="READY! [Space] 必殺技\n200 / 200　残り%d回" % (MAX_USES-uses)
+	label.text=label.text.replace("Space",Settings.binding_label("ultimate")+" / X")
 	label.modulate=Color("fff0bf") if charge==THRESHOLD else Color("bcecff")
 func reward(amount: int) -> void:
 	var previous:=charge
@@ -119,6 +121,7 @@ func activate() -> bool:
 		effect.player=game.player
 		effect.healed=healed
 	effect.add_to_group("ultimate_effects")
+	effect.add_to_group("friendly_effects")
 	game.actors.add_child(effect)
 	game.sound.play_effect(definition.sound)
 	for enemy in targets+bosses:

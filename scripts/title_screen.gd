@@ -93,7 +93,7 @@ func _ready() -> void:
 	start_button.pressed.connect(start_game)
 	start_button.grab_focus()
 	_label(ui, "← / → キャラ選択   ENTER / SPACE 開始", Vector2(75, 541), 15, Color("94b4bf"))
-	_label(ui, "WASD 移動 / 攻撃は自動 / Space 必殺技\nマウスホイール  ズーム     /     1・2・3  武器選択", Vector2(74, 570), 17, Color("bfd9df"))
+	_label(ui, "移動・必殺技：設定の「操作」で確認 / 攻撃は自動\nEsc・Start：ポーズ設定 / 1・2・3：武器選択", Vector2(74, 570), 17, Color("bfd9df"))
 	_label(ui, "一歩ずつ、強くなる。", Vector2(822, 591), 22, Color("23485a"))
 	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 633), 16, Color("8fe5dc"))
 	_label(ui,"STAGE SELECT",Vector2(710,68),18,Color("244156"))
@@ -147,6 +147,11 @@ func _ready() -> void:
 		weapon_list.dialog_text=lines
 		weapon_list.popup_centered())
 	ui.add_child(weapon_button)
+	var settings_button:=Button.new()
+	settings_button.text="設定 / Esc"
+	settings_button.position=Vector2(1015,220); settings_button.size=Vector2(180,38)
+	settings_button.pressed.connect(Settings.open_menu)
+	ui.add_child(settings_button)
 	fade = ColorRect.new()
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.color = Color(0.03, 0.08, 0.12, 0)
@@ -174,7 +179,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func start_game() -> void:
-	if starting or (is_instance_valid(weapon_list) and weapon_list.visible):
+	if Settings.opened or starting or (is_instance_valid(weapon_list) and weapon_list.visible):
 		return
 	starting = true
 	start_button.disabled = true
@@ -195,6 +200,7 @@ func select_character(id: String) -> void:
 	for i in range(selection_buttons.size()):
 		selection_buttons[i].set_pressed_no_signal(id==["classic","pink"][i])
 func _input(event: InputEvent) -> void:
+	if Settings.opened: return
 	if is_instance_valid(weapon_list) and weapon_list.visible: return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_LEFT,KEY_RIGHT]:
 		select_character("pink" if Roster.selected()=="classic" else "classic")

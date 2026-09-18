@@ -237,8 +237,9 @@ func start_placing(count: int=1) -> void:
 	placing=true; panel.hide(); cursor.show(); placement_actions.show()
 	game.get_tree().paused=true
 func _input(event: InputEvent) -> void:
+	if Settings.opened: return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode in [KEY_TAB,KEY_ESCAPE]:
+		if event.physical_keycode ==KEY_TAB:
 			if panel.visible and not placing: close_menu()
 			else: open_menu()
 			get_viewport().set_input_as_handled()

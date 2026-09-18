@@ -49,10 +49,12 @@ func _ready() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	status = Label.new()
-	status.position = Vector2(980, 690)
+	status.position = Vector2(860, 690)
 	status.add_theme_font_size_override("font_size", 14)
 	status.add_theme_color_override("font_color", Color("233f50"))
 	layer.add_child(status)
+	Settings.changed.connect(_refresh_status)
+	Settings.apply_audio()
 	_refresh_status()
 	set_track("snowfield")
 
@@ -74,15 +76,15 @@ func _process(delta: float) -> void:
 			music.play()
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode in [KEY_M, KEY_N]:
-			var bus := AudioServer.get_bus_index("Music" if event.physical_keycode == KEY_M else "SFX")
-			AudioServer.set_bus_mute(bus, not AudioServer.is_bus_mute(bus))
-			_refresh_status()
-			get_viewport().set_input_as_handled()
+	if Settings.opened or event.is_echo(): return
+	if event.is_action_pressed("mute_music") or event.is_action_pressed("mute_sfx"):
+		if event.is_action_pressed("mute_music"): Settings.music_muted=not Settings.music_muted
+		else: Settings.sfx_muted=not Settings.sfx_muted
+		Settings.save_preferences()
+		get_viewport().set_input_as_handled()
 
 func _refresh_status() -> void:
-	status.text = "M: BGM %s   /   N: SFX %s" % ["OFF" if AudioServer.is_bus_mute(AudioServer.get_bus_index("Music")) else "ON", "OFF" if AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX")) else "ON"]
+	status.text="%s: BGM %s / %s: SFX %s / Esc: 設定" % [Settings.binding_label("mute_music"),"OFF" if Settings.music_muted else "ON",Settings.binding_label("mute_sfx"),"OFF" if Settings.sfx_muted else "ON"]
 
 func set_track(id: String) -> void:
 	if ended or id == track:

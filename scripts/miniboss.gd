@@ -56,7 +56,7 @@ func _ready() -> void:
 	stomp_ring.hide()
 	guard_ring = Visuals.ring(self, Color("d6b184"), Vector3(0, 0.15, 0), 1.9, 0.11)
 	guard_ring.hide()
-	aim_marker=C.warning(self,0.3,7.0)
+	aim_marker=preload("res://scripts/enemy_telegraph.gd").fan(self,3,0.28)
 	aim_marker.hide()
 	add_to_group("minibosses")
 
@@ -76,7 +76,8 @@ func _physics_process(delta: float) -> void:
 		if guard_cooldown <= 0:
 			guard_left = 2.4
 			guard_cooldown = 8.0
-		guard_ring.visible = guard_left > 0
+		guard_ring.hide()
+		preload("res://scripts/enemy_presentation.gd").shell(model,clampf(guard_left/0.3,0,1))
 	if stomp_warning > 0:
 		stomp_warning = maxf(0, stomp_warning - delta)
 		C.progress(stomp_ring,stomp_warning/1.25)
@@ -106,6 +107,7 @@ func _physics_process(delta: float) -> void:
 
 func _fox_attack(delta: float) -> void:
 	if special_warning > 0:
+		model.get_node("Tail").rotation.y=sin(special_warning*8)*0.65
 		special_warning = maxf(0, special_warning - delta)
 		C.progress(aim_marker,special_warning/0.85)
 		if special_warning <= 0:
@@ -128,7 +130,7 @@ func _fox_attack(delta: float) -> void:
 			special_direction = Vector3.FORWARD
 		special_warning = 0.85
 		model.rotation.y = atan2(special_direction.x, special_direction.z)
-		aim_marker.position = special_direction * 4.5 + Vector3(0, 0.05, 0)
+		aim_marker.position = Vector3(0, 0.05, 0)
 		aim_marker.rotation.y = model.rotation.y
 		C.progress(aim_marker,1)
 		aim_marker.show()

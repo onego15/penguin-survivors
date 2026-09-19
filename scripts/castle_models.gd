@@ -5,7 +5,7 @@ static func animal(parent: Node3D, kind: int) -> Node3D:
 	var root:=V.pivot(parent,"CastleAnimal")
 	var colors: Array[Color]=[Color("76659d"),Color("8c9bab"),Color("eef5ec"),Color("c5ccde")]
 	var color: Color=colors[kind-10]
-	V.ellipsoid(root,color,Vector3(0,0.65,0),Vector3(0.42,0.5,0.68 if kind==12 else 0.45))
+	V.ellipsoid(root,color,Vector3(0,0.65,0),Vector3(0.42,0.5,0.9 if kind==12 else 0.45))
 	var head:=V.pivot(root,"Head",Vector3(0,1.1,0.4))
 	V.ellipsoid(head,color,Vector3.ZERO,Vector3(0.43,0.36,0.34))
 	for side in [-1,1]:
@@ -13,11 +13,25 @@ static func animal(parent: Node3D, kind: int) -> Node3D:
 		V.ellipsoid(head,Color("ac354f"),Vector3(side*0.2,0.025,0.36),Vector3(0.06,0.08,0.035))
 		V.rod(head,color,Vector3(side*0.3,0.2,0),Vector3(side*0.36,0.65 if kind==10 else 0.4,0),0.16,0.02)
 		if kind==13:
-			V.rod(head,Color("626b88"),Vector3(side*0.25,0.3,-0.1),Vector3(side*0.38,0.9,-0.4),0.13,0.035)
+			for i in range(5):
+				var a:=i*0.5
+				var b:=(i+1)*0.5
+				V.rod(head,Color("626b88"),Vector3(side*(0.3+sin(a)*0.27),0.45+sin(a)*0.45,-0.1-cos(a)*0.22),Vector3(side*(0.3+sin(b)*0.27),0.45+sin(b)*0.45,-0.1-cos(b)*0.22),0.11-i*0.016,0.095-i*0.016)
 		if kind==10:
 			var wing:=V.pivot(root,"WingLeft" if side<0 else "WingRight",Vector3(side*0.3,0.9,0))
 			for i in range(3):
-				V.ellipsoid(wing,color,Vector3(side*(0.3+i*0.15),0,-i*0.22),Vector3(0.5-i*0.08,0.055,0.25))
+				var tip:=Vector3(side*(0.8+i*0.14),0,-i*0.32)
+				V.rod(wing,Color("b69acb"),Vector3.ZERO,tip,0.026)
+				var mesh:=ImmediateMesh.new()
+				mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+				mesh.surface_add_vertex(Vector3.ZERO)
+				mesh.surface_add_vertex(tip)
+				mesh.surface_add_vertex(Vector3(side*(0.8+(i+1)*0.14),0,-(i+1)*0.32))
+				mesh.surface_end()
+				var part:=V.mesh(wing,mesh,color)
+				part.material_override=part.material_override.duplicate()
+				part.material_override.cull_mode=BaseMaterial3D.CULL_DISABLED
+			merge_static(wing)
 		else:
 			for z in [-0.3,0.3]:
 				var paw:=V.pivot(root,"Paw_%s_%s" % [side,z],Vector3(side*0.3,0.2,z))
@@ -25,9 +39,14 @@ static func animal(parent: Node3D, kind: int) -> Node3D:
 	V.ellipsoid(head,Color("34354b"),Vector3(0,-0.12,0.39),Vector3(0.12,0.08,0.12))
 	if kind in [11,12]:
 		var tail:=V.pivot(root,"Tail",Vector3(0,0.6,-0.5))
-		for i in range(5): V.ellipsoid(tail,Color("434657") if i%2==0 else color,Vector3(0,0,-i*0.15),Vector3(0.18,0.18,0.15))
-	if kind==11: V.ellipsoid(root,Color("afe9ff"),Vector3(0,0.8,0.65),Vector3.ONE*0.24)
+		for i in range(5): V.ellipsoid(tail,Color("434657") if (kind==11 and i%2==0) or (kind==12 and i==4) else color,Vector3(0,0,-i*0.15),Vector3(0.18,0.18,0.15))
+	if kind==11:
+		V.ellipsoid(root,Color("afe9ff"),Vector3(0,0.8,0.65),Vector3.ONE*0.24).name="HeldIceBall"
+		for side in [-1,1]:
+			var arm:=V.pivot(root,"ThrowLeft" if side<0 else "ThrowRight",Vector3(side*0.37,0.85,0.35))
+			V.ellipsoid(arm,color,Vector3(0,-0.15,0.16),Vector3(0.14,0.25,0.16))
 	if kind==13: V.rod(head,Color("e5e9ed"),Vector3(0,-0.25,0.15),Vector3(0,-0.55,0.25),0.12,0)
+	if kind==13: merge_static(head)
 	return root
 static func arena(parent: Node3D) -> void:
 	var environment:=WorldEnvironment.new()
@@ -96,3 +115,23 @@ static func ghost(parent: Node3D) -> Node3D:
 		V.ellipsoid(root,Color("8b70ba"),Vector3(side*0.57,0.9,0),Vector3(0.28,0.13,0.2))
 	V.ellipsoid(root,Color("302945"),Vector3(0,0.85,0.43),Vector3(0.09,0.13,0.025))
 	return root
+
+# Preserve articulated pivots, batch their static pieces by appearance.
+static func merge_static(parent: Node3D) -> void:
+	var groups := {}
+	for part in parent.get_children():
+		if not part is MeshInstance3D: continue
+		var material: StandardMaterial3D = part.material_override
+		var key := str(material.albedo_color)+str(material.cull_mode)
+		if not groups.has(key): groups[key]=[]
+		groups[key].append(part)
+	for parts in groups.values():
+		if parts.size()<2: continue
+		var surface:=SurfaceTool.new()
+		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for part in parts: surface.append_from(part.mesh,0,part.transform)
+		var combined:=MeshInstance3D.new()
+		combined.mesh=surface.commit()
+		combined.material_override=parts[0].material_override
+		parent.add_child(combined)
+		for part in parts: part.free()

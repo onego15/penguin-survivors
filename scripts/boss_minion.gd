@@ -10,15 +10,17 @@ func _ready() -> void:
 	model.free()
 	model=Visuals.pivot(self,"IceSnowLeopard" if second_phase else "IceSeal")
 	var fur:=Color("344c68")
-	Visuals.ellipsoid(model,fur,Vector3(0,0.55,0),Vector3(0.55,0.43,0.95))
+	Visuals.ellipsoid(model,fur,Vector3(0,0.55,0),Vector3(0.48,0.43,0.95) if second_phase else Vector3(0.72,0.3,0.95))
 	Visuals.ellipsoid(model,Color("617f98"),Vector3(0,0.9,0.65),Vector3(0.43,0.4,0.4))
 	for sign_value in [-1,1]:
 		Visuals.ellipsoid(model,Color("ff4d66"),Vector3(sign_value*0.22,1.02,0.97),Vector3(0.065,0.045,0.045))
 		if second_phase:
 			Visuals.rod(model,fur,Vector3(sign_value*0.3,1.1,0.6),Vector3(sign_value*0.34,1.45,0.6),0.14,0)
-			for z in [-0.55,0.55]: Visuals.ellipsoid(model,fur,Vector3(sign_value*0.38,0.25,z),Vector3(0.16,0.35,0.2))
+			for z in [-0.55,0.55]:
+				var leg:=Visuals.pivot(model,"Paw_%s_%s" % [sign_value,z],Vector3(sign_value*0.38,0.38,z))
+				Visuals.ellipsoid(leg,fur,Vector3.ZERO,Vector3(0.16,0.48,0.2))
 		else:
-			Visuals.ellipsoid(model,fur,Vector3(sign_value*0.58,0.18,0.2),Vector3(0.5,0.08,0.25)).rotation.y=sign_value*0.4
+			Visuals.ellipsoid(model,fur,Vector3(sign_value*0.58,0.18,0.2),Vector3(0.65,0.08,0.3)).rotation.y=sign_value*0.4
 			Visuals.ellipsoid(model,fur,Vector3(sign_value*0.2,0.18,-1),Vector3(0.3,0.08,0.4))
 	for i in range(4):
 		var p:=Vector3(0,0.83,-0.7+i*0.32)
@@ -47,5 +49,6 @@ func _physics_process(delta: float) -> void:
 	var next:=position+motion*delta
 	if absf(next.x)>23 or absf(next.z)>23: side*=-1
 	_move_and_contact(delta,motion)
-	model.position.y=sin(age*(12 if second_phase else 5))*0.04
+	model.position.y=(0.12 if second_phase else -0.08)+sin(age*(12 if second_phase else 5))*(0.07 if second_phase else 0.045)
+	model.rotation.x=sin(age*10)*0.05 if second_phase else 0
 	tail.rotation.y=sin(age*7)*0.45

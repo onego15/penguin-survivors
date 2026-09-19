@@ -51,10 +51,10 @@ func run() -> void:
 	check(is_equal_approx(ermine.warning_left,0.6),"Ermine warns before lateral leap")
 	ermine._physics_process(0.6)
 	ermine._physics_process(0.35)
-	check(absf(ermine.position.x-start.x)>1.49 and absf(ermine.position.z-start.z)<0.01,"Ermine leaps 1.5 metres sideways")
+	check(absf(ermine.position.x-start.x)>1.49 and absf(ermine.position.z-start.z-1.0)<0.01,"Ermine leaps 1.5 metres sideways and one metre forward")
 	check(ermine.contact_damage==roundi(10*ermine.damage_multiplier) and is_equal_approx(ermine.cooldown,4),"Ermine has no extra leap damage")
 	ermine.free()
-	game.player.position=Vector3(11,0,0)
+	game.player.position=Vector3(9,0,0)
 	var goat=game.spawn_enemy(13)
 	goat.set_physics_process(false)
 	goat.position=Vector3(5,0,0)
@@ -65,7 +65,7 @@ func run() -> void:
 	goat._physics_process(1)
 	goat._physics_process(1)
 	check(goat.locked==locked and goat.position.x<6.71,"Goat locks charge direction and stops at wall")
-	check(goat.dash_left==0 and is_equal_approx(goat.rest,1.2) and goat.cooldown==4,"Goat rests after collision")
+	check(goat.dash_left==0 and is_equal_approx(goat.rest,1.8) and goat.cooldown==4,"Goat rests after collision")
 	goat.free()
 	# Sample every boundary and both gate diagonals for reachable escape routes.
 	game.elapsed=600

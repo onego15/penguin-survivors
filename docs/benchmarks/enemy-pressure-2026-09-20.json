@@ -1,0 +1,1524 @@
+[
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 0,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 1,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 456,
+		"hits": 19,
+		"kind": 2,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 480,
+		"hits": 30,
+		"kind": 3,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 28,
+		"hits": 2,
+		"kind": 4,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 528,
+		"hits": 33,
+		"kind": 5,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 6,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 154,
+		"hits": 11,
+		"kind": 7,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 176,
+		"hits": 12,
+		"kind": 8,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 196,
+		"hits": 14,
+		"kind": 9,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 363,
+		"hits": 33,
+		"kind": 10,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 11,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 392,
+		"hits": 28,
+		"kind": 12,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 360,
+		"hits": 21,
+		"kind": 13,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 14,
+		"mode": "species",
+		"updated": false
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 0,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 1,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 456,
+		"hits": 19,
+		"kind": 2,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 192,
+		"hits": 12,
+		"kind": 3,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 28,
+		"hits": 2,
+		"kind": 4,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 528,
+		"hits": 33,
+		"kind": 5,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 6,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 154,
+		"hits": 11,
+		"kind": 7,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 176,
+		"hits": 12,
+		"kind": 8,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 196,
+		"hits": 14,
+		"kind": 9,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 363,
+		"hits": 33,
+		"kind": 10,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 11,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 434,
+		"hits": 31,
+		"kind": 12,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 370,
+		"hits": 22,
+		"kind": 13,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"damage": 462,
+		"hits": 33,
+		"kind": 14,
+		"mode": "species",
+		"updated": true
+	},
+	{
+		"attacks": [
+			{
+				"at": 2.4,
+				"attack": "shards"
+			},
+			{
+				"at": 6.5,
+				"attack": "shards"
+			},
+			{
+				"at": 10.6,
+				"attack": "dash"
+			},
+			{
+				"at": 16.7,
+				"attack": "shards"
+			},
+			{
+				"at": 20.8,
+				"attack": "shards"
+			},
+			{
+				"at": 24.9,
+				"attack": "dash"
+			},
+			{
+				"at": 31.0,
+				"attack": "shards"
+			},
+			{
+				"at": 35.1,
+				"attack": "shards"
+			},
+			{
+				"at": 39.2,
+				"attack": "dash"
+			},
+			{
+				"at": 45.3,
+				"attack": "shards"
+			},
+			{
+				"at": 49.4,
+				"attack": "shards"
+			},
+			{
+				"at": 53.5,
+				"attack": "dash"
+			},
+			{
+				"at": 59.6,
+				"attack": "shards"
+			},
+			{
+				"at": 63.7,
+				"attack": "shards"
+			},
+			{
+				"at": 67.8,
+				"attack": "dash"
+			},
+			{
+				"at": 73.9,
+				"attack": "shards"
+			},
+			{
+				"at": 78.0,
+				"attack": "shards"
+			},
+			{
+				"at": 82.1,
+				"attack": "dash"
+			},
+			{
+				"at": 88.2,
+				"attack": "shards"
+			},
+			{
+				"at": 92.3,
+				"attack": "shards"
+			},
+			{
+				"at": 96.4,
+				"attack": "dash"
+			},
+			{
+				"at": 102.5,
+				"attack": "shards"
+			},
+			{
+				"at": 106.6,
+				"attack": "shards"
+			},
+			{
+				"at": 110.7,
+				"attack": "dash"
+			},
+			{
+				"at": 116.8,
+				"attack": "shards"
+			}
+		],
+		"castle": false,
+		"hp_left": 9977,
+		"minions": 4,
+		"mode": "cadence",
+		"phase": 1,
+		"recovery": 10.4,
+		"reinforcement_delay": 2.6,
+		"tier": "easy"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "quake"
+			},
+			{
+				"at": 8.9,
+				"attack": "shards"
+			},
+			{
+				"at": 12.0,
+				"attack": "dash"
+			},
+			{
+				"at": 16.7,
+				"attack": "shards"
+			},
+			{
+				"at": 19.8,
+				"attack": "quake"
+			},
+			{
+				"at": 26.8,
+				"attack": "shards"
+			},
+			{
+				"at": 29.9,
+				"attack": "dash"
+			},
+			{
+				"at": 34.6,
+				"attack": "shards"
+			},
+			{
+				"at": 37.7,
+				"attack": "quake"
+			},
+			{
+				"at": 44.7,
+				"attack": "shards"
+			},
+			{
+				"at": 47.8,
+				"attack": "dash"
+			},
+			{
+				"at": 52.5,
+				"attack": "shards"
+			},
+			{
+				"at": 55.6,
+				"attack": "quake"
+			},
+			{
+				"at": 62.6,
+				"attack": "shards"
+			},
+			{
+				"at": 65.7,
+				"attack": "dash"
+			},
+			{
+				"at": 70.4,
+				"attack": "shards"
+			},
+			{
+				"at": 73.5,
+				"attack": "quake"
+			},
+			{
+				"at": 80.5,
+				"attack": "shards"
+			},
+			{
+				"at": 83.6,
+				"attack": "dash"
+			},
+			{
+				"at": 88.3,
+				"attack": "shards"
+			},
+			{
+				"at": 91.4,
+				"attack": "quake"
+			},
+			{
+				"at": 98.4,
+				"attack": "shards"
+			},
+			{
+				"at": 101.5,
+				"attack": "dash"
+			},
+			{
+				"at": 106.2,
+				"attack": "shards"
+			},
+			{
+				"at": 109.3,
+				"attack": "quake"
+			},
+			{
+				"at": 116.3,
+				"attack": "shards"
+			},
+			{
+				"at": 119.4,
+				"attack": "dash"
+			}
+		],
+		"castle": false,
+		"hp_left": 9356,
+		"minions": 6,
+		"mode": "cadence",
+		"phase": 2,
+		"recovery": 20.6,
+		"reinforcement_delay": 5.0,
+		"tier": "easy"
+	},
+	{
+		"attacks": [
+			{
+				"at": 2.4,
+				"attack": "shards"
+			},
+			{
+				"at": 6.5,
+				"attack": "shards"
+			},
+			{
+				"at": 10.6,
+				"attack": "dash"
+			},
+			{
+				"at": 16.7,
+				"attack": "shards"
+			},
+			{
+				"at": 20.8,
+				"attack": "shards"
+			},
+			{
+				"at": 24.9,
+				"attack": "dash"
+			},
+			{
+				"at": 31.0,
+				"attack": "shards"
+			},
+			{
+				"at": 35.1,
+				"attack": "shards"
+			},
+			{
+				"at": 39.2,
+				"attack": "dash"
+			},
+			{
+				"at": 45.3,
+				"attack": "shards"
+			},
+			{
+				"at": 49.4,
+				"attack": "shards"
+			},
+			{
+				"at": 53.5,
+				"attack": "dash"
+			},
+			{
+				"at": 59.6,
+				"attack": "shards"
+			},
+			{
+				"at": 63.7,
+				"attack": "shards"
+			},
+			{
+				"at": 67.8,
+				"attack": "dash"
+			},
+			{
+				"at": 73.9,
+				"attack": "shards"
+			},
+			{
+				"at": 78.0,
+				"attack": "shards"
+			},
+			{
+				"at": 82.1,
+				"attack": "dash"
+			},
+			{
+				"at": 88.2,
+				"attack": "shards"
+			},
+			{
+				"at": 92.3,
+				"attack": "shards"
+			},
+			{
+				"at": 96.4,
+				"attack": "dash"
+			},
+			{
+				"at": 102.5,
+				"attack": "shards"
+			},
+			{
+				"at": 106.6,
+				"attack": "shards"
+			},
+			{
+				"at": 110.7,
+				"attack": "dash"
+			},
+			{
+				"at": 116.8,
+				"attack": "shards"
+			}
+		],
+		"castle": false,
+		"hp_left": 9984,
+		"minions": 6,
+		"mode": "cadence",
+		"phase": 1,
+		"recovery": 10.4,
+		"reinforcement_delay": 1.2,
+		"tier": "normal"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "quake"
+			},
+			{
+				"at": 8.9,
+				"attack": "shards"
+			},
+			{
+				"at": 12.0,
+				"attack": "dash"
+			},
+			{
+				"at": 16.7,
+				"attack": "shards"
+			},
+			{
+				"at": 19.8,
+				"attack": "quake"
+			},
+			{
+				"at": 26.8,
+				"attack": "shards"
+			},
+			{
+				"at": 29.9,
+				"attack": "dash"
+			},
+			{
+				"at": 34.6,
+				"attack": "shards"
+			},
+			{
+				"at": 37.7,
+				"attack": "quake"
+			},
+			{
+				"at": 44.7,
+				"attack": "shards"
+			},
+			{
+				"at": 47.8,
+				"attack": "dash"
+			},
+			{
+				"at": 52.5,
+				"attack": "shards"
+			},
+			{
+				"at": 55.6,
+				"attack": "quake"
+			},
+			{
+				"at": 62.6,
+				"attack": "shards"
+			},
+			{
+				"at": 65.7,
+				"attack": "dash"
+			},
+			{
+				"at": 70.4,
+				"attack": "shards"
+			},
+			{
+				"at": 73.5,
+				"attack": "quake"
+			},
+			{
+				"at": 80.5,
+				"attack": "shards"
+			},
+			{
+				"at": 83.6,
+				"attack": "dash"
+			},
+			{
+				"at": 88.3,
+				"attack": "shards"
+			},
+			{
+				"at": 91.4,
+				"attack": "quake"
+			},
+			{
+				"at": 98.4,
+				"attack": "shards"
+			},
+			{
+				"at": 101.5,
+				"attack": "dash"
+			},
+			{
+				"at": 106.2,
+				"attack": "shards"
+			},
+			{
+				"at": 109.3,
+				"attack": "quake"
+			},
+			{
+				"at": 116.3,
+				"attack": "shards"
+			},
+			{
+				"at": 119.4,
+				"attack": "dash"
+			}
+		],
+		"castle": false,
+		"hp_left": 8976,
+		"minions": 8,
+		"mode": "cadence",
+		"phase": 2,
+		"recovery": 20.6,
+		"reinforcement_delay": 0.0,
+		"tier": "normal"
+	},
+	{
+		"attacks": [
+			{
+				"at": 2.4,
+				"attack": "shards"
+			},
+			{
+				"at": 6.5,
+				"attack": "shards"
+			},
+			{
+				"at": 10.6,
+				"attack": "dash"
+			},
+			{
+				"at": 16.7,
+				"attack": "shards"
+			},
+			{
+				"at": 20.8,
+				"attack": "shards"
+			},
+			{
+				"at": 24.9,
+				"attack": "dash"
+			},
+			{
+				"at": 31.0,
+				"attack": "shards"
+			},
+			{
+				"at": 35.1,
+				"attack": "shards"
+			},
+			{
+				"at": 39.2,
+				"attack": "dash"
+			},
+			{
+				"at": 45.3,
+				"attack": "shards"
+			},
+			{
+				"at": 49.4,
+				"attack": "shards"
+			},
+			{
+				"at": 53.5,
+				"attack": "dash"
+			},
+			{
+				"at": 59.6,
+				"attack": "shards"
+			},
+			{
+				"at": 63.7,
+				"attack": "shards"
+			},
+			{
+				"at": 67.8,
+				"attack": "dash"
+			},
+			{
+				"at": 73.9,
+				"attack": "shards"
+			},
+			{
+				"at": 78.0,
+				"attack": "shards"
+			},
+			{
+				"at": 82.1,
+				"attack": "dash"
+			},
+			{
+				"at": 88.2,
+				"attack": "shards"
+			},
+			{
+				"at": 92.3,
+				"attack": "shards"
+			},
+			{
+				"at": 96.4,
+				"attack": "dash"
+			},
+			{
+				"at": 102.5,
+				"attack": "shards"
+			},
+			{
+				"at": 106.6,
+				"attack": "shards"
+			},
+			{
+				"at": 110.7,
+				"attack": "dash"
+			},
+			{
+				"at": 116.8,
+				"attack": "shards"
+			}
+		],
+		"castle": false,
+		"hp_left": 9977,
+		"minions": 6,
+		"mode": "cadence",
+		"phase": 1,
+		"recovery": 10.4,
+		"reinforcement_delay": 2.8,
+		"tier": "expert"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "quake"
+			},
+			{
+				"at": 8.9,
+				"attack": "shards"
+			},
+			{
+				"at": 12.0,
+				"attack": "dash"
+			},
+			{
+				"at": 16.7,
+				"attack": "shards"
+			},
+			{
+				"at": 19.8,
+				"attack": "quake"
+			},
+			{
+				"at": 26.8,
+				"attack": "shards"
+			},
+			{
+				"at": 29.9,
+				"attack": "dash"
+			},
+			{
+				"at": 34.6,
+				"attack": "shards"
+			},
+			{
+				"at": 37.7,
+				"attack": "quake"
+			},
+			{
+				"at": 44.7,
+				"attack": "shards"
+			},
+			{
+				"at": 47.8,
+				"attack": "dash"
+			},
+			{
+				"at": 52.5,
+				"attack": "shards"
+			},
+			{
+				"at": 55.6,
+				"attack": "quake"
+			},
+			{
+				"at": 62.6,
+				"attack": "shards"
+			},
+			{
+				"at": 65.7,
+				"attack": "dash"
+			},
+			{
+				"at": 70.4,
+				"attack": "shards"
+			},
+			{
+				"at": 73.5,
+				"attack": "quake"
+			},
+			{
+				"at": 80.5,
+				"attack": "shards"
+			},
+			{
+				"at": 83.6,
+				"attack": "dash"
+			},
+			{
+				"at": 88.3,
+				"attack": "shards"
+			},
+			{
+				"at": 91.4,
+				"attack": "quake"
+			},
+			{
+				"at": 98.4,
+				"attack": "shards"
+			},
+			{
+				"at": 101.5,
+				"attack": "dash"
+			},
+			{
+				"at": 106.2,
+				"attack": "shards"
+			},
+			{
+				"at": 109.3,
+				"attack": "quake"
+			},
+			{
+				"at": 116.3,
+				"attack": "shards"
+			},
+			{
+				"at": 119.4,
+				"attack": "dash"
+			}
+		],
+		"castle": false,
+		"hp_left": 8511,
+		"minions": 8,
+		"mode": "cadence",
+		"phase": 2,
+		"recovery": 20.6,
+		"reinforcement_delay": 14.2,
+		"tier": "expert"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "gates"
+			},
+			{
+				"at": 4.0,
+				"attack": "vault"
+			},
+			{
+				"at": 6.8,
+				"attack": "walls"
+			},
+			{
+				"at": 21.9,
+				"attack": "fan"
+			},
+			{
+				"at": 26.2,
+				"attack": "rings"
+			},
+			{
+				"at": 31.2,
+				"attack": "gates"
+			},
+			{
+				"at": 33.2,
+				"attack": "vault"
+			},
+			{
+				"at": 36.0,
+				"attack": "walls"
+			},
+			{
+				"at": 51.1,
+				"attack": "fan"
+			},
+			{
+				"at": 55.4,
+				"attack": "rings"
+			},
+			{
+				"at": 60.4,
+				"attack": "gates"
+			},
+			{
+				"at": 62.4,
+				"attack": "vault"
+			},
+			{
+				"at": 65.2,
+				"attack": "walls"
+			},
+			{
+				"at": 75.0,
+				"attack": "fan"
+			},
+			{
+				"at": 79.3,
+				"attack": "rings"
+			},
+			{
+				"at": 84.3,
+				"attack": "gates"
+			},
+			{
+				"at": 86.3,
+				"attack": "vault"
+			},
+			{
+				"at": 89.1,
+				"attack": "walls"
+			},
+			{
+				"at": 104.2,
+				"attack": "fan"
+			},
+			{
+				"at": 108.5,
+				"attack": "rings"
+			},
+			{
+				"at": 113.5,
+				"attack": "gates"
+			},
+			{
+				"at": 115.5,
+				"attack": "vault"
+			},
+			{
+				"at": 118.3,
+				"attack": "walls"
+			}
+		],
+		"castle": true,
+		"hp_left": 9754,
+		"minions": 4,
+		"mode": "cadence",
+		"phase": 1,
+		"recovery": 24.5,
+		"reinforcement_delay": 8.4,
+		"tier": "easy"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "gates"
+			},
+			{
+				"at": 4.0,
+				"attack": "vault"
+			},
+			{
+				"at": 6.8,
+				"attack": "walls"
+			},
+			{
+				"at": 20.4,
+				"attack": "fan"
+			},
+			{
+				"at": 24.7,
+				"attack": "rings"
+			},
+			{
+				"at": 29.7,
+				"attack": "gates"
+			},
+			{
+				"at": 32.7,
+				"attack": "vault"
+			},
+			{
+				"at": 35.5,
+				"attack": "walls"
+			},
+			{
+				"at": 49.1,
+				"attack": "fan"
+			},
+			{
+				"at": 53.4,
+				"attack": "rings"
+			},
+			{
+				"at": 58.4,
+				"attack": "gates"
+			},
+			{
+				"at": 60.4,
+				"attack": "vault"
+			},
+			{
+				"at": 63.2,
+				"attack": "walls"
+			},
+			{
+				"at": 76.8,
+				"attack": "fan"
+			},
+			{
+				"at": 81.1,
+				"attack": "rings"
+			},
+			{
+				"at": 86.1,
+				"attack": "gates"
+			},
+			{
+				"at": 88.7,
+				"attack": "vault"
+			},
+			{
+				"at": 91.5,
+				"attack": "walls"
+			},
+			{
+				"at": 105.1,
+				"attack": "fan"
+			},
+			{
+				"at": 109.4,
+				"attack": "rings"
+			},
+			{
+				"at": 114.4,
+				"attack": "gates"
+			},
+			{
+				"at": 116.4,
+				"attack": "vault"
+			},
+			{
+				"at": 119.2,
+				"attack": "walls"
+			}
+		],
+		"castle": true,
+		"hp_left": 9757,
+		"minions": 16,
+		"mode": "cadence",
+		"phase": 2,
+		"recovery": 24.5,
+		"reinforcement_delay": 15.1,
+		"tier": "easy"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "gates"
+			},
+			{
+				"at": 4.0,
+				"attack": "vault"
+			},
+			{
+				"at": 6.8,
+				"attack": "walls"
+			},
+			{
+				"at": 21.9,
+				"attack": "fan"
+			},
+			{
+				"at": 26.2,
+				"attack": "rings"
+			},
+			{
+				"at": 31.2,
+				"attack": "gates"
+			},
+			{
+				"at": 33.2,
+				"attack": "vault"
+			},
+			{
+				"at": 36.0,
+				"attack": "walls"
+			},
+			{
+				"at": 51.1,
+				"attack": "fan"
+			},
+			{
+				"at": 55.4,
+				"attack": "rings"
+			},
+			{
+				"at": 60.4,
+				"attack": "gates"
+			},
+			{
+				"at": 62.4,
+				"attack": "vault"
+			},
+			{
+				"at": 65.2,
+				"attack": "walls"
+			},
+			{
+				"at": 75.0,
+				"attack": "fan"
+			},
+			{
+				"at": 79.3,
+				"attack": "rings"
+			},
+			{
+				"at": 84.3,
+				"attack": "gates"
+			},
+			{
+				"at": 86.3,
+				"attack": "vault"
+			},
+			{
+				"at": 89.1,
+				"attack": "walls"
+			},
+			{
+				"at": 104.2,
+				"attack": "fan"
+			},
+			{
+				"at": 108.5,
+				"attack": "rings"
+			},
+			{
+				"at": 113.5,
+				"attack": "gates"
+			},
+			{
+				"at": 115.5,
+				"attack": "vault"
+			},
+			{
+				"at": 118.3,
+				"attack": "walls"
+			}
+		],
+		"castle": true,
+		"hp_left": 9566,
+		"minions": 6,
+		"mode": "cadence",
+		"phase": 1,
+		"recovery": 24.5,
+		"reinforcement_delay": 14.4,
+		"tier": "normal"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "gates"
+			},
+			{
+				"at": 4.0,
+				"attack": "vault"
+			},
+			{
+				"at": 6.8,
+				"attack": "walls"
+			},
+			{
+				"at": 20.4,
+				"attack": "fan"
+			},
+			{
+				"at": 24.7,
+				"attack": "rings"
+			},
+			{
+				"at": 29.7,
+				"attack": "gates"
+			},
+			{
+				"at": 33.1,
+				"attack": "vault"
+			},
+			{
+				"at": 35.9,
+				"attack": "walls"
+			},
+			{
+				"at": 49.5,
+				"attack": "fan"
+			},
+			{
+				"at": 53.8,
+				"attack": "rings"
+			},
+			{
+				"at": 58.8,
+				"attack": "gates"
+			},
+			{
+				"at": 60.8,
+				"attack": "vault"
+			},
+			{
+				"at": 63.6,
+				"attack": "walls"
+			},
+			{
+				"at": 77.2,
+				"attack": "fan"
+			},
+			{
+				"at": 81.5,
+				"attack": "rings"
+			},
+			{
+				"at": 86.5,
+				"attack": "gates"
+			},
+			{
+				"at": 90.4,
+				"attack": "vault"
+			},
+			{
+				"at": 93.2,
+				"attack": "walls"
+			},
+			{
+				"at": 106.8,
+				"attack": "fan"
+			},
+			{
+				"at": 111.1,
+				"attack": "rings"
+			},
+			{
+				"at": 116.1,
+				"attack": "gates"
+			},
+			{
+				"at": 118.1,
+				"attack": "vault"
+			}
+		],
+		"castle": true,
+		"hp_left": 9375,
+		"minions": 8,
+		"mode": "cadence",
+		"phase": 2,
+		"recovery": 23.6,
+		"reinforcement_delay": 35.2,
+		"tier": "normal"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "gates"
+			},
+			{
+				"at": 4.0,
+				"attack": "vault"
+			},
+			{
+				"at": 6.8,
+				"attack": "walls"
+			},
+			{
+				"at": 21.9,
+				"attack": "fan"
+			},
+			{
+				"at": 26.2,
+				"attack": "rings"
+			},
+			{
+				"at": 31.2,
+				"attack": "gates"
+			},
+			{
+				"at": 33.2,
+				"attack": "vault"
+			},
+			{
+				"at": 36.0,
+				"attack": "walls"
+			},
+			{
+				"at": 51.1,
+				"attack": "fan"
+			},
+			{
+				"at": 55.4,
+				"attack": "rings"
+			},
+			{
+				"at": 60.4,
+				"attack": "gates"
+			},
+			{
+				"at": 62.4,
+				"attack": "vault"
+			},
+			{
+				"at": 65.2,
+				"attack": "walls"
+			},
+			{
+				"at": 75.0,
+				"attack": "fan"
+			},
+			{
+				"at": 79.3,
+				"attack": "rings"
+			},
+			{
+				"at": 84.3,
+				"attack": "gates"
+			},
+			{
+				"at": 86.3,
+				"attack": "vault"
+			},
+			{
+				"at": 89.1,
+				"attack": "walls"
+			},
+			{
+				"at": 104.2,
+				"attack": "fan"
+			},
+			{
+				"at": 108.5,
+				"attack": "rings"
+			},
+			{
+				"at": 113.5,
+				"attack": "gates"
+			},
+			{
+				"at": 115.5,
+				"attack": "vault"
+			},
+			{
+				"at": 118.3,
+				"attack": "walls"
+			}
+		],
+		"castle": true,
+		"hp_left": 9386,
+		"minions": 6,
+		"mode": "cadence",
+		"phase": 1,
+		"recovery": 24.5,
+		"reinforcement_delay": 32.5,
+		"tier": "expert"
+	},
+	{
+		"attacks": [
+			{
+				"at": 1.9,
+				"attack": "gates"
+			},
+			{
+				"at": 4.0,
+				"attack": "vault"
+			},
+			{
+				"at": 6.8,
+				"attack": "walls"
+			},
+			{
+				"at": 20.4,
+				"attack": "fan"
+			},
+			{
+				"at": 24.7,
+				"attack": "rings"
+			},
+			{
+				"at": 29.7,
+				"attack": "gates"
+			},
+			{
+				"at": 33.1,
+				"attack": "vault"
+			},
+			{
+				"at": 35.9,
+				"attack": "walls"
+			},
+			{
+				"at": 49.5,
+				"attack": "fan"
+			},
+			{
+				"at": 53.8,
+				"attack": "rings"
+			},
+			{
+				"at": 58.8,
+				"attack": "gates"
+			},
+			{
+				"at": 60.8,
+				"attack": "vault"
+			},
+			{
+				"at": 63.6,
+				"attack": "walls"
+			},
+			{
+				"at": 77.2,
+				"attack": "fan"
+			},
+			{
+				"at": 81.5,
+				"attack": "rings"
+			},
+			{
+				"at": 86.5,
+				"attack": "gates"
+			},
+			{
+				"at": 90.4,
+				"attack": "vault"
+			},
+			{
+				"at": 93.2,
+				"attack": "walls"
+			},
+			{
+				"at": 106.8,
+				"attack": "fan"
+			},
+			{
+				"at": 111.1,
+				"attack": "rings"
+			},
+			{
+				"at": 116.1,
+				"attack": "gates"
+			},
+			{
+				"at": 118.1,
+				"attack": "vault"
+			}
+		],
+		"castle": true,
+		"hp_left": 9089,
+		"minions": 8,
+		"mode": "cadence",
+		"phase": 2,
+		"recovery": 23.6,
+		"reinforcement_delay": 28.6,
+		"tier": "expert"
+	}
+]

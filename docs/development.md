@@ -171,3 +171,9 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 - `tools/capture_den_noctis.gd`：8進化武器・デン・氷壁・31武器一覧の実画面。
 
 [仕様・数値・測定の限界・画像](den-noctis-update.md)
+
+## 敵の見た目・行動・予告の更新（2026-09-20）
+
+[仕様・比較結果・モデル一覧](enemy-refresh.md)。共通の経路予告は `enemy_telegraph.gd`、能力に同期した動作は `enemy_presentation.gd` へ分離。通常カメ、オコジョ、ヤギ、シルクの行動と予告を更新しました。
+
+追加テストは `tests/enemy_refresh_test.gd`。比較は `tools/audit_enemy_refresh.gd`、描画負荷は `tools/profile_enemy_refresh.gd`、撮影は `tools/capture_enemy_refresh.gd` です。`python tools/prepare_enemy_baseline.py` で比較用の旧版を準備できます。比較用の旧版はコミット `305a423` のscripts/scenesを `.godot/enemy-baseline/` へ複製し、内部のスクリプト・シーン参照だけをそのディレクトリへ置換して実行します。音声などのアセットは現行と共用します。

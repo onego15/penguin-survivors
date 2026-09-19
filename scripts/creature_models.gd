@@ -51,11 +51,14 @@ static func build(parent: Node3D, kind: int) -> void:
 		var tail := V.pivot(parent, "Tail", Vector3(0, 0.6, -0.5))
 		V.ellipsoid(tail, color, Vector3(0, 0.65, -0.3), Vector3(0.38, 0.85, 0.3))
 		V.ellipsoid(tail, WHITE, Vector3(0, 0.68, -0.05), Vector3(0.12, 0.69, 0.09))
+		var puff:=V.ellipsoid(parent,Color("a98fbc"),Vector3(0,0.25,-0.9),Vector3(0.35,0.16,0.3))
+		puff.name="ScentPuff"
+		puff.hide()
 	elif kind == 7:
 		for i in range(16):
 			var angle := i * TAU / 16
 			var start := Vector3(cos(angle) * 0.35, 0.8, sin(angle) * 0.5 - 0.15)
-			V.rod(parent, Color("705454"), start, start + Vector3(cos(angle)*0.3, 0.6, sin(angle)*0.3), 0.13, 0)
+			V.rod(parent, Color("705454"), start, start + Vector3(cos(angle)*0.3, 0.6, sin(angle)*0.3), 0.13, 0).name="Needle%d" % i
 	elif kind == 8:
 		for side in [-1,1]:
 			var hand:=V.pivot(parent,"DigHand%d" % side,Vector3(side*0.48,0.4,0.5))

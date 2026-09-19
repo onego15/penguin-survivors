@@ -1,0 +1,26 @@
+[
+	{
+		"draw_calls": 2034,
+		"mean_ms": 6.91542222222222,
+		"p95_ms": 7.312,
+		"updated": false
+	},
+	{
+		"draw_calls": 2004,
+		"mean_ms": 6.93607777777778,
+		"p95_ms": 7.892,
+		"updated": true
+	},
+	{
+		"draw_calls": 2004,
+		"mean_ms": 6.93715,
+		"p95_ms": 7.247,
+		"updated": true
+	},
+	{
+		"draw_calls": 2034,
+		"mean_ms": 6.93862222222222,
+		"p95_ms": 7.342,
+		"updated": false
+	}
+]

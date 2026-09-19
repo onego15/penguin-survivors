@@ -12,7 +12,7 @@ const STATS := [
 	{"health": 2, "speed": 1.1, "radius": 0.58, "damage": 10, "color": Color("de743a")},
 	{"health": 2, "speed": 1.05, "radius": 0.55, "damage": 10, "color": Color("dfc7ef")},
 	{"health": 5, "speed": 0.85, "radius": 0.8, "damage": 18, "color": Color("a77362")},
-	{"health": 8, "speed": 0.48, "radius": 0.85, "damage": 12, "color": Color("72a27a")},
+	{"health": 6, "speed": 0.48, "radius": 0.85, "damage": 12, "color": Color("72a27a")},
 	{"health": 4, "speed": 0.8, "radius": 0.6, "damage": 10, "color": Color("ad8cbb")},
 	{"health": 4, "speed": 1.1, "radius": 0.65, "damage": 12, "color": Color("7b9fb9")},
 	{"health": 5, "speed": 0.8, "radius": 0.6, "damage": 10, "color": Color("555275")},
@@ -26,7 +26,7 @@ const STATS := [
 	{"health":4,"speed":1.75,"radius":0.6,"damage":10,"color":Color("a894d9")},
 ]
 const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ", "コウモリ", "アライグマ", "オコジョ", "ヤギ", "ゴースト"]
-const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "高耐久", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波", "揺れる飛行", "氷玉投げ", "横跳び", "予告付き突進", "門・城壁をすり抜ける"]
+const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "短い甲羅防御", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波", "弧を描く飛行", "氷玉投げ", "斜め前へ跳躍", "短距離の頭突き", "門・城壁をすり抜ける"]
 static func cost(type: int) -> int:
 	return 3 if type in [Kind.DEER,Kind.GOAT] else (2 if type >= Kind.OWL else 1)
 
@@ -58,6 +58,11 @@ var visual_scale := 1.0
 var is_miniboss := false
 var windup_duration := 0.8
 var recovery_duration := 1.1
+var charge_end := Vector3.ZERO
+var charge_speed := 0.0
+var shell_clock := 0.0
+var shell_phase := "move"
+var shell_fraction := 0.0
 var control: Node3D
 
 
@@ -65,12 +70,14 @@ func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("all_enemies")
 	reward_value = cost(kind)
+	if kind == Kind.TURTLE and not is_miniboss: health_multiplier = pow(health_multiplier, 0.75)
 	health = maxi(1, roundi(STATS[kind].health * health_multiplier))
 	max_health = health
 	hit_radius = STATS[kind].radius * visual_scale
 	contact_damage = maxi(1, roundi(STATS[kind].damage * damage_multiplier))
 	model = Models.animal(self, kind)
 	model.scale = Vector3.ONE * visual_scale
+	preload("res://scripts/enemy_presentation.gd").decorate(self)
 	health_bar = Visuals.pivot(self, "HealthBar", Vector3(0, 2.8 if kind == Kind.RABBIT else 2.3, 0))
 	var backdrop := BoxMesh.new()
 	backdrop.size = Vector3(1.04, 0.085, 0.07)
@@ -91,6 +98,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if control_step(delta): return
 	age += delta
+	if kind == Kind.TURTLE and not is_miniboss and _shell_step(delta): return
 	hurt_time = maxf(0.0, hurt_time - delta)
 	var offset := target.global_position - global_position
 	offset.y = 0
@@ -145,6 +153,7 @@ func _move_and_contact(delta: float, motion: Vector3) -> void:
 	if motion.length_squared() > 0.01:
 		model.rotation.y = lerp_angle(model.rotation.y, atan2(motion.x, motion.z), 1.0 - exp(-delta * 12.0))
 	_animate(motion.length())
+	preload("res://scripts/enemy_presentation.gd").motion(self, motion, delta)
 	# Sweep contact so a fast charge cannot skip the player.
 	var closest := Geometry3D.get_closest_point_to_segment(target.global_position, start, global_position)
 	if closest.distance_to(target.global_position) < hit_radius + 0.42 and preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position):
@@ -152,6 +161,7 @@ func _move_and_contact(delta: float, motion: Vector3) -> void:
 
 
 func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
+	var previous_time := state_time
 	state_time += delta
 	match charge_state:
 		ChargeState.APPROACH:
@@ -159,8 +169,10 @@ func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
 				charge_state = ChargeState.WINDUP
 				state_time = 0.0
 				charge_direction = toward
-				charge_marker.position = charge_direction * 3.0 + Vector3(0, 0.035, 0)
-				charge_marker.rotation.y = atan2(toward.x, toward.z)
+				charge_speed = speed * 3.8
+				charge_end = preload("res://scripts/enemy_telegraph.gd").endpoint(self, charge_direction, charge_speed * 0.85)
+				charge_marker.free()
+				charge_marker = preload("res://scripts/enemy_telegraph.gd").lane(self, charge_end)
 				charge_marker.show()
 				return Vector3.ZERO
 			return toward * speed * STATS[kind].speed
@@ -172,12 +184,15 @@ func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:
 				charge_marker.hide()
 			return Vector3.ZERO
 		ChargeState.CHARGE:
-			if state_time >= 0.85:
+			var remaining := global_position.distance_to(charge_end)
+			var travel := minf(remaining, charge_speed * minf(delta, maxf(0, 0.85-previous_time)))
+			if state_time >= 0.85 or remaining <= travel + 0.001:
 				charge_state = ChargeState.RECOVER
 				state_time = 0.0
-				return Vector3.ZERO
-			return charge_direction * speed * 3.8
+			set_meta("wall_dash", true)
+			return charge_direction * travel / maxf(delta, 0.000001)
 		ChargeState.RECOVER:
+			set_meta("wall_dash", false)
 			if state_time >= recovery_duration:
 				charge_state = ChargeState.APPROACH
 				state_time = 0.0
@@ -203,12 +218,13 @@ func _animate(motion_speed: float) -> void:
 	for part in model.get_children():
 		if str(part.name).begins_with("Paw_"):
 			part.rotation.x = sin(age * 10.0 + part.position.x * 5.0 + part.position.z * 4.0) * 0.35 * walking
-	model.scale = Vector3(1.0 + hurt_time * 0.7, 1.0 - hurt_time * 0.6, 1.0 + hurt_time * 0.7) * visual_scale
+	model.scale = Vector3(1.0 + hurt_time * 0.7, 1.0 - hurt_time * 0.6, 1.0 + hurt_time * 0.7) * visual_scale * Vector3(1,model.get_meta("height_factor",1.0),1)
 
 
 func take_damage(amount: int) -> void:
 	if dead or not targetable:
 		return
+	if kind == Kind.TURTLE and not is_miniboss and shell_phase == "guard" and amount > 0: amount = maxi(1, ceili(amount * 0.5))
 	damage_received.emit(mini(health,maxi(0,amount)))
 	health -= amount
 	get_tree().call_group("game_audio", "play_effect", "defeat" if health <= 0 else "hit")
@@ -242,6 +258,9 @@ func control_step(delta: float) -> bool:
 func is_knocked_back() -> bool:
 	return is_instance_valid(control) and control.knock_left>0
 func cancel_control_action() -> void:
+	shell_phase = "move"
+	shell_clock = 0.0
+	if kind == Kind.TURTLE: preload("res://scripts/enemy_presentation.gd").shell(model, 0.0)
 	charge_state=ChargeState.APPROACH
 	state_time=0
 	hop_phase=0.62
@@ -249,3 +268,18 @@ func cancel_control_action() -> void:
 	if is_instance_valid(charge_marker): charge_marker.hide()
 	model.position.y=0
 	model.rotation.x=0
+
+func _shell_step(delta: float) -> bool:
+	shell_clock += delta
+	var cycle := fposmod(maxf(0, shell_clock-4.0), 8.0)
+	shell_phase = "move"
+	shell_fraction = 0.0
+	if shell_clock >= 4.0:
+		if cycle < 0.4:
+			shell_phase = "prepare"; shell_fraction = cycle/0.4
+		elif cycle < 1.6:
+			shell_phase = "guard"; shell_fraction = 1.0
+		elif cycle < 2.0:
+			shell_phase = "release"; shell_fraction = (2.0-cycle)/0.4
+	preload("res://scripts/enemy_presentation.gd").shell(model, shell_fraction)
+	return shell_phase != "move"

@@ -23,6 +23,10 @@ func _ready() -> void:
 		digging=C.soil(self)
 		digging.hide()
 	warning.hide()
+	if kind == Kind.HEDGEHOG:
+		warning.free()
+		warning=preload("res://scripts/enemy_telegraph.gd").radial(self)
+		warning.hide()
 	if kind == Kind.DEER:
 		warning.free()
 		warning=C.warning(self,1.2,14.0)
@@ -39,6 +43,12 @@ func _physics_process(delta: float) -> void:
 	if special_state == "warn":
 		timer -= delta
 		C.progress(warning,timer/warning_duration)
+		if kind==Kind.OWL:
+			model.get_node("WingLeft").rotation.z=-0.8
+			model.get_node("WingRight").rotation.z=0.8
+		if kind==Kind.HEDGEHOG:
+			for part in model.get_children():
+				if str(part.name).begins_with("Needle"): part.scale.y=1.0+0.35*(1-timer/warning_duration)
 		if kind==Kind.MOLE: digging.scale.y=1.0+0.3*sin(age*20)
 		if kind==Kind.DEER: model.get_node("Head").rotation.x=0.4
 		if timer <= 0: _release()
@@ -47,6 +57,8 @@ func _physics_process(delta: float) -> void:
 		timer=maxf(0,timer-delta)
 		model.position.y=-(1-timer/0.4)*1.2
 		model.rotation.x=sin(age*35)*0.12
+		model.scale=Vector3(1.05,0.95,1.05)*visual_scale
+		digging.rotation.y=sin(age*10)*0.06
 		for part in model.get_children():
 			if str(part.name).begins_with("DigHand"):
 				part.rotation.x=sin(age*35)*0.6
@@ -87,12 +99,21 @@ func _physics_process(delta: float) -> void:
 		model.position.y = 0.2 + sin(age*4)*0.08
 		model.get_node("WingLeft").rotation.z=sin(age*8)*0.25
 		model.get_node("WingRight").rotation.z=-sin(age*8)*0.25
+		if cooldown>3.75:
+			model.get_node("WingLeft").rotation.z=(cooldown-3.75)*3
+			model.get_node("WingRight").rotation.z=-(cooldown-3.75)*3
 	if kind==Kind.WOLF:
-		model.rotation.z=flank_side*0.13
+		model.rotation.z=motion.normalized().dot(Vector3(-toward.z,0,toward.x))*0.2
 		for part in model.get_children():
 			if str(part.name).begins_with("Paw"): part.rotation.x=sin(age*13+part.position.z*4)*0.45
 		model.get_node("Tail").rotation.y=sin(age*9)*0.25
 		return
+	if kind==Kind.SKUNK:
+		model.get_node("Tail").rotation.x=-0.45*clampf((0.4-cooldown)/0.4,0,1)
+		model.get_node("ScentPuff").visible=cooldown>3.75
+	if kind==Kind.HEDGEHOG:
+		for part in model.get_children():
+			if str(part.name).begins_with("Needle"): part.scale.y=1.0
 	cooldown-=delta
 	if cooldown>0: return
 	locked=toward
@@ -168,6 +189,8 @@ func _release() -> void:
 		global_position=landing
 		digging.position=Vector3.ZERO
 		digging.scale=Vector3.ONE
+		digging.rotation.y=0
+		model.scale=Vector3.ONE*visual_scale
 		warning.position=Vector3(0,0.05,0)
 		model.show()
 		model.position.y=0

@@ -20,6 +20,7 @@ Godot 4 + GDScriptで作った、見下ろし視点の3Dサバイバルゲーム
 - [単体進化・合体進化のレシピと成長](docs/evolutions.md)
 - [武器の見た目・新旧名称の対応](docs/weapon-appearance.md)
 - [ステージ・Wave・敵・ボス](docs/stages.md)
+- [敵の行動改善・全敵モデル・比較検証](docs/enemy-refresh.md)
 - [開発・テスト・音源生成](docs/development.md)
 - [過去の仕様・検証記録](docs/development-history.md)
 

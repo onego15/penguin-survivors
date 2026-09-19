@@ -42,6 +42,9 @@ func run() -> void:
 			"boomerang": check(attack.ellipse_reach>12.7,"Upgraded boomerang extends its actual ellipse")
 	for attack in get_nodes_in_group("weapon_attacks"): attack.free()
 	target.free()
+	# Exhaust evolution slots too: base weapons alone no longer exhaust choices.
+	game.armory.evolve("pop_branch","pop_cannon")
+	game.armory.evolve("heart_branch","big_heart")
 	game.armory.levels.udon=4
 	game.experience=game.xp_needed
 	game.open_weapon_choice()

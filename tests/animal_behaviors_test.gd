@@ -87,7 +87,7 @@ func run() -> void:
 	turtle.speed = 2.3
 	await frames(30)
 	var turtle_distance: float = turtle.position.z + 12.0
-	check(turtle_distance > 0.4 and turtle_distance < 0.7 and turtle.health == 8, "Turtle is slow and has eight-hit durability")
+	check(turtle_distance > 0.4 and turtle_distance < 0.7 and turtle.health == 6, "Turtle is slow and has six base HP before shell defense")
 	turtle.set_physics_process(false)
 	turtle.position = Vector3(0, 0, -3)
 	var bullet = load("res://scripts/projectile.gd").new()
@@ -95,8 +95,8 @@ func run() -> void:
 	bullet.direction = Vector3.BACK
 	game.actors.add_child(bullet)
 	await frames(15)
-	check(turtle.health == 7, "Projectile respects the turtle's larger hit radius")
-	turtle.take_damage(5)
+	check(turtle.health == 5, "Projectile respects the turtle's larger hit radius")
+	turtle.take_damage(3)
 	check(not turtle.dead and turtle.health == 2 and turtle.health_bar.visible, "Shell survives repeated hits and displays remaining health")
 	var old_kills: int = game.kills
 	turtle.take_damage(2)

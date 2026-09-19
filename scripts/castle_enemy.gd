@@ -6,6 +6,9 @@ var dash_left:=0.0
 var rest:=0.0
 var locked:=Vector3.ZERO
 var marker: Node3D
+var action_end := Vector3.ZERO
+var action_distance := 0.0
+var action_state := "move"
 func _ready() -> void:
 	if kind==14:
 		set_meta("gate_phasing",true)
@@ -21,33 +24,40 @@ func _physics_process(delta: float) -> void:
 	hurt_time=maxf(0,hurt_time-delta)
 	var offset:=target.global_position-global_position
 	var toward:=offset.normalized()
-	if rest>0: rest-=delta; return
+	if kind==11: preload("res://scripts/enemy_presentation.gd").throw_pose(model,cooldown)
+	if rest>0:
+		rest=maxf(0,rest-delta)
+		if rest<=0: action_state="move"
+		return
 	if warning_left>0:
 		warning_left=maxf(0,warning_left-delta)
 		C.progress(marker,warning_left/(1.0 if kind==13 else 0.6))
 		model.rotation.x=-0.15
 		if warning_left<=0:
 			marker.hide()
-			dash_left=6.0/9 if kind==13 else 0.35
+			dash_left=action_distance/9 if kind==13 else 0.35
+			action_state="active"
 		return
 	if dash_left>0:
 		var step:=minf(delta,dash_left)
 		set_meta("wall_dash",true)
 		var original:=contact_damage
 		if kind==13: contact_damage=roundi(16*damage_multiplier)
-		_move_and_contact(step,locked*(9 if kind==13 else 1.5/0.35))
+		var travel := minf(global_position.distance_to(action_end),step*(9 if kind==13 else action_distance/0.35))
+		_move_and_contact(step,locked*travel/maxf(step,0.000001))
 		contact_damage=original
 		dash_left-=step
 		if get_meta("wall_blocked",false): dash_left=0
 		if kind==12: model.position.y=sin((1-dash_left/0.35)*PI)*0.6
 		if dash_left<=0:
 			set_meta("wall_dash",false)
-			rest=1.2 if kind==13 else 0
+			rest=(1.8 if get_meta("wall_blocked",false) or action_distance<3.99 else 1.2) if kind==13 else 0.35
+			action_state="recover"
 			cooldown=4
 		return
 	var motion:=toward*speed
 	if kind==10:
-		motion=(toward+Vector3(-toward.z,0,toward.x)*sin(age*4+movement_phase)*0.5).normalized()*speed
+		motion=(toward+Vector3(-toward.z,0,toward.x)*sin(age*TAU/2.4+movement_phase)*0.9).normalized()*speed
 	_move_and_contact(delta,motion)
 	if kind==14:
 		model.position.y=0.3+sin(age*3)*0.18
@@ -74,18 +84,22 @@ func _physics_process(delta: float) -> void:
 		get_parent().add_child(bomb)
 		cooldown=6
 		get_tree().call_group("game_audio","play_effect","castle_throw")
-	elif kind in [12,13] and offset.length()<=(6 if kind==13 else 5):
-		locked=toward if kind==13 else Vector3(-toward.z,0,toward.x)*(1 if sin(movement_phase)>0 else -1)
+	elif kind in [12,13] and offset.length()<=(4.5 if kind==13 else 5):
+		locked=toward if kind==13 else (toward+Vector3(-toward.z,0,toward.x)*1.5*(1 if sin(movement_phase)>0 else -1)).normalized()
+		action_end=preload("res://scripts/enemy_telegraph.gd").endpoint(self,locked,4.0 if kind==13 else sqrt(3.25))
+		action_distance=global_position.distance_to(action_end)
+		action_state="warn"
+		marker.free()
+		marker=preload("res://scripts/enemy_telegraph.gd").lane(self,action_end,kind==13)
 		warning_left=1 if kind==13 else 0.6
-		marker.rotation.y=atan2(locked.x,locked.z)
-		marker.position=locked*(3 if kind==13 else 0.75)
 		marker.show()
 
 func danger_contains(point: Vector3) -> bool:
-	return kind==13 and (warning_left>0 or dash_left>0) and Geometry3D.get_closest_point_to_segment(point,global_position,global_position+locked*6).distance_to(point)<1.4
+	return kind==13 and (warning_left>0 or dash_left>0) and Geometry3D.get_closest_point_to_segment(point,global_position,action_end).distance_to(point)<1.4
 
 func cancel_control_action() -> void:
 	super.cancel_control_action()
+	action_state="move"
 	warning_left=0
 	dash_left=0
 	rest=0

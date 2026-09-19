@@ -58,7 +58,7 @@ func run() -> void:
 	check(snap["weapon:frost"].damage==15,"snapshot independent")
 	game.player.health=0; game._physics_process(0)
 	check(game.game_over and is_instance_valid(game.defeat_results),"death shows contributions")
-	var report=game.defeat_results.get_child(0).get_child(0)
+	var report=game.defeat_results.report
 	check(report.listing.text.contains("進化・合体前") and report.listing.text.contains("ラブリー"),"report sources and consumed labels")
 	report.order.select(2); report.refresh(); check(report.listing.text.contains("凍結 1回"),"control order renders")
 	game.free(); await process_frame

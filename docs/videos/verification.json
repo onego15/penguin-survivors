@@ -1,5 +1,6 @@
 {
   "recorded": "2026-09-20",
+  "content": "Stage-themed result, recruited Den, equipped weapon history",
   "duration_seconds": 72,
   "fps": 60,
   "width": 1280,
@@ -8,7 +9,7 @@
   "consecutive_duplicate_frames": 0,
   "video_codec": "H.264",
   "audio_codec": "AAC",
-  "audio_mean_db": -28.0,
+  "audio_mean_db": -27.9,
   "audio_max_db": -10.3,
   "gif_frames": 240,
   "gif_duration_ms": 8000,

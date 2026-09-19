@@ -23,7 +23,7 @@ func run() -> void:
 		await process_frame; await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://docs/screenshots/contributions-"+("victory" if won else "defeat")+".png")
 		if not won:
-			var report=game.defeat_results.get_child(0).get_child(0)
+			var report=game.defeat_results.report
 			report.order.select(2); report.refresh()
 			await process_frame; await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png("res://docs/screenshots/contributions-control.png")

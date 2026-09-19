@@ -63,6 +63,8 @@ func tick() -> void:
 	if frame==24*FPS:
 		game.armory.cooldowns.starfall=0
 		caption.text="おほしさまメテオ：巨大な星が固定地点へ落下"
+	if frame==26*FPS:
+		game.support.spawn_friend(3,game.player.position+Vector3(1,0,0))
 	if frame==29*FPS: game.ultimate.reward(200)
 	if frame==31*FPS:
 		game.player.health=75; game.ultimate.activate()

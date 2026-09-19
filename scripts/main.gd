@@ -296,7 +296,7 @@ func _physics_process(delta: float) -> void:
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		victory_screen=preload("res://scripts/victory_screen.gd").new()
-		victory_screen.results={"difficulty_name":Tiers.data(difficulty_id).name,"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
+		victory_screen.results=_result_data(true)
 		victory_screen.play_again.connect(func(): restart_run())
 		victory_screen.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
 		add_child(victory_screen)
@@ -639,15 +639,15 @@ func _clear_control_states() -> void:
 			enemy.control=null
 	for attack in get_tree().get_nodes_in_group("control_attacks"): attack.queue_free()
 
+func _result_data(won: bool) -> Dictionary:
+	return {"won":won,"stage_id":stage_id,"difficulty_name":Tiers.data(difficulty_id).name,"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
+
 func _show_defeat_results() -> void:
-	defeat_results=CanvasLayer.new(); defeat_results.layer=8; add_child(defeat_results)
-	var panel:=Panel.new(); panel.position=Vector2(830,38); panel.size=Vector2(420,636); defeat_results.add_child(panel)
-	var style:=StyleBoxFlat.new(); style.bg_color=Color("163b45"); style.set_corner_radius_all(18); panel.add_theme_stylebox_override("panel",style)
-	var report=preload("res://scripts/contribution_panel.gd").new(); report.entries=contributions.snapshot(armory.levels); report.weapons=armory.levels.duplicate(); report.position=Vector2(18,18); report.size=Vector2(384,475); panel.add_child(report)
-	for i in range(2):
-		var button:=Button.new(); button.text=("もう一度遊ぶ ["+Settings.binding_label("restart")+" / Y]") if i==0 else "タイトルへ"; button.position=Vector2(18,505+i*58); button.size=Vector2(384,48); panel.add_child(button)
-		if i==0: button.pressed.connect(func(): restart_run()); button.grab_focus()
-		else: button.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
+	defeat_results=preload("res://scripts/victory_screen.gd").new()
+	defeat_results.results=_result_data(false)
+	defeat_results.play_again.connect(func(): restart_run())
+	defeat_results.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
+	add_child(defeat_results)
 
 func restart_run() -> void:
 	Tiers.selected_id=difficulty_id

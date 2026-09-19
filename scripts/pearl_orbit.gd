@@ -53,7 +53,7 @@ func _physics_process(delta: float) -> void:
 				var closest:=Geometry3D.get_closest_point_to_segment(enemy.global_position+Vector3.UP,begin,finish)
 				if closest.distance_to(enemy.global_position+Vector3.UP)<=0.3+enemy.hit_radius:
 					hit_times[enemy.get_instance_id()]=time
-					enemy.take_damage(stats.damage)
+					preload("res://scripts/contributions.gd").hit(self,enemy,stats.damage)
 	age+=delta
 	global_position=center
 	for i in range(int(stats.count)):

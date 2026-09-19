@@ -99,8 +99,9 @@ func activate() -> bool:
 		if enemy.dead or offset.length()>RADIUS+enemy.hit_radius: continue
 		if enemy.is_in_group("final_bosses"): bosses.append(enemy)
 		else: targets.append(enemy)
+	set_meta("contribution_id","ultimate:"+preload("res://scripts/character_roster.gd").CHARACTERS[game.player.character_id].ultimate)
 	var before: int=game.player.health
-	game.player.heal(definition.heal)
+	preload("res://scripts/contributions.gd").heal(self,game.player,definition.heal)
 	var healed: int=game.player.health-before
 	game.player.invulnerability=maxf(game.player.invulnerability,1)
 	for group in ["hostile_projectiles","enemy_clouds"]:
@@ -125,7 +126,7 @@ func activate() -> bool:
 	game.actors.add_child(effect)
 	game.sound.play_effect(definition.sound)
 	for enemy in targets+bosses:
-		if is_instance_valid(enemy) and not enemy.dead: enemy.take_damage(definition.damage)
+		if is_instance_valid(enemy) and not enemy.dead: preload("res://scripts/contributions.gd").hit(self,enemy,definition.damage)
 	refresh()
 	return true
 

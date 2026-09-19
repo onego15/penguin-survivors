@@ -65,7 +65,7 @@ func _physics_process(delta: float) -> void:
 			for enemy in targets:
 				if not is_instance_valid(enemy) or enemy.dead or not enemy.targetable: continue
 				var offset: Vector3=enemy.global_position-global_position; offset.y=0
-				if offset.length()<=radius+enemy.hit_radius and O.visible_between(self,global_position,enemy.global_position): enemy.take_damage(damage)
+				if offset.length()<=radius+enemy.hit_radius and O.visible_between(self,global_position,enemy.global_position): preload("res://scripts/contributions.gd").hit(self,enemy,damage)
 	if struck:
 		var t:=clampf((age-1.2)/0.8,0,1)
 		shock.show()

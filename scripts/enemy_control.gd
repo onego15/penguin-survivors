@@ -57,6 +57,8 @@ func apply(effect: String, value: float, direction: Vector3) -> bool:
 func step(delta: float) -> bool:
 	var stopped:=frozen>0 or knock_left>0 or recovery>0
 	var old_freeze:=frozen
+	if frozen>0 and not get_parent().dead:
+		preload("res://scripts/contributions.gd").record(self,get_meta("freeze_source",""),"freeze_seconds",minf(delta,frozen))
 	frozen=maxf(0,frozen-delta)
 	freeze_lock=maxf(0,freeze_lock-delta)
 	knock_lock=maxf(0,knock_lock-delta)

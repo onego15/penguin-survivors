@@ -60,9 +60,9 @@ func _ready() -> void:
 func hit(enemy: Node3D, effect: String, value: float, push:=Vector3.ZERO) -> void:
 	if enemy.dead or not enemy.targetable or hit_ids.has(enemy.get_instance_id()) or not O.visible_between(self,global_position,enemy.global_position): return
 	hit_ids[enemy.get_instance_id()]=age+float(stats.cooldown) if mode=="gust" else INF
-	enemy.take_damage(int(stats.damage))
+	preload("res://scripts/contributions.gd").hit(self,enemy,int(stats.damage))
 	if is_instance_valid(enemy) and not enemy.dead and enemy.has_method("apply_control"):
-		enemy.apply_control(effect,value,push)
+		preload("res://scripts/contributions.gd").control(self,enemy,effect,value,push)
 func burst(center: Vector3) -> void:
 	exploded=true
 	global_position=center

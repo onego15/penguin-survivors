@@ -25,6 +25,7 @@ func acquire(id: String) -> void:
 	if not id in Catalog.all_ids() or consumed.has(id) or int(levels.get(id,0))>=Catalog.max_rank(id):
 		return
 	levels[id] = maxi(Catalog.min_rank(id),int(levels.get(id, 0)) + 1)
+	game.contributions.add("weapon:"+id,"damage",0)
 	if id=="frost": game.player.equip_frost()
 	if id == "frost" or mounts.has(id) or (id=="heart" and game.player.character_id=="pink"):
 		return

@@ -40,6 +40,7 @@
 プロジェクトのルートから実行します。以下の `godot` はPATHに登録したGodot実行ファイル名です。Windowsでは使用するGodotのコンソール版exeのパスへ置き換えられます。
 
 ```sh
+godot --headless --path . --script tests/contributions_test.gd
 godot --headless --path . --script tests/evolution_test.gd
 godot --headless --path . --script tests/settings_test.gd
 godot --headless --path . --script tests/sandbox_test.gd
@@ -145,3 +146,7 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 専用テストと関連回帰テストは通過。[進化ガイド](evolutions.md#検証記録2026-09-19)に数値・実画面・同じ選択回数での比較を記録しています。再測定は `tests/evolution_campaign_audit.gd`（自然成長）、`tests/evolution_balance_audit.gd`（Wave 4）、`tests/evolution_boss_audit.gd`（決戦）。円移動の自動操作ではボス未討伐のため、撃破時間の優劣は判定していません。
 
 低レベル合体の調整は `tests/evolution_low_rank_audit.gd` で3シード・全周囲／正面を比較。[調整値・条件・結果](evolutions.md#低レベル合体の調整2026-09-19)に記録しています。HPを復元する固定時間試験なので、生存時間・クリア率の代用にはしません。
+
+## 貢献リザルト
+
+`scripts/contributions.gd` は攻撃元IDを維持して実HP変化・制御成功を集計。`contribution_panel.gd` を祝勝・死亡画面で共用します。`tests/contributions_test.gd` と関連回帰テスト、`tools/capture_contributions.gd` で検証。[集計定義と実画面](results.md)を参照してください。

@@ -49,7 +49,7 @@ func _physics_process(delta: float) -> void:
 				hit = enemy
 	if hit != null:
 		if not support_star: preload("res://scripts/weapon_spark.gd").spawn(self,hit.global_position+Vector3.UP)
-		hit.take_damage(damage)
+		preload("res://scripts/contributions.gd").hit(self,hit,damage)
 		queue_free()
 		return
 	if blocked: queue_free(); return

@@ -24,6 +24,7 @@ var heart_left := 0.0
 var label: Label3D
 var beacon: Node3D
 func _ready() -> void:
+	set_meta("contribution_id","support:"+str(kind))
 	add_to_group("support_friends")
 	model=Models.support(self,kind)
 	V.ring(self,Color("49cbb8"),Vector3(0,0.07,0),0.9,0.065)
@@ -57,6 +58,7 @@ func _ready() -> void:
 		stomp_effect.add_to_group("friendly_effects")
 		add_child(stomp_effect)
 func recruit() -> void:
+	preload("res://scripts/contributions.gd").record(self,"support:"+str(kind),"damage",0)
 	if state!="waiting" or game.player.health<=0: return
 	state="following"
 	label.hide()
@@ -124,7 +126,7 @@ func tick(delta: float) -> void:
 	heart.visible=heart_left>0
 	if heart.visible: heart.global_position=game.player.global_position+Vector3(0,2.1+(0.8-heart_left),0)
 func _heal() -> void:
-	game.player.heal(5)
+	preload("res://scripts/contributions.gd").heal(self,game.player,5)
 	heart_left=0.8
 	game.sound.play_effect("support_heal")
 func _shoot() -> void:
@@ -135,6 +137,7 @@ func _shoot() -> void:
 	shot.direction=(enemy.global_position+Vector3.UP-shot.position).normalized()
 	shot.damage=3+int(game.Difficulty.profile(game.elapsed).phase/3)
 	shot.support_star=true
+	shot.set_meta("contribution_id","support:2")
 	game.actors.add_child(shot)
 	game.sound.play_effect("magic")
 func leave() -> void:
@@ -163,6 +166,6 @@ func _stomp() -> void:
 		if not is_instance_valid(enemy) or enemy.dead or not enemy.targetable: continue
 		var offset: Vector3=enemy.global_position-center; offset.y=0
 		if offset.length()>5+enemy.hit_radius or not preload("res://scripts/castle_obstacles.gd").visible_between(self,center,enemy.global_position): continue
-		enemy.take_damage(2)
+		preload("res://scripts/contributions.gd").hit(self,enemy,2)
 		if is_instance_valid(enemy) and not enemy.dead and enemy.has_method("apply_control"):
-			enemy.apply_control("knockback",3.0,offset.normalized() if offset.length()>0.01 else Vector3.BACK)
+			preload("res://scripts/contributions.gd").control(self,enemy,"knockback",3.0,offset.normalized() if offset.length()>0.01 else Vector3.BACK)

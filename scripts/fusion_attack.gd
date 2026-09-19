@@ -66,7 +66,7 @@ func area(center: Vector3, radius: float, damage: int, seen: Dictionary) -> void
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not eligible(enemy) or seen.has(enemy.get_instance_id()): continue
 		if flat(enemy.global_position-center).length()<=radius+enemy.hit_radius and O.visible_between(self,center,enemy.global_position):
-			seen[enemy.get_instance_id()]=true; enemy.take_damage(damage)
+			seen[enemy.get_instance_id()]=true; preload("res://scripts/contributions.gd").hit(self,enemy,damage)
 func pulse() -> void:
 	match mode:
 		"rainbow_heart":
@@ -77,7 +77,7 @@ func pulse() -> void:
 			for enemy in get_tree().get_nodes_in_group("enemies"):
 				if not eligible(enemy) or not O.visible_between(self,global_position,enemy.global_position): continue
 				var closest:=Geometry3D.get_closest_point_to_segment(flat(enemy.global_position),flat(global_position),flat(end))
-				if closest.distance_to(flat(enemy.global_position))<=float(stats.width)*0.5+enemy.hit_radius: enemy.take_damage(stats.damage)
+				if closest.distance_to(flat(enemy.global_position))<=float(stats.width)*0.5+enemy.hit_radius: preload("res://scripts/contributions.gd").hit(self,enemy,stats.damage)
 			flash_left=0.3 if pulse_count==4 else 0.15
 		"blizzard_fan":
 			var origin: Vector3=player.global_position
@@ -87,8 +87,8 @@ func pulse() -> void:
 				var offset:=flat(enemy.global_position-origin)
 				if offset.length()>float(stats.reach)+enemy.hit_radius or (offset.length()>0.01 and facing.dot(offset.normalized())<cos(deg_to_rad(35))): continue
 				if not O.visible_between(self,origin,enemy.global_position): continue
-				enemy.take_damage(stats.damage)
-				if eligible(enemy) and enemy.has_method("apply_control"): enemy.apply_control("freeze",stats.freeze,Vector3.ZERO)
+				preload("res://scripts/contributions.gd").hit(self,enemy,stats.damage)
+				if eligible(enemy) and enemy.has_method("apply_control"): preload("res://scripts/contributions.gd").control(self,enemy,"freeze",stats.freeze,Vector3.ZERO)
 			flash_left=0.45
 		"pearl_chime":
 			var seen: Dictionary={}

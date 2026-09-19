@@ -222,7 +222,7 @@ func _damage(enemy: Node3D) -> void:
 		else: cosmetic=preload("res://scripts/weapon_models.gd").build(visual,"fan" if visual_kind=="feather" else "rear_fan")
 	if visual_kind=="lance": spawn_detail("lance_hit",enemy.global_position+Vector3.UP,0.25,0.5)
 	if visual_kind=="heart": spawn_detail("heart_hit",enemy.global_position+Vector3.UP,0.3,0.5)
-	enemy.take_damage(damage)
+	preload("res://scripts/contributions.gd").hit(self,enemy,damage)
 
 
 func _area_hit(reach: float, repeat: bool) -> void:

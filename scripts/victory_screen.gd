@@ -88,11 +88,9 @@ func _ready() -> void:
 	ui.add_child(panel)
 	_label(results.get("stage_name","雪原")+" CHAMPION",Vector2(853,59),20,Color("f7d888"))
 	_label("TIME  %02d:%02d   /   Lv.%d\nDEFEATED  %d" % [int(results.elapsed)/60,int(results.elapsed)%60,results.level,results.kills],Vector2(853,101),21,Color("effbf8"))
-	_label("一緒に戦った武器",Vector2(853,174),19,Color("9de4d5"))
-	var index:=0
-	for id in results.weapons:
-		_label("%s  Lv.%d" % [Catalog.data(id).name,results.weapons[id]],Vector2(853,209+index*(14 if results.weapons.size()>20 else (16 if results.weapons.size()>19 else 17))),13 if results.weapons.size()>19 else 14,Color("e0eeee"))
-		index+=1
+	var report:=preload("res://scripts/contribution_panel.gd").new()
+	report.entries=results.get("contributions",{}); report.weapons=results.weapons
+	report.position=Vector2(851,174); report.size=Vector2(376,352); ui.add_child(report)
 	_button("もう一度遊ぶ  ["+get_node("/root/Settings").binding_label("restart")+" / Y]",Vector2(851,543),func(): play_again.emit())
 	_button("タイトルへ",Vector2(851,603),func(): return_title.emit())
 func _label(text: String, point: Vector2, size: int, color: Color) -> void:

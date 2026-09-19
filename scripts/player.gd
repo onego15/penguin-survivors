@@ -108,7 +108,10 @@ func take_damage(amount: int) -> void:
 	if cinematic_locked or training_invincible: return
 	if invulnerability > 0.0 or health <= 0:
 		return
+	var original:=maxi(0,amount)
 	amount = maxi(1, ceili(amount * support_damage_multiplier))
+	if support_damage_multiplier<1:
+		preload("res://scripts/contributions.gd").record(self,"support:1","prevented",mini(health,original)-mini(health,amount))
 	damage_received.emit(mini(health,amount))
 	health = maxi(0, health - amount)
 	get_tree().call_group("game_audio", "play_effect", "hurt")

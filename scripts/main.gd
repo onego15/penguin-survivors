@@ -28,6 +28,8 @@ var kills := 0
 var elapsed := 0.0
 var spawn_cooldown := Difficulty.FIRST_SPAWN
 var fire_cooldown := 0.0
+var contributions=preload("res://scripts/contributions.gd").new()
+var defeat_results: CanvasLayer
 var game_over := false
 var rng := RandomNumberGenerator.new()
 var spawn_count := 0
@@ -272,6 +274,9 @@ func _physics_process(delta: float) -> void:
 		sound.finish(false)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\n%s / Y: Restart   /   Esc: Settings" % [kills, elapsed, Settings.binding_label("restart")]
+		game_over_label.anchor_right=0.63
+		game_over_label.text="GAME OVER\nWave %d / %02d:%02d\n%d 撃破 / Lv.%d"%[mini(10,int(elapsed)/60+1),int(elapsed)/60,int(elapsed)%60,kills,level]
+		_show_defeat_results()
 		game_over_label.show()
 		end_backdrop.show()
 		_update_hud()
@@ -287,7 +292,7 @@ func _physics_process(delta: float) -> void:
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		victory_screen=preload("res://scripts/victory_screen.gd").new()
-		victory_screen.results={"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true)}
+		victory_screen.results={"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
 		victory_screen.play_again.connect(func(): get_tree().reload_current_scene())
 		victory_screen.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
 		add_child(victory_screen)
@@ -624,3 +629,13 @@ func _clear_control_states() -> void:
 			enemy.control.free()
 			enemy.control=null
 	for attack in get_tree().get_nodes_in_group("control_attacks"): attack.queue_free()
+
+func _show_defeat_results() -> void:
+	defeat_results=CanvasLayer.new(); defeat_results.layer=8; add_child(defeat_results)
+	var panel:=Panel.new(); panel.position=Vector2(830,38); panel.size=Vector2(420,636); defeat_results.add_child(panel)
+	var style:=StyleBoxFlat.new(); style.bg_color=Color("163b45"); style.set_corner_radius_all(18); panel.add_theme_stylebox_override("panel",style)
+	var report=preload("res://scripts/contribution_panel.gd").new(); report.entries=contributions.snapshot(armory.levels); report.weapons=armory.levels.duplicate(); report.position=Vector2(18,18); report.size=Vector2(384,475); panel.add_child(report)
+	for i in range(2):
+		var button:=Button.new(); button.text=("もう一度遊ぶ ["+Settings.binding_label("restart")+" / Y]") if i==0 else "タイトルへ"; button.position=Vector2(18,505+i*58); button.size=Vector2(384,48); panel.add_child(button)
+		if i==0: button.pressed.connect(func(): get_tree().reload_current_scene()); button.grab_focus()
+		else: button.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))

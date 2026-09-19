@@ -60,6 +60,7 @@ func start_attack() -> void:
 			bomb.origin=global_position
 			bomb.target=target
 			bomb.damage=18
+			preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bomb)
 			get_parent().add_child(bomb)
 			count+=1
 		warning_left=0
@@ -87,6 +88,7 @@ func release() -> void:
 			bolt.target=target
 			bolt.speed=6
 			bolt.damage=14
+			preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bolt)
 			get_parent().add_child(bolt)
 		rest=1.5
 		cooldown=5
@@ -127,7 +129,7 @@ func _physics_process(delta: float) -> void:
 			if kind==12:
 				flash.show()
 				flash_left=0.4
-				if target.position.distance_to(position)<3.02 and O.visible_between(self,position,target.position): target.take_damage(20)
+				if target.position.distance_to(position)<3.02 and O.visible_between(self,position,target.position): target.take_damage(20,preload("res://scripts/difficulty_tiers.gd").source(self))
 		return
 	cooldown-=delta
 	var offset:=target.global_position-global_position

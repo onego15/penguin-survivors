@@ -167,7 +167,7 @@ func _physics_process(delta: float) -> void:
 		model.rotation.y = lerp_angle(model.rotation.y, atan2(offset.x, offset.z), 1 - exp(-delta * 8))
 	_animate(2.0)
 	if global_position.distance_to(target.global_position) < hit_radius + 0.42:
-		target.take_damage(contact_damage)
+		target.take_damage(contact_damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 	attack_cooldown -= delta
 	if attack_cooldown <= 0:
 		attack_kind = "slam" if attack_index % 2 == 0 and offset.length() < 7 else "shards"
@@ -212,7 +212,7 @@ func _release_attack() -> void:
 	for arm in arms: arm.rotation.x=0
 	if attack_kind=="quake":
 		quake_warning.hide()
-		if target.global_position.distance_to(quake_center)<=9.0+0.42: target.take_damage(40)
+		if target.global_position.distance_to(quake_center)<=9.0+0.42: target.take_damage(40,preload("res://scripts/difficulty_tiers.gd").source(self))
 		quake_area.global_position=quake_center+Vector3.UP*0.09
 		quake_ice.global_position=quake_center
 		quake_area.show()
@@ -228,7 +228,7 @@ func _release_attack() -> void:
 		get_tree().call_group("game_audio", "play_effect", "slash")
 	elif attack_kind == "slam":
 		if global_position.distance_to(target.global_position) < SLAM_RADIUS + 0.42:
-			target.take_damage(28)
+			target.take_damage(28,preload("res://scripts/difficulty_tiers.gd").source(self))
 		warning_ring.hide()
 		active_area.show()
 		flash_left = 0.3
@@ -240,6 +240,7 @@ func _release_attack() -> void:
 			bolt.direction = locked_direction.rotated(Vector3.UP, angle)
 			bolt.position = position + Vector3.UP + bolt.direction * 1.7
 			bolt.speed = 6.0 if enraged else 5.0
+			preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bolt)
 			get_parent().add_child(bolt)
 	attack_cooldown = 2.0 if enraged else 3.0
 
@@ -255,7 +256,7 @@ func _tick_dash(delta: float) -> void:
 	player_ground.y = start.y
 	var closest := Geometry3D.get_closest_point_to_segment(player_ground, start, finish)
 	if not dash_hit and closest.distance_to(player_ground) <= hit_radius + 0.42:
-		target.take_damage(28)
+		target.take_damage(28,preload("res://scripts/difficulty_tiers.gd").source(self))
 		dash_hit = true
 	global_position = finish
 	dash_left = maxf(0, dash_left - step)

@@ -15,11 +15,13 @@ var suppress_rewards:=false
 var formation_sequence:=0
 
 func _ready() -> void:
+	difficulty_id="normal"
 	stage_id="snowfield"
 	super._ready()
 	add_to_group("sandbox")
 	hud_layer.hide()
 	settings=saved.duplicate(true) if not saved.is_empty() else {"character":Roster.selected(),"weapons":{Roster.CHARACTERS[Roster.selected()].weapon:1},"invincible":true,"stopped":false,"minute":0}
+	settings["difficulty"]=Tiers.valid(settings.get("difficulty","normal"))
 	rebuild_player(true)
 	menu=preload("res://scripts/sandbox_ui.gd").new()
 	menu.game=self
@@ -233,7 +235,9 @@ func create_enemy(spec: Dictionary, point: Vector3, strength: float) -> Node3D:
 	enemy.target=player
 	enemy.movement_phase=rng.randf_range(0,TAU)
 	enemy.position=point
+	Tiers.prepare(enemy,settings.get("difficulty","normal"))
 	actors.add_child(enemy)
+	Tiers.apply_hp(enemy)
 	enemy.damage_received.connect(func(amount): dealt+=amount)
 	enemy.rewarded.connect(_on_enemy_defeated)
 	if spec.type=="mid": enemy.reward_value=8

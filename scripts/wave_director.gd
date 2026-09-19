@@ -77,7 +77,7 @@ func choose_kind() -> int:
 func tick(delta: float, boss_alive: bool) -> void:
 	advance()
 	if game.elapsed>=600 or game.elapsed<game.recovery_until: return
-	var rate: float = game.Difficulty.profile(game.elapsed).rate * (0.5 if boss_alive else 1.0)
+	var rate: float = game.Tiers.profile(game.elapsed,game.difficulty_id).rate * (0.5 if boss_alive else 1.0)
 	budget=minf(6,budget+rate*delta)
 	game.spawn_cooldown-=delta
 	if game.spawn_cooldown>0: return

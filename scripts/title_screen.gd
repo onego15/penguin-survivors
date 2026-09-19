@@ -1,5 +1,8 @@
 extends Node3D
 
+const Tiers=preload("res://scripts/difficulty_tiers.gd")
+var difficulty_buttons: Array[Button]=[]
+var difficulty_hint: Label
 const V = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const Roster=preload("res://scripts/character_roster.gd")
@@ -92,10 +95,22 @@ func _ready() -> void:
 	ui.add_child(start_button)
 	start_button.pressed.connect(start_game)
 	start_button.grab_focus()
-	_label(ui, "← / → キャラ選択   ENTER / SPACE 開始", Vector2(75, 541), 15, Color("94b4bf"))
-	_label(ui, "移動・必殺技：設定の「操作」で確認 / 攻撃は自動\nEsc・Start：ポーズ設定 / 1・2・3：武器選択", Vector2(74, 570), 17, Color("bfd9df"))
+	for id in Tiers.IDS:
+		var button:=Button.new()
+		button.text=Tiers.data(id).name
+		button.position=Vector2(74+difficulty_buttons.size()*124,548)
+		button.size=Vector2(120,34); button.toggle_mode=true
+		var chosen:=StyleBoxFlat.new(); chosen.bg_color=Color("35535d"); chosen.border_color=Color("f3d48e")
+		chosen.set_border_width_all(2); chosen.set_corner_radius_all(4)
+		button.add_theme_stylebox_override("pressed",chosen)
+		button.pressed.connect(select_difficulty.bind(id)); ui.add_child(button)
+		difficulty_buttons.append(button)
+	difficulty_hint=Label.new(); difficulty_hint.position=Vector2(74,588)
+	difficulty_hint.add_theme_font_size_override("font_size",15); ui.add_child(difficulty_hint)
+	select_difficulty(Tiers.selected_id)
+	_label(ui, "← / → キャラ選択   Enter / Space 開始\nEsc：ポーズ設定 / 操作は設定で確認 / 攻撃は自動", Vector2(74, 625), 15, Color("bfd9df"))
 	_label(ui, "一歩ずつ、強くなる。", Vector2(822, 591), 22, Color("23485a"))
-	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 633), 16, Color("8fe5dc"))
+	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 673), 14, Color("8fe5dc"))
 	_label(ui,"STAGE SELECT",Vector2(710,68),18,Color("244156"))
 	for id in ["snowfield","castle"]:
 		var button:=Button.new()
@@ -203,6 +218,7 @@ func select_character(id: String) -> void:
 	for i in range(selection_buttons.size()):
 		selection_buttons[i].set_pressed_no_signal(id==["classic","pink"][i])
 func _input(event: InputEvent) -> void:
+	if get_viewport().gui_get_focus_owner() in difficulty_buttons: return
 	if Settings.opened: return
 	if is_instance_valid(weapon_list) and weapon_list.visible: return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_LEFT,KEY_RIGHT]:
@@ -214,3 +230,9 @@ func select_stage(id: String) -> void:
 	Stages.selected_id=id
 	stage_hint.text="氷の城：門でルートが変わる上級ステージ\n白青の鍵が点滅したら、開いた門へ！" if id=="castle" else "雪原：見晴らしのよい最初のステージ\n武器と仲間を集め、冬の王に挑もう。"
 	for i in range(stage_buttons.size()): stage_buttons[i].set_pressed_no_signal(id==["snowfield","castle"][i])
+
+func select_difficulty(id: String) -> void:
+	if starting: return
+	Tiers.selected_id=Tiers.valid(id)
+	difficulty_hint.text="難易度："+Tiers.data(Tiers.selected_id).hint
+	for i in range(difficulty_buttons.size()): difficulty_buttons[i].set_pressed_no_signal(Tiers.IDS[i]==Tiers.selected_id)

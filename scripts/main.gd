@@ -1,5 +1,7 @@
 extends Node3D
 
+const Tiers=preload("res://scripts/difficulty_tiers.gd")
+var difficulty_id:=Tiers.valid(Tiers.selected_id)
 const Stages=preload("res://scripts/stage_catalog.gd")
 const O=preload("res://scripts/castle_obstacles.gd")
 var stage_id:=Stages.selected_id
@@ -68,6 +70,7 @@ var wave_hint: Label
 
 
 func _ready() -> void:
+	xp_needed=Tiers.xp(level,difficulty_id)
 	stage=Stages.STAGES.get(stage_id,Stages.STAGES.snowfield)
 	rng.randomize()
 	sound = preload("res://scripts/game_audio.gd").new()
@@ -184,13 +187,13 @@ func _setup_hud() -> void:
 	phase_label = Label.new()
 	phase_label.position = Vector2(450, 20)
 	phase_label.add_theme_font_override("font", japanese_font)
-	phase_label.add_theme_font_size_override("font_size", 20)
+	phase_label.add_theme_font_size_override("font_size", 18)
 	phase_label.add_theme_color_override("font_color", Color("233f50"))
 	phase_label.size.x=440
 	phase_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	layer.add_child(phase_label)
 	boss_label = Label.new()
-	boss_label.position = Vector2(450, 52)
+	boss_label.position = Vector2(450, 76)
 	boss_label.add_theme_font_override("font", japanese_font)
 	boss_label.add_theme_font_size_override("font_size", 20)
 	boss_label.add_theme_color_override("font_color", Color("523944"))
@@ -199,7 +202,7 @@ func _setup_hud() -> void:
 	boss_label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	layer.add_child(boss_label)
 	boss_bar = ProgressBar.new()
-	boss_bar.position = Vector2(450, 98)
+	boss_bar.position = Vector2(450, 122)
 	boss_bar.size = Vector2(440, 16)
 	boss_bar.show_percentage = false
 	_style_bar(boss_bar, Color("e98665"))
@@ -218,7 +221,7 @@ func _setup_hud() -> void:
 	game_over_label.visible = false
 	layer.add_child(game_over_label)
 	wave_hint=Label.new()
-	wave_hint.position=Vector2(450,136)
+	wave_hint.position=Vector2(450,148)
 	wave_hint.add_theme_font_override("font",japanese_font)
 	wave_hint.add_theme_font_size_override("font_size",16)
 	wave_hint.add_theme_color_override("font_color",Color("234758"))
@@ -261,7 +264,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if game_over or victory:
 		if Input.is_action_just_pressed("restart") and Settings.allows_action("restart"):
-			get_tree().reload_current_scene()
+			restart_run()
 		return
 	if player.health <= 0:
 		game_over = true
@@ -275,7 +278,7 @@ func _physics_process(delta: float) -> void:
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		game_over_label.text = "GAME OVER\n%d defeated  /  %.1f seconds\n%s / Y: Restart   /   Esc: Settings" % [kills, elapsed, Settings.binding_label("restart")]
 		game_over_label.anchor_right=0.63
-		game_over_label.text="GAME OVER\nWave %d / %02d:%02d\n%d 撃破 / Lv.%d"%[mini(10,int(elapsed)/60+1),int(elapsed)/60,int(elapsed)%60,kills,level]
+		game_over_label.text="GAME OVER / %s\nWave %d / %02d:%02d\n%d 撃破 / Lv.%d"%[Tiers.data(difficulty_id).name,mini(10,int(elapsed)/60+1),int(elapsed)/60,int(elapsed)%60,kills,level]
 		_show_defeat_results()
 		game_over_label.show()
 		end_backdrop.show()
@@ -292,8 +295,8 @@ func _physics_process(delta: float) -> void:
 		sound.finish(true)
 		actors.process_mode = Node.PROCESS_MODE_DISABLED
 		victory_screen=preload("res://scripts/victory_screen.gd").new()
-		victory_screen.results={"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
-		victory_screen.play_again.connect(func(): get_tree().reload_current_scene())
+		victory_screen.results={"difficulty_name":Tiers.data(difficulty_id).name,"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
+		victory_screen.play_again.connect(func(): restart_run())
 		victory_screen.return_title.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
 		add_child(victory_screen)
 		_update_hud()
@@ -322,7 +325,7 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 		return null
 	if as_boss and boss_encounters >= Miniboss.ROSTER.size():
 		return null
-	var profile := Difficulty.profile(elapsed)
+	var profile := Tiers.profile(elapsed,difficulty_id)
 	var cap: int = MAX_ENEMIES if as_boss else profile.cap
 	# Reserve one of the 100 total slots for a scheduled boss.
 	cap = mini(cap, MAX_ENEMIES if as_boss else MAX_ENEMIES - 1)
@@ -359,7 +362,9 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 		enemy.defeated.connect(_on_boss_defeated)
 	else:
 		enemy.rewarded.connect(_on_enemy_defeated)
+	Tiers.prepare(enemy,difficulty_id)
 	actors.add_child(enemy)
+	Tiers.apply_hp(enemy)
 	return enemy
 
 
@@ -408,7 +413,9 @@ func _start_final_boss() -> void:
 	if obstacles!=null and not obstacles.clear(active_boss.position,1.7): active_boss.position=Vector3(0,0,-18 if player.position.z>0 else 18)
 	active_boss.defeated.connect(_on_final_boss_defeated)
 	active_boss.phase_changed.connect(_on_phase_changed)
+	Tiers.prepare(active_boss,difficulty_id)
 	actors.add_child(active_boss)
+	Tiers.apply_hp(active_boss)
 	_begin_presentation("boss_intro")
 
 
@@ -485,7 +492,7 @@ func open_weapon_choice() -> void:
 		sound.play_effect("level_up")
 		experience-=xp_needed
 		level+=1
-		xp_needed=Difficulty.xp_for_level(level)
+		xp_needed=Tiers.xp(level,difficulty_id)
 		_update_hud()
 		return
 	while offered_weapons.size() < 3 and not pool.is_empty():
@@ -524,7 +531,7 @@ func _finish_weapon_choice(evolved:=false) -> void:
 	if not evolved: sound.play_effect("choose")
 	experience -= xp_needed
 	level += 1
-	xp_needed = Difficulty.xp_for_level(level)
+	xp_needed = Tiers.xp(level,difficulty_id)
 	choice_open = false
 	choice_ui.close()
 	offered_weapons.clear()
@@ -548,16 +555,16 @@ func _update_hud() -> void:
 	for id in armory.levels:
 		inventory_label.text += "\n%s  %s" % [Catalog.data(id).name, "MAX" if armory.levels[id]>=Catalog.max_rank(id) else "Lv.%d"%armory.levels[id]]
 		if id=="starfall": inventory_label.text+="  %ds"%ceili(maxf(0,armory.cooldowns.get(id,0)))
-	var profile := Difficulty.profile(elapsed)
+	var profile := Tiers.profile(elapsed,difficulty_id)
 	if director!=null:
 		wave_hint.text = director.waves[director.wave].hint if director.wave>=0 else ""
 		if elapsed<director.notification_until: wave_hint.text=director.notice
 		if final_boss_spawned:
 			wave_hint.text="大氷震：範囲の外へ！" if is_instance_valid(active_boss) and active_boss.attack_kind=="quake" and active_boss.warning_left>0 else stage.boss_name+" / 予告を見て回避"
 		elif not choice_open: wave_hint.text += "  /  次Wave %d秒" % maxi(0,60-int(elapsed)%60)
-	phase_label.text = "%s / WAVE %d %s" % [stage.name,profile.phase,director.waves[director.wave].name]
+	phase_label.text = "%s / %s\nWAVE %d %s" % [stage.name,Tiers.data(difficulty_id).name,profile.phase,director.waves[director.wave].name]
 	if final_boss_spawned:
-		phase_label.text = ("FINAL BATTLE  /  " if not victory else "CLEAR / ")+stage.boss_name
+		phase_label.text = ("FINAL BATTLE / " if not victory else "CLEAR / ")+Tiers.data(difficulty_id).name+"\n"+stage.boss_name
 	var boss_alive: bool = is_instance_valid(active_boss) and not active_boss.dead
 	boss_bar.visible = boss_alive
 	if boss_alive:
@@ -565,7 +572,7 @@ func _update_hud() -> void:
 		if not final_boss_spawned:
 			boss_label.text += active_boss.status_label()
 		if final_boss_spawned and active_boss.enraged:
-			phase_label.text = "FINAL BATTLE / "+stage.phase_name
+			phase_label.text = "FINAL BATTLE / "+Tiers.data(difficulty_id).name+"\n"+stage.phase_name
 		boss_bar.max_value = active_boss.max_health
 		boss_bar.value = active_boss.health
 	elif final_boss_spawned:
@@ -637,5 +644,9 @@ func _show_defeat_results() -> void:
 	var report=preload("res://scripts/contribution_panel.gd").new(); report.entries=contributions.snapshot(armory.levels); report.weapons=armory.levels.duplicate(); report.position=Vector2(18,18); report.size=Vector2(384,475); panel.add_child(report)
 	for i in range(2):
 		var button:=Button.new(); button.text=("もう一度遊ぶ ["+Settings.binding_label("restart")+" / Y]") if i==0 else "タイトルへ"; button.position=Vector2(18,505+i*58); button.size=Vector2(384,48); panel.add_child(button)
-		if i==0: button.pressed.connect(func(): get_tree().reload_current_scene()); button.grab_focus()
+		if i==0: button.pressed.connect(func(): restart_run()); button.grab_focus()
 		else: button.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/title.tscn"))
+
+func restart_run() -> void:
+	Tiers.selected_id=difficulty_id
+	get_tree().reload_current_scene()

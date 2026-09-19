@@ -31,7 +31,7 @@ func _physics_process(delta: float) -> void:
 	var across:=absf(offset.dot(Vector3(-direction.z,0,direction.x)))
 	if along>=-0.42 and along<=step+0.42 and across<=1.2+0.42:
 		spent=true
-		target.take_damage(damage)
+		target.take_damage(damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 		queue_free()
 	global_position+=direction*step
 	lifetime=maxf(0,lifetime-delta)

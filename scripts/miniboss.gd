@@ -85,7 +85,7 @@ func _physics_process(delta: float) -> void:
 			var offset := target.global_position - global_position
 			offset.y = 0
 			if offset.length() <= stomp_radius + 0.42:
-				if preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position): target.take_damage(22 + mini(encounter * 2, 10))
+				if preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position): target.take_damage(22 + mini(encounter * 2, 10),preload("res://scripts/difficulty_tiers.gd").source(self))
 			stomp_ring.hide()
 			active_area.show()
 			stomp_flash = 0.3
@@ -116,6 +116,7 @@ func _fox_attack(delta: float) -> void:
 				bolt.direction = special_direction.rotated(Vector3.UP, (index - 1) * 0.28)
 				bolt.position = position + Vector3.UP + bolt.direction * 1.3
 				bolt.speed = 5.0
+				preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bolt)
 				get_parent().add_child(bolt)
 			special_cooldown = 4.5
 		return
@@ -151,7 +152,7 @@ func _rabbit_attack(delta: float) -> void:
 		stomp_ring.global_position = jump_target + Vector3(0, 0.05, 0)
 		if progress >= 1:
 			if global_position.distance_to(target.global_position) < stomp_radius + 0.42:
-				if preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position): target.take_damage(24)
+				if preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position): target.take_damage(24,preload("res://scripts/difficulty_tiers.gd").source(self))
 			stomp_ring.hide()
 			active_area.position=Vector3(0,0.09,0)
 			active_area.show()

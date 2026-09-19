@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 		warning.hide()
 		ball.hide()
 		active.show()
-		if is_instance_valid(target) and target.global_position.distance_to(global_position)<=2.42 and O.visible_between(self,global_position,target.global_position): target.take_damage(damage)
+		if is_instance_valid(target) and target.global_position.distance_to(global_position)<=2.42 and O.visible_between(self,global_position,target.global_position): target.take_damage(damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 	if age>=1.85: hide(); queue_free()
 func danger_contains(point: Vector3) -> bool:
 	return age<1.85 and point.distance_to(global_position)<2.5

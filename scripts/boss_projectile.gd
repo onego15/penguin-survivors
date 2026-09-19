@@ -37,7 +37,7 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(target):
 		var closest := Geometry3D.get_closest_point_to_segment(target.global_position + Vector3.UP, start, global_position)
 		if closest.distance_to(target.global_position + Vector3.UP) < 0.65:
-			target.take_damage(damage)
+			target.take_damage(damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 			queue_free()
 			return
 	if blocked: queue_free(); return

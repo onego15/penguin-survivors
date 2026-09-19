@@ -45,9 +45,9 @@ func tick(delta: float) -> void:
 			support_count+=1
 			had_support=true
 	if clock<next_minions: return
-	var slots:=(8 if phase==2 else 6)-game.get_tree().get_nodes_in_group("final_minions").size()
+	var slots:=int(game.Tiers.data(game.difficulty_id).minion_caps[phase-1])-game.get_tree().get_nodes_in_group("final_minions").size()
 	if slots<=0:
-		next_minions=clock+(9 if phase==2 else 12)
+		next_minions=clock+int(game.Tiers.data(game.difficulty_id).intervals[phase-1])
 		return
 	var heading: float=game.rng.randf_range(0,TAU)
 	var points: Array[Vector3]=[]
@@ -73,9 +73,11 @@ func tick(delta: float) -> void:
 		enemy.position=point
 		enemy.target=game.player
 		enemy.rewarded.connect(game._on_enemy_defeated)
+		game.Tiers.prepare(enemy,game.difficulty_id)
 		game.actors.add_child(enemy)
+		game.Tiers.apply_hp(enemy)
 		total_spawned+=1
-	next_minions=clock+(9 if phase==2 else 12)
+	next_minions=clock+int(game.Tiers.data(game.difficulty_id).intervals[phase-1])
 
 func choose_leopard(batch_size: int) -> bool:
 	if phase!=2: return false

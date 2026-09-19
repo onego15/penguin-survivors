@@ -104,10 +104,12 @@ func fire_feedback() -> void:
 	recoil = 1.0
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, attack_difficulty: String="") -> void:
 	if cinematic_locked or training_invincible: return
 	if invulnerability > 0.0 or health <= 0:
 		return
+	var tiers=preload("res://scripts/difficulty_tiers.gd")
+	amount=tiers.scaled(amount,tiers.data(tiers.source(self) if attack_difficulty=="" else attack_difficulty).damage)
 	var original:=maxi(0,amount)
 	amount = maxi(1, ceili(amount * support_damage_multiplier))
 	if support_damage_multiplier<1:

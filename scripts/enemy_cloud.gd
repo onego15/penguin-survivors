@@ -22,6 +22,6 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	if is_instance_valid(target) and danger_contains(target.global_position):
-		target.take_damage(damage)
+		target.take_damage(damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 func danger_contains(point: Vector3) -> bool:
 	return Vector2(point.x-position.x, point.z-position.z).length() <= radius + 0.42

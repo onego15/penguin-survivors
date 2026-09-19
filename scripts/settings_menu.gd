@@ -60,4 +60,9 @@ func add_slider(parent: Node, caption: String, initial: float, minimum: float, c
 func refresh_keys() -> void:
 	for action in key_buttons: key_buttons[action].text=settings.binding_label(action)
 func show_menu() -> void:
-	message.text="戦闘と演出を停止中"; show(); resume.grab_focus()
+	message.text="戦闘と演出を停止中"
+	var game=get_tree().current_scene
+	if is_instance_valid(game) and "difficulty_id" in game:
+		var id: String=game.settings.difficulty if game.is_in_group("sandbox") else game.difficulty_id
+		message.text+=(" / 次の配置：" if game.is_in_group("sandbox") else " / 難易度：")+preload("res://scripts/difficulty_tiers.gd").data(id).name
+	show(); resume.grab_focus()

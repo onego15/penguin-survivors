@@ -148,7 +148,7 @@ func _move_and_contact(delta: float, motion: Vector3) -> void:
 	# Sweep contact so a fast charge cannot skip the player.
 	var closest := Geometry3D.get_closest_point_to_segment(target.global_position, start, global_position)
 	if closest.distance_to(target.global_position) < hit_radius + 0.42 and preload("res://scripts/castle_obstacles.gd").visible_between(self,global_position,target.global_position):
-		target.take_damage(contact_damage)
+		target.take_damage(contact_damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 
 
 func _boar_motion(delta: float, toward: Vector3, distance: float) -> Vector3:

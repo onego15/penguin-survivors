@@ -110,6 +110,7 @@ func _physics_process(delta: float) -> void:
 			cloud.target=target
 			cloud.position=position
 			cloud.damage=roundi(8*damage_multiplier)
+			preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,cloud)
 			get_parent().add_child(cloud)
 		cooldown=4
 	elif kind == Kind.OWL and distance<=12:
@@ -158,6 +159,7 @@ func _release() -> void:
 			wave.direction=locked
 			wave.position=position
 			wave.damage=roundi(12*damage_multiplier)
+			preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,wave)
 			get_parent().add_child(wave)
 		special_state="recover"
 		timer=1.2
@@ -174,7 +176,7 @@ func _release() -> void:
 		targetable=true
 		add_to_group("enemies")
 		if position.distance_to(target.global_position)<=1.5+0.42:
-			target.take_damage(roundi(12*damage_multiplier))
+			target.take_damage(roundi(12*damage_multiplier),preload("res://scripts/difficulty_tiers.gd").source(self))
 		special_state="recover"
 		timer=2
 		cooldown=1.8 # 0.4s digging + 1.2s warning + 2s exposed + 1.8s movement.
@@ -189,6 +191,7 @@ func _fire(direction: Vector3) -> void:
 	bolt.speed=4.5
 	bolt.lifetime=3.5
 	bolt.tint=Color("ecb778") if kind==Kind.HEDGEHOG else Color("bf99e8")
+	preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bolt)
 	get_parent().add_child(bolt)
 func danger_contains(point: Vector3) -> bool:
 	if special_state != "warn": return false

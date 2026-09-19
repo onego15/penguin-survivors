@@ -146,6 +146,7 @@ func release() -> void:
 			bolt.pass_gates=true
 			bolt.speed=6
 			bolt.damage=12
+			preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bolt)
 			get_parent().add_child(bolt)
 	elif attack_kind=="rings":
 		var radius:=2.5 if enraged else 3.0
@@ -153,7 +154,7 @@ func release() -> void:
 			var area=C.danger(self,radius)
 			area.global_position=center
 			areas.append(area)
-			if target.global_position.distance_to(center)<=radius+0.42 and attack_visible(center,target.global_position): target.take_damage(24)
+			if target.global_position.distance_to(center)<=radius+0.42 and attack_visible(center,target.global_position): target.take_damage(24,preload("res://scripts/difficulty_tiers.gd").source(self))
 		flash_left=0.4
 	attack_index+=1
 	attack_cooldown=3.5
@@ -199,7 +200,7 @@ func _physics_process(delta: float) -> void:
 	recovery_left=maxf(0,recovery_left-delta)
 	if recovery_left<=0:
 		_move_and_contact(delta,(target.position-position).normalized()*speed)
-	if position.distance_to(target.position)<hit_radius+0.42 and O.visible_between(self,position,target.position): target.take_damage(contact_damage)
+	if position.distance_to(target.position)<hit_radius+0.42 and O.visible_between(self,position,target.position): target.take_damage(contact_damage,preload("res://scripts/difficulty_tiers.gd").source(self))
 func take_damage(amount: int) -> void:
 	if cinematic_locked or not targetable: return
 	super.take_damage(amount)

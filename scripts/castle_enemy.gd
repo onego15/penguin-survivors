@@ -70,6 +70,7 @@ func _physics_process(delta: float) -> void:
 		bomb.origin=global_position
 		bomb.position=target.global_position
 		bomb.damage=roundi(12*damage_multiplier)
+		preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,bomb)
 		get_parent().add_child(bomb)
 		cooldown=6
 		get_tree().call_group("game_audio","play_effect","castle_throw")

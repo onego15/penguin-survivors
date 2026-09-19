@@ -147,6 +147,12 @@ func _ready() -> void:
 	button(aids,"HP全回復",func():
 		if game.player.health>0: game.player.heal(100))
 	button(aids,"必殺技を充填・残り3回へ",func(): game.ultimate.uses=0; game.ultimate.charge=0; game.ultimate.reward(200))
+	var difficulty_row:=row(aids); label(difficulty_row,"難易度（次の生成から適用）")
+	var difficulty:=OptionButton.new(); difficulty_row.add_child(difficulty)
+	for id in game.Tiers.IDS: difficulty.add_item(game.Tiers.data(id).name)
+	difficulty.select(game.Tiers.IDS.find(game.settings.difficulty))
+	difficulty.item_selected.connect(func(index): game.settings.difficulty=game.Tiers.IDS[index]; game.save_settings())
+	label(aids,"既存の敵と、その敵の弾・罠は生成時の難易度を維持します。")
 	var strength:=row(aids); label(strength,"本編の経過時間相当（次の生成から適用）")
 	var minutes:=SpinBox.new(); minutes.max_value=10; minutes.suffix="分"; minutes.value=game.settings.minute; strength.add_child(minutes)
 	minutes.value_changed.connect(func(value): game.settings.minute=int(value); game.save_settings())

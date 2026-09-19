@@ -86,7 +86,7 @@ func _ready() -> void:
 	style.set_corner_radius_all(18)
 	panel.add_theme_stylebox_override("panel",style)
 	ui.add_child(panel)
-	_label(results.get("stage_name","雪原")+" CHAMPION",Vector2(853,59),20,Color("f7d888"))
+	_label(results.get("stage_name","雪原")+" / "+results.get("difficulty_name","ノーマル"),Vector2(853,59),17,Color("f7d888"))
 	_label("TIME  %02d:%02d   /   Lv.%d\nDEFEATED  %d" % [int(results.elapsed)/60,int(results.elapsed)%60,results.level,results.kills],Vector2(853,101),21,Color("effbf8"))
 	var report:=preload("res://scripts/contribution_panel.gd").new()
 	report.entries=results.get("contributions",{}); report.weapons=results.weapons

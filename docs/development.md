@@ -150,3 +150,13 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 ## 貢献リザルト
 
 `scripts/contributions.gd` は攻撃元IDを維持して実HP変化・制御成功を集計。`contribution_panel.gd` を祝勝・死亡画面で共用します。`tests/contributions_test.gd` と関連回帰テスト、`tools/capture_contributions.gd` で検証。[集計定義と実画面](results.md)を参照してください。
+
+## 4段階の難易度
+
+定義は `scripts/difficulty_tiers.gd`。既存の `difficulty.gd` は経過時間の曲線を維持します。生成時に敵へIDを保持し、独立した弾・罠にも同じIDをコピー。HPは生成後一度だけ補正し、被ダメージはプレイヤー共通処理で難易度→シロクマの順に計算します。
+
+- `tests/difficulty_tiers_test.gd`：倍率・生成経路・危険物・混在設定・タイトル／再挑戦・決戦増援。
+- `tests/difficulty_campaign_audit.gd`：32ケースの序盤3分比較。生ログの保存先は `docs/benchmarks/difficulty-2026-09-19.json`。
+- `tools/capture_difficulty.gd`：Compatibilityで6画面の表示確認用スクリーンショット。
+
+[倍率表・検証結果・制限](difficulty.md)

@@ -7,6 +7,8 @@ var cinematic_locked:=false
 var enraged:=false
 var warning_left:=0.0
 var dash_left:=0.0
+var ice_walls: Node3D
+var wall_busy:=false
 var attack_kind:=""
 var attack_index:=0
 var attack_cooldown:=2.0
@@ -62,6 +64,8 @@ func clear_markers() -> void:
 	areas.clear()
 	centers.clear()
 func cancel_attacks() -> void:
+	wall_busy=false
+	if is_instance_valid(ice_walls): ice_walls.free()
 	if dash_left>0: global_position=flight_origin
 	dash_left=0
 	model.position.y=0
@@ -93,10 +97,17 @@ func safe_escape() -> bool:
 func begin_attack() -> bool:
 	clear_markers()
 	var obstacle=O.world(self)
-	attack_kind=["gates","fan","rings"][attack_index%3]
+	attack_kind=["gates","walls","fan","rings"][attack_index%4]
 	locked=(target.global_position-global_position).normalized()
-	move_caption.text={"gates":"門の勅令 → 城門跳躍","fan":"門を貫く氷羽：横へ回避","rings":"月影の氷輪：門越しも危険"}[attack_kind]
-	if attack_kind=="gates":
+	move_caption.text={"gates":"門の勅令 → 城門跳躍","fan":"門を貫く氷羽：横へ回避","rings":"月影の氷輪：門越しも危険","walls":"氷棘の城壁：白い隙間へ！"}[attack_kind]
+	if attack_kind=="walls":
+		obstacle.open_all()
+		ice_walls=preload("res://scripts/ice_wall_attack.gd").new(); ice_walls.boss=self
+		preload("res://scripts/difficulty_tiers.gd").inherit_attack(self,ice_walls)
+		add_child(ice_walls)
+		if not ice_walls.plan(): ice_walls.free(); attack_cooldown=1; return false
+		wall_busy=true; warning_left=2.4
+	elif attack_kind=="gates":
 		obstacle.command(8 if enraged else 6)
 		warning_left=2
 	elif attack_kind=="fan":
@@ -121,6 +132,7 @@ func begin_attack() -> bool:
 		get_tree().call_group("game_audio","play_effect","noctis_cast")
 	return true
 func release() -> void:
+	if attack_kind=="walls": ice_walls.start(); return
 	for marker in markers: marker.hide()
 	if attack_kind=="vault":
 		dash_left=0.9
@@ -157,11 +169,17 @@ func release() -> void:
 			if target.global_position.distance_to(center)<=radius+0.42 and attack_visible(center,target.global_position): target.take_damage(24,preload("res://scripts/difficulty_tiers.gd").source(self))
 		flash_left=0.4
 	attack_index+=1
-	attack_cooldown=3.5
+	attack_cooldown=3.0
 	recovery_left=1.5
 func _physics_process(delta: float) -> void:
 	if dead or cinematic_locked or not is_instance_valid(target): return
 	age+=delta
+	if wall_busy and warning_left<=0:
+		ice_walls.tick(delta)
+		if ice_walls.finished:
+			ice_walls.free(); wall_busy=false; attack_index+=1; attack_kind=""
+			attack_cooldown=2; recovery_left=2; move_caption.text=""
+		return
 	if dash_left>0:
 		dash_left=maxf(0,dash_left-delta)
 		var t:=1-dash_left/0.9
@@ -188,7 +206,7 @@ func _physics_process(delta: float) -> void:
 			for area in areas: area.hide()
 	if warning_left>0:
 		warning_left=maxf(0,warning_left-delta)
-		for marker in markers: C.progress(marker,warning_left/(0.8 if attack_kind=="vault" else (1.2 if attack_kind=="fan" else 2)))
+		for marker in markers: C.progress(marker,warning_left/(0.8 if attack_kind=="vault" else (1.2 if attack_kind=="fan" else (2.4 if attack_kind=="walls" else 2))))
 		if warning_left<=0:
 			if attack_kind=="gates" and O.world(self).commanding(): warning_left=0.001
 			else: release()
@@ -223,6 +241,7 @@ func _enter_phase_two() -> void:
 	attack_cooldown=2
 	phase_changed.emit()
 func danger_contains(point: Vector3) -> bool:
+	if wall_busy and is_instance_valid(ice_walls): return ice_walls.sweep_contains(point)
 	if attack_kind=="rings" and (warning_left>0 or flash_left>0):
 		for center in centers:
 			if center.distance_to(point)<(3 if enraged else 3.5) and attack_visible(center,point): return true

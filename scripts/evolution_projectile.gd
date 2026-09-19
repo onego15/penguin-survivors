@@ -14,9 +14,10 @@ func _ready() -> void:
 	super._ready()
 	if heart:
 		for part in visual.get_children(): part.free()
-		var shape:=preload("res://scripts/character_models.gd").heart(visual)
+		var shape:=preload("res://scripts/evolution_visuals.gd").heart(visual)
 		shape.scale=Vector3.ONE*(2 if evolution_id=="big_heart" else 1)
 		detail=make_detail("heart",visual)
+		V.ring(visual,Color("fff2d1"),Vector3.ZERO,0.65 if evolution_id=="big_heart" else 0.35,0.025,true)
 func _move_projectile(delta: float) -> void:
 	var step:=minf(delta,maxf(0,reach-travelled)/speed)
 	super._move_projectile(step)
@@ -25,3 +26,7 @@ func _move_projectile(delta: float) -> void:
 
 func _can_hit(enemy: Node3D, repeat: bool) -> bool:
 	return enemy.targetable and super._can_hit(enemy,repeat)
+
+func _damage(enemy: Node3D) -> void:
+	super._damage(enemy)
+	if evolution_id=="pop_cannon": spawn_detail("lance_hit",enemy.global_position+Vector3.UP,0.2,0.25)

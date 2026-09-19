@@ -1,0 +1,82 @@
+[
+	{
+		"damage_received": 374,
+		"hits": 89,
+		"pushes": 89,
+		"test": "den",
+		"updated": false
+	},
+	{
+		"damage_received": 319,
+		"hits": 104,
+		"pushes": 104.0,
+		"test": "den",
+		"updated": true
+	},
+	{
+		"boss_hp": 766,
+		"build": "melee",
+		"character": "classic",
+		"damage_received": 100,
+		"kills": 6,
+		"minions": 12,
+		"seconds": 32.2,
+		"test": "noctis",
+		"walls": 1
+	},
+	{
+		"boss_hp": 607,
+		"build": "rear",
+		"character": "classic",
+		"damage_received": 100,
+		"kills": 14,
+		"minions": 16,
+		"seconds": 50.1,
+		"test": "noctis",
+		"walls": 2
+	},
+	{
+		"boss_hp": 360,
+		"build": "aim",
+		"character": "classic",
+		"damage_received": 62,
+		"kills": 18,
+		"minions": 20,
+		"seconds": 60.0,
+		"test": "noctis",
+		"walls": 2
+	},
+	{
+		"boss_hp": 766,
+		"build": "melee",
+		"character": "pink",
+		"damage_received": 100,
+		"kills": 6,
+		"minions": 12,
+		"seconds": 32.2,
+		"test": "noctis",
+		"walls": 1
+	},
+	{
+		"boss_hp": 607,
+		"build": "rear",
+		"character": "pink",
+		"damage_received": 100,
+		"kills": 14,
+		"minions": 16,
+		"seconds": 50.1,
+		"test": "noctis",
+		"walls": 2
+	},
+	{
+		"boss_hp": 340,
+		"build": "aim",
+		"character": "pink",
+		"damage_received": 62,
+		"kills": 18,
+		"minions": 20,
+		"seconds": 60.0,
+		"test": "noctis",
+		"walls": 2
+	}
+]

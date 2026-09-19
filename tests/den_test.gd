@@ -26,18 +26,19 @@ func run() -> void:
 				seen[kind]=true
 			check(seen.size()==4,"four unique friends")
 	var den=manager.spawn_friend(3,Vector3.ZERO)
+	var near=enemy_at(Vector3(2,0,0))
+	var far=enemy_at(Vector3(12,0,0))
+	var underground=enemy_at(Vector3.ZERO,8); underground.targetable=false
 	den.recruit(); den.tick(0.59)
 	check(den.stomps==0,"first attack waits 0.6 seconds")
-	var near=enemy_at(den.position+Vector3(2,0,0))
-	var far=enemy_at(den.position+Vector3(7,0,0))
-	var underground=enemy_at(den.position,8); underground.targetable=false
 	den.tick(0.01)
 	check(near.health==98 and far.health==100 and underground.health==100,"range, single damage and underground exclusion")
 	check(near.is_knocked_back(),"ordinary enemy knocked back")
 	var start: Vector3=near.position; near.control_step(0.6)
-	check(is_equal_approx(start.distance_to(near.position),3.0),"three metre push over 0.6 seconds")
+	check(is_equal_approx(start.distance_to(near.position),4.0),"four metre push over 0.6 seconds")
 	den.tick(0.1); check(near.health==98,"expanding ring has no extra damage")
-	den.tick(29.3)
+	for i in range(1800):
+		near.position=Vector3(2,0,0); near.control_step(1.0/60); den.tick(1.0/60)
 	check(den.stomps==5 and den.state=="leaving" and not den.stomp_effect.visible,"five attacks and clean expiry")
 	manager.clear(); await process_frame
 	for enemy in get_nodes_in_group("all_enemies"): enemy.free()

@@ -2,6 +2,7 @@ extends Node3D
 const V=preload("res://scripts/visuals.gd")
 const C=preload("res://scripts/combat_visuals.gd")
 const O=preload("res://scripts/castle_obstacles.gd")
+var rich: Node3D
 var mode:="rainbow_heart"
 var stats: Dictionary
 var player: Node3D
@@ -32,19 +33,13 @@ func _ready() -> void:
 				var ring:=C.friendly(visuals,1); ring.hide(); rings.append(ring)
 			next_pulse=0
 		"rainbow_heart":
-			for i in range(4):
-				var rod:=C.ink(V.rod(visuals,[Color("e6a2ff"),Color("ffbddd"),Color("a0f0ff"),Color.WHITE][i],Vector3.ZERO,Vector3.UP,1))
-				rod.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
-				rod.material_override.albedo_color.a=[0.18,0.35,0.65,1.0][i]
-				rings.append(rod)
-			for i in range(8):
-				var heart:=preload("res://scripts/character_models.gd").heart(visuals); heart.scale=Vector3.ONE*0.25; sparks.append(heart)
+			pass
 		"thunder_dome":
 			C.friendly(visuals,stats.radius)
 			for i in range(7):
 				var a:=i*TAU/7
 				var cloud:=V.ellipsoid(visuals,Color("abb9de"),Vector3(cos(a)*stats.radius*0.55,2.4+(i%2)*0.2,sin(a)*stats.radius*0.55),Vector3(0.8,0.28,0.65))
-				cloud.material_override=cloud.material_override.duplicate(); cloud.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA; cloud.material_override.albedo_color.a=0.26
+				cloud.material_override=cloud.material_override.duplicate(); cloud.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA; cloud.material_override.albedo_color.a=0.34
 			for i in range(6):
 				var point:=Vector3.ZERO
 				for attempt in range(32):
@@ -54,6 +49,7 @@ func _ready() -> void:
 				cloud_points.append(point)
 			for i in range(7): sparks.append(C.ink(V.rod(visuals,Color("e5d6ff") if i%2 else Color.WHITE,Vector3.ZERO,Vector3.UP,0.05)))
 			next_pulse=0.5
+	rich=preload("res://scripts/evolution_visuals.gd").new(); rich.attack=self; add_child(rich)
 	update_visuals(0)
 func configure(values: Dictionary) -> void:
 	stats=values
@@ -141,3 +137,4 @@ func update_visuals(delta: float) -> void:
 			for ring in rings: ring.scale=Vector3.ONE*maxf(0.01,float(stats.pulse_radius)*(1-flash_left/0.55)); ring.visible=ring.visible and flash_left>0
 		"thunder_dome":
 			for part in sparks: part.visible=flash_left>0
+	if is_instance_valid(rich): rich.tick()

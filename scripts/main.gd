@@ -269,6 +269,7 @@ func _physics_process(delta: float) -> void:
 	if player.health <= 0:
 		game_over = true
 		run_state="dead"
+		if is_instance_valid(active_boss) and active_boss.has_method("cancel_attacks"): active_boss.cancel_attacks()
 		_cancel_presentation()
 		final_director.stop()
 		if obstacles!=null: obstacles.open_all()
@@ -631,6 +632,7 @@ func _cancel_presentation() -> void:
 		presentation=null
 
 func _clear_control_states() -> void:
+	_clear_evolution_visuals()
 	for enemy in get_tree().get_nodes_in_group("all_enemies"):
 		if is_instance_valid(enemy.control):
 			enemy.control.free()
@@ -650,3 +652,11 @@ func _show_defeat_results() -> void:
 func restart_run() -> void:
 	Tiers.selected_id=difficulty_id
 	get_tree().reload_current_scene()
+
+func _clear_evolution_visuals() -> void:
+	for group in ["weapon_attacks","weapon_impact_details"]:
+		for attack in get_tree().get_nodes_in_group(group):
+			if Catalog.Evolution.ITEMS.has(attack.get_meta("weapon_id","")):
+				attack.hide(); attack.queue_free()
+	for id in armory.mounts:
+		if Catalog.Evolution.ITEMS.has(id): armory.mounts[id].hide()

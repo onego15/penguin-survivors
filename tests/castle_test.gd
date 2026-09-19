@@ -90,6 +90,10 @@ func run() -> void:
 	check(boss.attack_kind=="gates" and o.commanding(),"Noctis starts with gates")
 	for i in range(150): o.tick(1.0/60); boss._physics_process(1.0/60)
 	check(boss.attack_index==1,"Gate command finishes exactly once")
+	boss.cancel_attacks(); boss.begin_attack()
+	check(boss.attack_kind=="walls" and boss.wall_busy,"Moving walls follow gate command")
+	boss.release(); boss.warning_left=0; boss._physics_process(20)
+	check(boss.attack_index==2 and not boss.wall_busy,"Wall recovery advances to feathers")
 	boss.begin_attack()
 	check(boss.attack_kind=="fan" and is_equal_approx(boss.warning_left,1.2),"Fan follows gate command")
 	boss.release()
@@ -105,7 +109,7 @@ func run() -> void:
 	game._cancel_presentation()
 	game.run_state="combat"
 	boss.cinematic_locked=false
-	boss.attack_index=2
+	boss.attack_index=3
 	check(boss.begin_attack() and boss.centers.size()==3,"Phase two has three escapable rings")
 	game.free()
 	Stages.selected_id="snowfield"

@@ -13,7 +13,9 @@ var age := 0.0
 var follow_age := 0.0
 var next_heal := 6.0
 var fire_left := 0.0
-var next_stomp:=0.6
+var den_action: Node3D
+var stomp_notice_left:=0.0
+var stomp_hits:=0
 var stomps:=0
 var stomp_effect: Node3D
 var done := false
@@ -57,6 +59,7 @@ func _ready() -> void:
 		stomp_effect=preload("res://scripts/den_stomp.gd").new()
 		stomp_effect.add_to_group("friendly_effects")
 		add_child(stomp_effect)
+		den_action=preload("res://scripts/den_jump.gd").new(); den_action.friend=self; add_child(den_action)
 func recruit() -> void:
 	preload("res://scripts/contributions.gd").record(self,"support:"+str(kind),"damage",0)
 	if state!="waiting" or game.player.health<=0: return
@@ -67,6 +70,7 @@ func recruit() -> void:
 	remaining=30
 	follow_age=0
 	game.sound.play_effect("support_join")
+	if kind==3: den_action.prepare()
 	if kind==0: _heal()
 	if kind==1:
 		game.player.support_damage_multiplier=0.7
@@ -76,6 +80,7 @@ func tick(delta: float) -> void:
 	if game.player.health<=0 or game.game_over or game.victory:
 		leave(); return
 	age+=delta
+	stomp_notice_left=maxf(0,stomp_notice_left-delta)
 	if is_instance_valid(stomp_effect): stomp_effect.tick(delta)
 	if state=="waiting":
 		remaining=maxf(0,remaining-delta)
@@ -93,7 +98,8 @@ func tick(delta: float) -> void:
 		var destination: Vector3=game.player.position+offset
 		destination.x=clampf(destination.x,-23,23)
 		destination.z=clampf(destination.z,-23,23)
-		position=position.lerp(destination,1-exp(-delta*6))
+		if kind!=3: position=position.lerp(destination,1-exp(-delta*6))
+		elif den_action.phase=="follow": den_action.follow(destination,delta)
 		if kind==0:
 			while next_heal<=24 and follow_age>=next_heal:
 				_heal()
@@ -107,9 +113,7 @@ func tick(delta: float) -> void:
 				_shoot()
 				fire_left=0.65
 		elif kind==3:
-			while stomps<5 and follow_age+0.00001>=next_stomp:
-				stomps+=1; next_stomp+=6.0
-				_stomp()
+			den_action.tick(active_delta)
 		if remaining<=0: leave()
 	else:
 		remaining-=delta
@@ -118,8 +122,12 @@ func tick(delta: float) -> void:
 		if remaining<=0: done=true
 	model.position.y=(0.4+sin(age*6)*0.1) if kind==0 else absf(sin(age*7))*0.08
 	if kind==3 and state!="leaving":
-		var charge: float=clampf((follow_age-(next_stomp-0.6))/0.6,0,1) if state=="following" and stomps<5 and follow_age>=next_stomp-0.6 else -1.0
-		Models.animate_den(model,age,charge)
+		Models.animate_den(model,age,den_action.charge())
+		if den_action.phase=="prepare": model.position.y=0; model.scale=Vector3(1.08,0.9,1.08)
+		elif den_action.phase=="jump": model.position.y=0
+		elif stomp_notice_left>1.15:
+			var bounce:=sin((1.5-stomp_notice_left)/0.35*PI)
+			model.scale=Vector3(1+bounce*0.08,1-bounce*0.12,1+bounce*0.08)
 	for side in ["WingLeft","WingRight"]:
 		if model.has_node(side): model.get_node(side).rotation.z=sin(age*9)*(0.35 if side=="WingLeft" else -0.35)
 	heart_left=maxf(0,heart_left-delta)
@@ -144,6 +152,7 @@ func leave() -> void:
 	if state=="leaving": return
 	game.player.support_damage_multiplier=1.0
 	state="leaving"
+	if is_instance_valid(den_action): den_action.cancel()
 	if is_instance_valid(stomp_effect): stomp_effect.hide()
 	remaining=0.5
 	shield.hide()
@@ -160,6 +169,7 @@ func _stomp() -> void:
 	center.y=0
 	stomp_effect.start(center)
 	game.sound.play_effect("den_stomp")
+	stomp_hits=0; stomp_notice_left=1.5
 	var targets:=get_tree().get_nodes_in_group("enemies")
 	targets.sort_custom(func(a,b): return not a.is_in_group("final_bosses") and b.is_in_group("final_bosses"))
 	for enemy in targets:
@@ -168,4 +178,4 @@ func _stomp() -> void:
 		if offset.length()>5+enemy.hit_radius or not preload("res://scripts/castle_obstacles.gd").visible_between(self,center,enemy.global_position): continue
 		preload("res://scripts/contributions.gd").hit(self,enemy,2)
 		if is_instance_valid(enemy) and not enemy.dead and enemy.has_method("apply_control"):
-			preload("res://scripts/contributions.gd").control(self,enemy,"knockback",3.0,offset.normalized() if offset.length()>0.01 else Vector3.BACK)
+			if preload("res://scripts/contributions.gd").control(self,enemy,"knockback",4.0,offset.normalized() if offset.length()>0.01 else Vector3.BACK): stomp_hits+=1

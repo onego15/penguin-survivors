@@ -8,6 +8,10 @@ static func build(parent: Node3D, id: String) -> Node3D:
 			var gun:=M.blaster(root); gun.scale=Vector3.ONE*0.6
 			for i in range(3 if id=="triple_cannon" else 1):
 				V.rod(root,Color("c2f8ff"),Vector3((i-1)*0.16 if id=="triple_cannon" else 0,0.12,0.05),Vector3((i-1)*0.22 if id=="triple_cannon" else 0,0.12,0.8),0.08,0.04)
+			var flash:=V.pivot(root,"MuzzleFlash",Vector3(0,0.12,0.85))
+			for i in range(3 if id=="triple_cannon" else 1):
+				preload("res://scripts/combat_visuals.gd").ink(V.ring(flash,Color("dcfaff"),Vector3((i-1)*0.22 if id=="triple_cannon" else 0,0,0),0.13,0.035,true))
+			flash.hide()
 			V.ring(root,Color("fff2b8"),Vector3(0,0.12,0.32),0.28,0.03,true)
 		"big_heart","heart_ring":
 			M.heart_wand(root)
@@ -16,9 +20,11 @@ static func build(parent: Node3D, id: String) -> Node3D:
 				for i in range(6):
 					var h:=M.heart(root); h.scale=Vector3.ONE*0.25; h.position=Vector3(cos(i*TAU/6)*0.4,0.7,sin(i*TAU/6)*0.4)
 		"rainbow_heart":
-			var prism:=preload("res://scripts/prism_visual.gd").build_crystal(root)
-			prism.scale=Vector3.ONE*0.65
-			var heart:=M.heart(root); heart.position=Vector3(0,0.3,0.25); heart.scale=Vector3.ONE*0.5
+			var crystal=preload("res://scripts/evolution_visuals.gd").heart(root)
+			crystal.position.y=0.4
+			for i in range(6):
+				var shard=preload("res://scripts/prism_visual.gd").build_crystal(root)
+				shard.position=Vector3(cos(i*TAU/6)*0.6,0.4+sin(i*TAU/6)*0.6,0); shard.scale=Vector3.ONE*0.3
 		"blizzard_fan":
 			preload("res://scripts/control_attack.gd").build_model(root,"gust")
 			for side in [-1,1]:
@@ -34,3 +40,11 @@ static func build(parent: Node3D, id: String) -> Node3D:
 				V.ellipsoid(root,Color("939ecb"),Vector3((i-1)*0.18,0.45,0),Vector3(0.22,0.16,0.18))
 			V.rod(root,Color("f1eeff"),Vector3(0.1,0.4,0.2),Vector3(-0.08,0.05,0.2),0.045)
 	return root
+
+static func animate(root: Node3D,id: String,time: float,pulse: float) -> void:
+	if root.has_node("MuzzleFlash"):
+		root.get_node("MuzzleFlash").visible=pulse>0.3
+		root.get_node("MuzzleFlash").scale=Vector3.ONE*(0.6+pulse)
+	root.position.z=-pulse*0.12 if id in ["pop_cannon","triple_cannon"] else 0.0
+	if id=="pearl_chime": root.rotation.z=sin(time*8)*0.08
+	if id=="rainbow_heart": root.rotation.y=sin(time)*0.2; root.scale=Vector3.ONE*(1+pulse*0.15)

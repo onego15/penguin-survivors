@@ -1,0 +1,16 @@
+[
+	{
+		"draw_calls": 998,
+		"effects": 12,
+		"enemies": 24,
+		"frame_ms": 8.42935,
+		"updated": false
+	},
+	{
+		"draw_calls": 1214,
+		"effects": 12,
+		"enemies": 24,
+		"frame_ms": 15.5059916666667,
+		"updated": true
+	}
+]

@@ -29,7 +29,7 @@ func stop() -> void:
 	phase=0
 	clear_minions()
 func busy() -> bool:
-	return not is_instance_valid(game.active_boss) or game.active_boss.dead or game.active_boss.warning_left>0 or game.active_boss.dash_left>0
+	return not is_instance_valid(game.active_boss) or game.active_boss.dead or ("wall_busy" in game.active_boss and game.active_boss.wall_busy) or game.active_boss.warning_left>0 or game.active_boss.dash_left>0
 func tick(delta: float) -> void:
 	if phase==0 or game.run_state!="combat" or game.player.health<=0 or game.final_boss_defeated or game.get_tree().paused: return
 	clock+=delta

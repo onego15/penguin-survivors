@@ -183,3 +183,13 @@ godot --headless --path . --script tests/evolution_low_rank_audit.gd -- --fronta
 ![虹プリズムLv.2](screenshots/evolution-balanced-rainbow_heart.png)
 ![ブリザードファンLv.2](screenshots/evolution-balanced-blizzard_fan.png)
 ![雷雲ドームLv.2](screenshots/evolution-balanced-thunder_dome.png)
+
+## 演出の刷新（2026-09-19）
+
+進化8武器の性能・成長値はそのまま、装備と攻撃の見た目を改善しました。虹プリズムは多面体ハート結晶・虹の層・螺旋・最後の大きなハートと結晶片。キャノンは銃口と反動、ハート弾は厚みのある多面体、ブリザードは冷気噴射、パールは立ち上る冷気、雷雲は枝分かれする放電で区別します。
+
+![虹プリズム](screenshots/evolution-rich-prism-finale.png)
+![パールチャイム](screenshots/evolution-rich-pearl_chime.png)
+![雷雲ドーム](screenshots/evolution-rich-thunder_dome.png)
+
+[全8種の画像・検証結果](den-noctis-update.md)。モデル一覧も基本23種＋進化8種を表示します。

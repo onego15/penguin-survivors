@@ -33,7 +33,7 @@ func run() -> void:
 	boss.take_damage(50)
 	check(boss.health==hp,"No ground hitbox during flight")
 	boss._physics_process(0.45)
-	check(boss.position.is_equal_approx(finish) and boss.targetable and boss.attack_index==1,"Landing restores target and continues feather attack")
+	check(boss.position.is_equal_approx(finish) and boss.targetable and boss.attack_index==1,"Landing restores target and continues moving-wall attack")
 	boss.position=Vector3(4,0,8)
 	game.player.position=Vector3(14,0,4)
 	boss.attack_index=0
@@ -46,7 +46,7 @@ func run() -> void:
 	game.obstacles.gates[3].state="closed"
 	game.player.position=Vector3(11,0,8)
 	boss.position=Vector3(6,0,8)
-	boss.attack_index=1
+	boss.attack_index=2
 	boss.begin_attack()
 	var locked: Vector3=boss.locked
 	game.player.position=Vector3(11,0,9)

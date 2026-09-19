@@ -89,6 +89,8 @@ func tick(delta: float) -> void:
 		if id=="rear_fan":
 			mounts[id].position=-game.player.facing_direction()*0.85+Vector3.UP*0.85
 			mounts[id].rotation.y=atan2(-game.player.facing_direction().x,-game.player.facing_direction().z)
+		if mounts[id].has_node("EvolutionModel"):
+			preload("res://scripts/evolution_models.gd").animate(mounts[id].get_node("EvolutionModel"),id,time,maxf(0,1-(time-float(cast_times.get(id,-100)))/0.22))
 		if mounts[id].has_node("Motif"):
 			var elapsed_cast: float=time-float(cast_times.get(id,-100))
 			var pulse:=maxf(0,1-elapsed_cast/0.55)

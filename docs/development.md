@@ -160,3 +160,14 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 - `tools/capture_difficulty.gd`：Compatibilityで6画面の表示確認用スクリーンショット。
 
 [倍率表・検証結果・制限](difficulty.md)
+
+## デン・進化演出・移動氷壁（2026-09-19）
+
+最新のデンは狙って跳躍し、押し返し4m。上記2026-09-18のその場着地・3mは旧仕様です。`den_jump.gd` が準備・跳躍・同行の時計を管理し、命中と貢献記録は共通経路を使います。ノクティスの `ice_wall_attack.gd` は地形にせず、ボスの時計から駆動する移動攻撃です。`evolution_visuals.gd` は攻撃判定から独立した固定メッシュの表示です。
+
+- `tests/den_noctis_upgrade_test.gd`：標的選択・着地・氷壁の安全配置と判定。
+- `tests/den_noctis_audit.gd`：デン比較と6構成のノクティス試行。
+- `tools/profile_evolution_visuals.gd`：変更前後の全レベル性能一致・描画比較。
+- `tools/capture_den_noctis.gd`：8進化武器・デン・氷壁・31武器一覧の実画面。
+
+[仕様・数値・測定の限界・画像](den-noctis-update.md)

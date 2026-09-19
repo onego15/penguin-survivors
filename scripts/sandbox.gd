@@ -64,6 +64,8 @@ func _physics_process(delta: float) -> void:
 	if player.health<=0:
 		game_over=true
 		run_state="dead"
+		_clear_evolution_visuals()
+		if is_instance_valid(active_boss) and active_boss.has_method("cancel_attacks"): active_boss.cancel_attacks()
 		ultimate.clear_visuals()
 		menu.open_menu()
 		return

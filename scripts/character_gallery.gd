@@ -34,7 +34,7 @@ func _ready() -> void:
 		models.append(Creatures.support(stand,kind))
 		_plinth(point,1.3,Color("7fdacb"))
 		_label("%s %s" % [Friend.ICONS[kind],Friend.NAMES[kind]],point+Vector3(0,0.2,1.65),34)
-		_label(["回復","防御","攻撃援護","押し返し援護"][kind],point+Vector3(0,0,2.5),25)
+		_label(["回復","防御","攻撃援護","狙って跳躍・4m押し返し"][kind],point+Vector3(0,0,2.5),25)
 	var pink:=V.pivot(self,"PinkHero",Vector3(-6,0,8))
 	models.append(Models.penguin(pink,"pink"))
 	_label("ピンクペンギン",pink.position+Vector3(0,0.2,1.6),28)
@@ -58,7 +58,7 @@ func _ready() -> void:
 	title.add_theme_color_override("font_color",Color("203e50"))
 	layer.add_child(title)
 	var weapons:=Button.new()
-	weapons.text="23武器のモデル一覧"
+	weapons.text="基本23種＋進化8種のモデル一覧"
 	weapons.position=Vector2(950,24)
 	weapons.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/weapon_gallery.tscn"))
 	layer.add_child(weapons)

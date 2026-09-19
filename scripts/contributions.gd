@@ -27,11 +27,12 @@ static func hit(actor: Node, enemy: Node, amount: int) -> void:
 	if dealt<=0: return
 	record(actor,source(actor),"damage",dealt)
 	if alive and enemy.dead: record(actor,source(actor),"kills",1)
-static func control(actor: Node, enemy: Node, effect: String, value: float, direction: Vector3) -> void:
-	if not enemy.apply_control(effect,value,direction): return
+static func control(actor: Node, enemy: Node, effect: String, value: float, direction: Vector3) -> bool:
+	if not enemy.apply_control(effect,value,direction): return false
 	var id:=source(actor)
 	record(actor,id,effect,1)
 	if effect=="freeze": enemy.control.set_meta("freeze_source",id)
+	return true
 static func heal(actor: Node, player: Node, amount: int) -> void:
 	var before: int=player.health
 	player.heal(amount)

@@ -42,6 +42,7 @@ func refresh(delta: float) -> void:
 	if banner_left>0: heading+=" 同行開始！" if joined else " 登場！"
 	var status: String="同行中" if friend.state=="following" else "2m以内で同行"
 	banner.text="%s\n%s\n%s / 残り%d秒" % [heading,manager.Friend.EFFECTS[friend.kind],status,ceili(friend.remaining)]
+	if friend.kind==3 and friend.stomp_notice_left>0: banner.text="%s\nどすん！ %d体を押し返した\n同行中 / 残り%d秒"%[heading,friend.stomp_hits,ceili(friend.remaining)]
 	guide.hide()
 	if friend.state=="waiting":
 		var point: Vector2=manager.game.camera.unproject_position(friend.global_position)

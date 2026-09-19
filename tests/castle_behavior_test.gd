@@ -78,7 +78,7 @@ func run() -> void:
 	for p in [Vector3.ZERO,Vector3(21,0,21),Vector3(-21,0,21),Vector3(0,0,-21),Vector3(6,0,7),Vector3(-10,0,-7)]:
 		game.player.position=p
 		boss.position=Vector3(0,0,-6)
-		boss.attack_index=2
+		boss.attack_index=3
 		boss.warning_left=0
 		var started: bool=boss.begin_attack()
 		if started and not boss.safe_escape(): escapable=false
@@ -86,7 +86,7 @@ func run() -> void:
 	boss.cancel_attacks()
 	game.player.position=Vector3.ZERO
 	boss.position=Vector3(0,0,-6)
-	boss.attack_index=1
+	boss.attack_index=2
 	boss.begin_attack()
 	boss.release()
 	check(get_nodes_in_group("hostile_projectiles").size()==7,"Second form emits seven ice feathers")

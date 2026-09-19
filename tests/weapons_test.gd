@@ -95,9 +95,9 @@ func run() -> void:
 		var before: Dictionary = game.armory.levels.duplicate()
 		var candidates: Array = game.offered_weapons.duplicate()
 		all_options_unique = all_options_unique and candidates.size() == 3 and candidates[0] != candidates[1] and candidates[1] != candidates[2] and candidates[0] != candidates[2]
-		var pick := 0
+		var pick := 1 if candidates[0].begins_with("@") else 0
 		for index in range(3):
-			if not before.has(candidates[index]):
+			if not candidates[index].begins_with("@") and not before.has(candidates[index]):
 				pick = index
 				break
 		game.choice_ui.cards[pick].pressed.emit()
@@ -107,9 +107,10 @@ func run() -> void:
 	check(all_options_unique and all_prior_retained and game.armory.levels.size() == pool_size and game.armory.mounts.size() == pool_size - 1, "All catalog weapons accumulate without replacement; final menus still have three unique cards")
 	game.experience = game.xp_needed
 	game.open_weapon_choice()
-	var upgrade: String = game.offered_weapons[0]
+	var upgrade_index: int=1 if game.offered_weapons[0].begins_with("@") else 0
+	var upgrade: String = game.offered_weapons[upgrade_index]
 	var old_rank: int = game.armory.levels[upgrade]
-	game.choice_ui.cards[0].pressed.emit()
+	game.choice_ui.cards[upgrade_index].pressed.emit()
 	check(game.armory.levels.size() == pool_size and game.armory.levels[upgrade] == old_rank + 1 and not paused, "Full collection offers upgrades and remains playable")
 	check(not Catalog.upgrade_text(upgrade,1).is_empty(), "Upgrades show meaningful changes")
 	for id in Catalog.ITEMS:

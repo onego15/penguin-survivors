@@ -31,6 +31,7 @@ func run() -> void:
 				for id in campaign.offered_weapons: check(pool.has(id),"stage-only draws")
 				campaign.choice_ui.close(); campaign.choice_open=false; paused=false
 		for id in pool: campaign.armory.levels[id]=5
+		campaign.armory.levels.pop_cannon=5; campaign.armory.levels.big_heart=5 # Evolution slots and growth also exhausted.
 		campaign.player.health=50; campaign.experience=campaign.xp_needed
 		campaign.open_weapon_choice()
 		check(campaign.player.health==70 and not campaign.choice_open,"stage max heals without other stage weapons")

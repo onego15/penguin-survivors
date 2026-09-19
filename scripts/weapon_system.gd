@@ -14,18 +14,27 @@ const Motifs=preload("res://scripts/weapon_models.gd")
 var cast_times: Dictionary={}
 var time := 0.0
 var last_trail := Vector3.INF
+var consumed: Dictionary={}
+var evolution_bag: Array[String]=[]
+var evolution_seen: Array[String]=[]
+var fusion_nodes: Dictionary={}
+const E=preload("res://scripts/evolution_catalog.gd")
 
 
 func acquire(id: String) -> void:
-	if not Catalog.ITEMS.has(id) or int(levels.get(id,0))>=Catalog.MAX_RANK:
+	if not id in Catalog.all_ids() or consumed.has(id) or int(levels.get(id,0))>=Catalog.max_rank(id):
 		return
-	levels[id] = int(levels.get(id, 0)) + 1
+	levels[id] = maxi(Catalog.min_rank(id),int(levels.get(id, 0)) + 1)
 	if id=="frost": game.player.equip_frost()
 	if id == "frost" or mounts.has(id) or (id=="heart" and game.player.character_id=="pink"):
 		return
 	cooldowns[id] = Catalog.cooldown(id,1) if id=="starfall" else 0.0
 	var mount := V.pivot(game.player.body if id=="udon" else game.player, "Weapon_" + id)
-	var tint: Color = Catalog.ITEMS[id].color
+	var tint: Color = Catalog.data(id).color
+	if E.ITEMS.has(id):
+		preload("res://scripts/evolution_models.gd").build(mount,id)
+		mounts[id]=mount
+		return
 	if id in ["spear","boomerang"]: V.rod(mount, Color("947044"), Vector3(0, -0.25, 0), Vector3(0, 0.15, 0), 0.04)
 	match id:
 		"ember","lightning","nova","mine","storm","whip","trail","bounce","turret","seeker","fan":
@@ -60,6 +69,12 @@ func tick(delta: float) -> void:
 		if id=="udon":
 			mounts[id].position=Vector3(-0.75,1,0.35)
 			continue
+		if id=="blizzard_fan":
+			mounts[id].position=game.player.facing_direction()*0.9+Vector3.UP*0.8
+			var facing: Vector3=fusion_nodes[id].core.direction if is_instance_valid(fusion_nodes.get(id)) else game.player.facing_direction()
+			mounts[id].rotation.y=atan2(facing.x,facing.z)
+			mounts[id].get_node("EvolutionModel/ControlModel/Rotor").rotation.z=time*14
+			continue
 		if id=="gust":
 			mounts[id].position=game.player.facing_direction()*0.9+Vector3.UP*0.8
 			var facing: Vector3=gust_attack.direction if is_instance_valid(gust_attack) else game.player.facing_direction()
@@ -82,7 +97,7 @@ func tick(delta: float) -> void:
 	for id in levels:
 		if id == "frost":
 			continue
-		if id in ["gust","orbit"]:
+		if id in ["gust","orbit","blizzard_fan","pearl_chime"]:
 			fire(id)
 			continue
 		cooldowns[id] = float(cooldowns.get(id, 0.0)) - delta
@@ -104,7 +119,11 @@ func nearest(origin: Vector3, reach: float, excluded: Array = []) -> Node3D:
 	return result
 
 
+func attach(attack: Node3D, id: String) -> void:
+	attack.set_meta("weapon_id",id)
+	game.actors.add_child(attack)
 func fire(id: String) -> bool:
+	if E.ITEMS.has(id): return fire_evolved(id)
 	if not levels.has(id) or id == "frost":
 		return false
 	var stats:=Catalog.stats(id,levels[id])
@@ -113,7 +132,7 @@ func fire(id: String) -> bool:
 			orbit_attack=preload("res://scripts/pearl_orbit.gd").new()
 			orbit_attack.player=game.player
 			orbit_attack.stats=stats
-			game.actors.add_child(orbit_attack)
+			attach(orbit_attack,id)
 		else: orbit_attack.configure(stats)
 		return true
 	if id=="starfall":
@@ -131,7 +150,7 @@ func fire(id: String) -> bool:
 		star_attack.position=center
 		star_attack.damage=stats.damage
 		star_attack.radius=stats.radius
-		game.actors.add_child(star_attack)
+		attach(star_attack,id)
 		cooldowns[id]=stats.cooldown
 		return true
 	if id=="gust" and is_instance_valid(gust_attack) and not gust_attack.is_queued_for_deletion():
@@ -148,7 +167,7 @@ func fire(id: String) -> bool:
 			gust_attack=attack
 		attack.direction=game.player.facing_direction() if id=="gust" else (enemy.global_position-game.player.global_position).normalized()
 		attack.position=game.player.global_position+(Vector3.UP if id=="popsicle" else Vector3.ZERO)
-		game.actors.add_child(attack)
+		attach(attack,id)
 		game.sound.play_effect("gust" if id=="gust" else "ice_cast")
 		return true
 	if id=="udon":
@@ -161,7 +180,7 @@ func fire(id: String) -> bool:
 		attack.reach=minf(stats.reach,enemy.global_position.distance_to(game.player.global_position))
 		attack.splash_radius=stats.radius
 		attack.damage=stats.damage
-		game.actors.add_child(attack)
+		attach(attack,id)
 		game.sound.play_effect("magic")
 		return true
 	if id=="heart":
@@ -174,7 +193,7 @@ func fire(id: String) -> bool:
 		heart.max_distance=stats.reach
 		heart.max_hits=stats.pierce
 		heart.player=game.player
-		game.actors.add_child(heart)
+		attach(heart,id)
 		game.sound.play_effect("magic")
 		return true
 	var origin: Vector3 = game.player.global_position
@@ -202,7 +221,7 @@ func fire(id: String) -> bool:
 			special.direction = direction.rotated(Vector3.UP, (index - (int(stats.count)-1)/2.0) * 0.6 if id == "seeker" else 0.0)
 			special.damage = damage
 			special.tint = Catalog.ITEMS[id].color
-			game.actors.add_child(special)
+			attach(special,id)
 		game.sound.play_effect("slash" if id == "whip" else "magic")
 		return true
 	if id == "lightning":
@@ -215,7 +234,7 @@ func fire(id: String) -> bool:
 			strike.area_radius = stats.radius
 			strike.warning_duration = 0.25 + index * 0.12
 			strike.lifetime = strike.warning_duration + 0.3
-			game.actors.add_child(strike)
+			attach(strike,id)
 		return true
 	for index in range(int(stats.count) if id in ["fan", "rear_fan"] else 1):
 		var attack := Attack.new()
@@ -281,7 +300,7 @@ func fire(id: String) -> bool:
 		if not preload("res://scripts/castle_obstacles.gd").placement(game,attack.position,0.1):
 			attack.free()
 			return false
-		game.actors.add_child(attack)
+		attach(attack,id)
 	game.sound.play_effect("shot" if id in ["fan", "rear_fan", "spear"] else "magic")
 	return true
 
@@ -303,3 +322,76 @@ func random_visible_ground() -> Vector3:
 			point.y = 0
 			return point
 	return game.player.global_position
+
+func evolution_count() -> int:
+	var count:=0
+	for id in levels:
+		if E.ITEMS.has(id): count+=1
+	return count
+func available_evolutions() -> Array[String]:
+	return E.available(levels,consumed,game.Stages.weapon_pool(game.stage_id))
+func next_evolution() -> String:
+	var available:=available_evolutions()
+	for id in evolution_bag.duplicate():
+		if not id in available: evolution_bag.erase(id)
+	var additions: Array[String]=[]
+	for id in available:
+		if not id in evolution_bag and not id in evolution_seen: additions.append(id)
+	if evolution_bag.is_empty() and additions.is_empty() and not available.is_empty():
+		evolution_seen.clear(); additions=available.duplicate()
+	while not additions.is_empty():
+		var index: int=game.rng.randi_range(0,additions.size()-1)
+		evolution_bag.append(additions[index]); additions.remove_at(index)
+	if evolution_bag.is_empty(): return ""
+	var result: String=evolution_bag.pop_front(); evolution_seen.append(result); return result
+func evolve(recipe: String, output: String) -> bool:
+	if game.player.health<=0 or game.game_over or game.victory or game.run_state!="combat": return false
+	if not recipe in available_evolutions() or not output in E.RECIPES[recipe].outputs: return false
+	var rank:=E.inherited_level(recipe,levels)
+	for source in E.RECIPES[recipe].sources: remove_source(source)
+	acquire(output); levels[output]=rank
+	if fire(output): cooldowns[output]=Catalog.cooldown(output,rank)
+	game.sound.play_effect("evolve")
+	return true
+func remove_source(id: String) -> void:
+	for attack in game.actors.get_children():
+		if attack.get_meta("weapon_id","")==id: attack.free()
+	if mounts.has(id):
+		if is_instance_valid(mounts[id]): mounts[id].free()
+		mounts.erase(id)
+	levels.erase(id); cooldowns.erase(id); cast_times.erase(id); consumed[id]=true
+	if id=="frost":
+		game.player.has_frost=false
+		if is_instance_valid(game.player.frost_weapon): game.player.frost_weapon.hide()
+		if game.player.character_id=="classic": game.player.weapon.hide()
+	if id=="heart" and game.player.character_id=="pink": game.player.weapon.hide()
+func fire_evolved(id: String) -> bool:
+	if not levels.has(id): return false
+	var values:=Catalog.stats(id,levels[id])
+	var origin: Vector3=game.player.global_position
+	if id in ["blizzard_fan","pearl_chime"]:
+		if is_instance_valid(fusion_nodes.get(id)):
+			fusion_nodes[id].configure(values); return true
+		var node:=preload("res://scripts/fusion_attack.gd").new()
+		node.mode=id; node.stats=values; node.player=game.player; node.rng=game.rng
+		fusion_nodes[id]=node; attach(node,id); return true
+	var target:=nearest(origin,values.reach) if id!="heart_ring" else null
+	if id!="heart_ring" and target==null: return false
+	var aim: Vector3=game.player.facing_direction() if id=="heart_ring" else (target.global_position-origin).normalized()
+	if E.is_single(id):
+		for i in range(int(values.count)):
+			var bullet:=preload("res://scripts/evolution_projectile.gd").new()
+			bullet.evolution_id=id; bullet.damage=values.damage; bullet.reach=values.reach; bullet.max_hits=values.pierce
+			bullet.player=game.player; bullet.position=origin+Vector3.UP
+			bullet.direction=aim.rotated(Vector3.UP,i*TAU/6 if id=="heart_ring" else (deg_to_rad((i-1)*12) if id=="triple_cannon" else 0.0))
+			attach(bullet,id)
+		game.sound.play_effect("shot" if id in ["pop_cannon","triple_cannon"] else "magic")
+	else:
+		var attack:=preload("res://scripts/fusion_attack.gd").new()
+		attack.mode=id; attack.player=game.player; attack.stats=values; attack.rng=game.rng; attack.direction=aim
+		attack.position=target.global_position if id=="thunder_dome" else origin+Vector3.UP
+		if id=="thunder_dome" and not preload("res://scripts/castle_obstacles.gd").placement(game,attack.position,0.1):
+			attack.free(); return false
+		attach(attack,id)
+		game.sound.play_effect("magic")
+	return true

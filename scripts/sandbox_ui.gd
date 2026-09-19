@@ -73,18 +73,18 @@ func _ready() -> void:
 	var actions:=row(weapons)
 	button(actions,"初期装備へ戻す",func(): replace_weapons({game.Roster.CHARACTERS[game.settings.character].weapon:1}))
 	button(actions,"全解除",func(): replace_weapons({}))
-	button(actions,"全Lv.5",func():
+	button(actions,"全武器MAX",func():
 		var loadout: Dictionary={}
-		for id in game.Catalog.ITEMS: loadout[id]=5
+		for id in game.Catalog.all_ids(): loadout[id]=game.Catalog.max_rank(id)
 		replace_weapons(loadout))
 	var scroll:=ScrollContainer.new(); scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL; weapons.add_child(scroll)
 	var grid:=GridContainer.new(); grid.columns=4; grid.size_flags_horizontal=Control.SIZE_EXPAND_FILL; scroll.add_child(grid)
-	for id in game.Catalog.ITEMS:
-		var name_label:=label(grid,game.Catalog.ITEMS[id].name); name_label.custom_minimum_size.x=240
-		var option:=OptionButton.new(); option.add_item("未装備")
-		for i in range(1,6): option.add_item("Lv.%d"%i)
-		option.select(game.settings.weapons.get(id,0)); grid.add_child(option)
-		option.item_selected.connect(func(rank): game.set_weapon(id,rank))
+	for id in game.Catalog.all_ids():
+		var name_label:=label(grid,game.Catalog.data(id).name); name_label.custom_minimum_size.x=240
+		var option:=OptionButton.new(); option.add_item("未装備",0)
+		for i in range(game.Catalog.min_rank(id),game.Catalog.max_rank(id)+1): option.add_item("Lv.%d"%i,i)
+		option.select(option.get_item_index(game.settings.weapons.get(id,0))); grid.add_child(option)
+		option.item_selected.connect(func(index): game.set_weapon(id,option.get_item_id(index)))
 		weapon_options[id]=option
 	var enemies:=VBoxContainer.new(); enemies.name="敵"; tabs.add_child(enemies)
 	label(enemies,"① 敵を選ぶ　→　② 配置方法を選ぶ　→　③「再開」で戦闘開始")
@@ -201,7 +201,7 @@ func select_enemy(index: int) -> void:
 func replace_weapons(loadout: Dictionary) -> void:
 	game.settings.weapons=loadout
 	game.rebuild_player()
-	for id in weapon_options: weapon_options[id].select(loadout.get(id,0))
+	for id in weapon_options: weapon_options[id].select(weapon_options[id].get_item_index(loadout.get(id,0)))
 func open_menu() -> void:
 	placing=false; cursor.hide(); panel.show(); game.get_tree().paused=true
 	if is_instance_valid(placement_actions): placement_actions.hide()

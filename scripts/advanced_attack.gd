@@ -106,6 +106,7 @@ func _physics_process(delta: float) -> void:
 					bullet.tint = tint
 					bullet.visual_kind="snowball"
 					bullet.lifetime = maxf(0.8,target_reach/16.0)
+					bullet.set_meta("weapon_id",get_meta("weapon_id",""))
 					get_parent().add_child(bullet)
 					visual.rotation.y = atan2(bullet.direction.x, bullet.direction.z)
 				pulse = 0.55

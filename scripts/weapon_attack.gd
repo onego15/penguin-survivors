@@ -152,6 +152,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if age >= lifetime:
 		if visual_kind=="chime" and is_instance_valid(flourish):
+			flourish.set_meta("weapon_id",get_meta("weapon_id",""))
 			flourish.reparent(get_parent())
 			flourish.age=age
 			flourish.auto_lifetime=0.9
@@ -198,7 +199,7 @@ func _segment_hit(start: Vector3, finish: Vector3, repeat: bool) -> void:
 			_explode()
 			return
 		_damage(hit.enemy)
-		if visual_kind=="heart" and hit_times.size()>=max_hits:
+		if (visual_kind=="heart" or has_meta("limited_hits")) and hit_times.size()>=max_hits:
 			queue_free()
 			return
 		if not piercing and mode in ["bolt", "seeker"]:
@@ -244,6 +245,7 @@ func _explode() -> void:
 	effect.damage = 0
 	effect.lifetime = 0.3
 	effect.position = Vector3(position.x, 0, position.z)
+	effect.set_meta("weapon_id",get_meta("weapon_id",""))
 	get_parent().add_child(effect)
 	queue_free()
 
@@ -272,6 +274,7 @@ func spawn_detail(style: String, point: Vector3, duration: float, reach: float) 
 	result.radius=reach
 	result.auto_lifetime=duration
 	result.add_to_group("weapon_impact_details")
+	result.set_meta("weapon_id",get_meta("weapon_id",""))
 	get_parent().add_child(result)
 func ellipse_point(time: float) -> Vector3:
 	var theta:=clampf(time/1.3,0,1)*TAU

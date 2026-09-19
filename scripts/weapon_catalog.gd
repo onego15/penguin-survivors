@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Evolution=preload("res://scripts/evolution_catalog.gd")
+
 const ITEMS := {
 	"starfall":{"name":"おほしさまメテオ","description":"長く待って巨大な星を落とす。\n固定地点の広範囲へ一度に大ダメージ。","style":"遠隔着弾 / 長い待ち時間","color":Color("ffe9ae"),"cooldown":24.0,"damage":30},
 	"gust":{"name":"ぱたぱた扇風機","description":"常時送風し、左右に首を振って押し返す。\nボスにはダメージのみ。","style":"常時首振り / ノックバック","color":Color("a8efdc"),"cooldown":3.0,"damage":1},
@@ -40,7 +42,16 @@ const SHAPES={
 	"boomerang":{"reach":12.0,"travel":9.1,"duration":2.4}, "storm":{"radius":2.6,"duration":3.2},
 	"udon":{"reach":11.0,"radius":1.2},
 }
+static func data(id: String) -> Dictionary:
+	return ITEMS[id] if ITEMS.has(id) else Evolution.ITEMS[id]
+static func all_ids() -> Array:
+	return ITEMS.keys()+Evolution.ITEMS.keys()
+static func max_rank(id: String) -> int:
+	return 9 if Evolution.ITEMS.has(id) and not Evolution.is_single(id) else 5
+static func min_rank(id: String) -> int:
+	return 2 if Evolution.is_single(id) else 1
 static func stats(id: String, rank: int) -> Dictionary:
+	if Evolution.ITEMS.has(id): return Evolution.stats(id,rank)
 	var n:=clampi(rank,1,MAX_RANK)-1
 	if id=="orbit": return {"damage":[2,2,2,3,3][n],"cooldown":0.0,"radius":[2.2,2.3,2.4,2.5,2.6][n],"count":2+n}
 	if id=="starfall": return {"damage":[30,36,44,52,60][n],"cooldown":[24.0,23.0,22.0,21.0,20.0][n],"radius":[5.0,5.3,5.6,5.9,6.2][n],"reach":18.0}
@@ -65,10 +76,10 @@ static func upgrade_text(id: String, rank: int) -> String:
 	var before:=stats(id,rank)
 	var after:=stats(id,rank+1)
 	var lines: Array[String]=[]
-	for key in ["damage","cooldown","reach","radius","count","duration","pierce","travel","knockback","freeze"]:
+	for key in ["damage","cooldown","reach","radius","count","duration","pierce","travel","knockback","freeze","width","pulse_interval","pulse_radius","pulse_damage"]:
 		if not before.has(key) or before[key]==after[key]: continue
-		var names:={"damage":"威力","cooldown":"間隔","reach":"射程","radius":"半径","count":"数","duration":"持続","pierce":"貫通数","travel":"到達距離","knockback":"押し返し","freeze":"凍結時間"}
-		if id=="gust" and key=="cooldown": names.cooldown="同じ敵への命中間隔"
-		if key in ["damage","count","pierce"]: lines.append("%s %d → %d"%[names[key],before[key],after[key]])
-		else: lines.append("%s %.2f → %.2f%s"%[names[key],before[key],after[key],"m" if key in ["reach","radius","travel","knockback"] else "秒"])
+		var names:={"damage":"威力","cooldown":"間隔","reach":"射程","radius":"半径","count":"数","duration":"持続","pierce":"貫通数","travel":"到達距離","knockback":"押し返し","freeze":"凍結時間","width":"光線幅","pulse_interval":"波動間隔","pulse_radius":"波動半径","pulse_damage":"波動威力"}
+		if id in ["gust","blizzard_fan"] and key=="cooldown": names.cooldown="同じ敵への命中間隔"
+		if key in ["damage","count","pierce","pulse_damage"]: lines.append("%s %d → %d"%[names[key],before[key],after[key]])
+		else: lines.append("%s %.2f → %.2f%s"%[names[key],before[key],after[key],"m" if key in ["reach","radius","travel","knockback","width","pulse_radius"] else "秒"])
 	return "\n".join(lines)

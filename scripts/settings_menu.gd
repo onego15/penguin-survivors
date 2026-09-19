@@ -4,6 +4,7 @@ var message: Label
 var key_buttons: Dictionary={}
 var resume: Button
 var confirm: ConfirmationDialog
+var evolution_book: AcceptDialog
 func _ready() -> void:
 	layer=100
 	var root:=Control.new(); root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); add_child(root)
@@ -42,6 +43,9 @@ func _ready() -> void:
 	message=Label.new(); message.add_theme_font_size_override("font_size",15); box.add_child(message)
 	var actions:=HBoxContainer.new(); box.add_child(actions)
 	resume=Button.new(); resume.text="閉じる / 再開（Esc・Start）"; resume.size_flags_horizontal=Control.SIZE_EXPAND_FILL; resume.pressed.connect(settings.close_menu); actions.add_child(resume)
+	evolution_book=preload("res://scripts/evolution_book.gd").new(); root.add_child(evolution_book)
+	var book_button:=Button.new(); book_button.text="進化一覧"; actions.add_child(book_button)
+	book_button.pressed.connect(func(): evolution_book.show_book(get_tree().current_scene))
 	var quit_button:=Button.new(); quit_button.text="タイトルへ"; actions.add_child(quit_button)
 	confirm=ConfirmationDialog.new(); confirm.dialog_text="現在のプレイを終了してタイトルへ戻りますか？"; confirm.title="タイトルへ戻る"; root.add_child(confirm)
 	quit_button.pressed.connect(func(): confirm.popup_centered())

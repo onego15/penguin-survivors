@@ -105,13 +105,16 @@ func _input(event: InputEvent) -> void:
 	var pause_key: bool=event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_ESCAPE
 	var pause_pad: bool=event is InputEventJoypadButton and event.pressed and event.button_index==JOY_BUTTON_START
 	if pause_key or pause_pad:
+		if opened and menu.evolution_book.visible:
+			menu.evolution_book.hide(); get_viewport().set_input_as_handled(); return
 		if opened and menu.confirm.visible:
 			menu.confirm.hide(); get_viewport().set_input_as_handled(); return
 		if opened: close_menu()
 		else: open_menu()
 		get_viewport().set_input_as_handled()
 	elif opened and event.is_action_pressed("ui_cancel"):
-		if menu.confirm.visible: menu.confirm.hide()
+		if menu.evolution_book.visible: menu.evolution_book.hide()
+		elif menu.confirm.visible: menu.confirm.hide()
 		else: close_menu()
 		get_viewport().set_input_as_handled()
 func track_mesh(reference: WeakRef) -> void:

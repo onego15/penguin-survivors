@@ -91,9 +91,9 @@ func _ready() -> void:
 	_label("一緒に戦った武器",Vector2(853,174),19,Color("9de4d5"))
 	var index:=0
 	for id in results.weapons:
-		_label("%s  Lv.%d" % [Catalog.ITEMS[id].name,results.weapons[id]],Vector2(853,209+index*(14 if results.weapons.size()>20 else (16 if results.weapons.size()>19 else 17))),13 if results.weapons.size()>19 else 14,Color("e0eeee"))
+		_label("%s  Lv.%d" % [Catalog.data(id).name,results.weapons[id]],Vector2(853,209+index*(14 if results.weapons.size()>20 else (16 if results.weapons.size()>19 else 17))),13 if results.weapons.size()>19 else 14,Color("e0eeee"))
 		index+=1
-	_button("もう一度遊ぶ  ["+Settings.binding_label("restart")+" / Y]",Vector2(851,543),func(): play_again.emit())
+	_button("もう一度遊ぶ  ["+get_node("/root/Settings").binding_label("restart")+" / Y]",Vector2(851,543),func(): play_again.emit())
 	_button("タイトルへ",Vector2(851,603),func(): return_title.emit())
 func _label(text: String, point: Vector2, size: int, color: Color) -> void:
 	var label:=Label.new()

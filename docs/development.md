@@ -18,7 +18,9 @@
 | `scenes/title.tscn` / `scripts/title_screen.gd` | タイトル・キャラとステージの選択 |
 | `scenes/main.tscn` / `scripts/main.gd` | ゲーム進行・HUD・シーン間の接続 |
 | `scripts/player.gd` / `character_roster.gd` | 移動・HP・キャラ定義 |
-| `scripts/weapon_catalog.gd` / `weapon_system.gd` | 23武器の定義・強化・自動発動 |
+| `scripts/weapon_catalog.gd` / `weapon_system.gd` | 基本23武器と進化8武器の定義・強化・自動発動 |
+| `scripts/evolution_catalog.gd` / `evolution_book.gd` | 進化条件・継承・専用成長・レシピ表示 |
+| `scripts/evolution_projectile.gd` / `fusion_attack.gd` / `evolution_models.gd` | 進化武器の攻撃・表示 |
 | `scripts/weapon_attack.gd` / `advanced_attack.gd` | 武器の移動・命中・寿命 |
 | `scripts/control_attack.gd` / `enemy_control.gd` / `udon_attack.gd` | 制御武器・状態異常・麺の往復と引き寄せ |
 | `scripts/difficulty.gd` / `wave_director.gd` / `stage_catalog.gd` | 難易度・Wave・ステージ定義 |
@@ -38,6 +40,7 @@
 プロジェクトのルートから実行します。以下の `godot` はPATHに登録したGodot実行ファイル名です。Windowsでは使用するGodotのコンソール版exeのパスへ置き換えられます。
 
 ```sh
+godot --headless --path . --script tests/evolution_test.gd
 godot --headless --path . --script tests/settings_test.gd
 godot --headless --path . --script tests/sandbox_test.gd
 godot --headless --path . --script tests/weapons_test.gd
@@ -48,6 +51,7 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 
 | テスト | 主な確認内容 |
 |---|---|
+| `evolution_test.gd` | 単体Lv.2・合体Lv.1、継承・消費・2枠・分岐・命中と停止・サンドボックス |
 | `settings_test.gd` | 二重の停止・ボス演出停止・設定保存・入力割当・パッド入力・味方の濃さと警告の維持 |
 | `sandbox_test.gd` | キャラ分離・23武器・全敵・形態固定・補充・停止・死亡・設定保持・ランダム配置と連続クリック |
 | `starfall_pool_test.gd` | 23種・ステージ16種・複数シード抽選・候補枯渇・真珠の継続と壁・メテオの待機と単発着弾 |
@@ -72,11 +76,12 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 
 ```sh
 python tools/generate_audio.py
+python tools/generate_evolution_audio.py
 ```
 
 ## スクリーンショット・動画
 
-直近の撮影スクリプトは `tools/capture_starfall.gd`、 `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
+進化の撮影は `tools/capture_evolutions.gd`。その他の撮影スクリプトは `tools/capture_starfall.gd`、 `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
 
 デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。2026-09-18の動画はデン・現在の武器モデル・両ステージを収録しています。撮影用に進行を制御した紹介映像です。
 
@@ -134,3 +139,9 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 ## ポーズ・設定の検証
 
 設定・タイトル・サンドボックス・祝勝画面・音楽・必殺技・デンの7テストを実行し、すべて成功。Compatibility実画面で音・表示タブと操作タブを確認しました。ゲームパッドは入力イベントによる確認で、物理コントローラーを使った試遊は未実施です。
+
+## 進化・合体の追加（2026-09-19）
+
+専用テストと関連回帰テストは通過。[進化ガイド](evolutions.md#検証記録2026-09-19)に数値・実画面・同じ選択回数での比較を記録しています。再測定は `tests/evolution_campaign_audit.gd`（自然成長）、`tests/evolution_balance_audit.gd`（Wave 4）、`tests/evolution_boss_audit.gd`（決戦）。円移動の自動操作ではボス未討伐のため、撃破時間の優劣は判定していません。
+
+低レベル合体の調整は `tests/evolution_low_rank_audit.gd` で3シード・全周囲／正面を比較。[調整値・条件・結果](evolutions.md#低レベル合体の調整2026-09-19)に記録しています。HPを復元する固定時間試験なので、生存時間・クリア率の代用にはしません。

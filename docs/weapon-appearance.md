@@ -2,7 +2,7 @@
 
 [README](../README.md) · [性能と成長](weapons.md) · [ステージ所属](stages.md)
 
-23武器の攻撃性能・成長・ステージ所属は維持し、名前と見た目を整理しました。**凍結はアイスキャンディだけ**。くるくるパールは接触攻撃で、防御・ダメージ軽減はありません。
+23武器の攻撃性能・成長・ステージ所属は維持し、名前と見た目を整理しました。**凍結はアイスキャンディと、その合体先ブリザードファンだけ**。くるくるパールは接触攻撃で、防御・ダメージ軽減はありません。
 
 ![23武器の装備モデル](screenshots/weapon-models-23.png)
 
@@ -51,3 +51,18 @@
 ![16武器と敵予告](screenshots/weapon-style-overlap.png)
 
 Godotで `scenes/weapon_gallery.tscn` を開きF6で装備モデルを一覧できます。キャラクターのモデル一覧にも武器一覧ボタンを追加しました。個別の攻撃はサンドボックスで試せます。
+
+## 進化武器のモデル
+
+基本23武器の装備と別に、進化先8種の専用装備・攻撃モデルを追加しました。サンドボックスで個別に確認できます。
+
+| 進化武器 | 装備と攻撃 | 実画面 |
+|---|---|---|
+| れんしゃポップキャノン | 太い銃口と光輪、氷粒の高速連射 | [見る](screenshots/evolution-pop_cannon.png) |
+| さんれんつららキャノン | 三連の砲身、白い芯の氷槍 | [見る](screenshots/evolution-triple_cannon.png) |
+| おおきなときめき | 大きなハート杖と立体的な貫通弾 | [見る](screenshots/evolution-big_heart.png) |
+| はなまるハートリング | ハートの花輪、6方向への放射 | [見る](screenshots/evolution-heart_ring.png) |
+| ときめき虹プリズム | ハート型飾りと結晶、虹色の光線 | [見る](screenshots/evolution-rainbow_heart.png) |
+| ひえひえブリザードファン | 氷菓を付けた扇風機、流線と冷気 | [見る](screenshots/evolution-blizzard_fan.png) |
+| きらきらパールチャイム | 真珠付きの氷の管、周回する真珠と波紋 | [見る](screenshots/evolution-pearl_chime.png) |
+| ぴかぴか雷雲ドーム | 雲と稲妻を入れたドーム、薄い雷雲と折れ線の稲妻 | [見る](screenshots/evolution-thunder_dome.png) |

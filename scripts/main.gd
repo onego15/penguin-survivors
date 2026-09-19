@@ -33,6 +33,7 @@ var rng := RandomNumberGenerator.new()
 var spawn_count := 0
 var armory: Node
 var choice_ui: CanvasLayer
+var pending_recipe:=""
 var choice_open := false
 var offered_weapons: Array[String] = []
 var level := 1
@@ -100,6 +101,8 @@ func _ready() -> void:
 	choice_ui = WeaponChoice.new()
 	add_child(choice_ui)
 	choice_ui.selected.connect(choose_weapon)
+	choice_ui.branch_selected.connect(choose_evolution)
+	choice_ui.back_requested.connect(return_to_choices)
 	director = preload("res://scripts/wave_director.gd").new()
 	director.game = self
 	if stage.wave_set=="castle": director.waves=Stages.CASTLE_WAVES
@@ -445,6 +448,7 @@ func fire_at_nearest() -> bool:
 	bullet.direction = (nearest.position + Vector3(0, 1.0, 0) - bullet.position).normalized()
 	player.fire_feedback()
 	sound.play_effect("shot")
+	bullet.set_meta("weapon_id","frost")
 	actors.add_child(bullet)
 	return true
 
@@ -460,10 +464,15 @@ func open_weapon_choice() -> void:
 		return
 	var pool: Array[String] = []
 	for id in Stages.weapon_pool(stage_id):
-		if int(armory.levels.get(id,0))<Catalog.MAX_RANK: pool.append(id)
+		if not armory.consumed.has(id) and int(armory.levels.get(id,0))<Catalog.max_rank(id): pool.append(id)
+	for id in armory.levels:
+		if Catalog.Evolution.ITEMS.has(id) and armory.levels[id]<Catalog.max_rank(id): pool.append(id)
 	offered_weapons.clear()
+	pending_recipe=""
+	var evolution: String=armory.next_evolution()
+	if evolution!="": offered_weapons.append("@"+evolution)
 	# Every weapon is equally eligible: unowned = acquisition, owned = upgrade.
-	if pool.is_empty():
+	if pool.is_empty() and offered_weapons.is_empty():
 		var before: int=player.health
 		player.heal(20)
 		director.notice="このステージの全武器MAX / HP +%d"%(player.health-before)
@@ -487,10 +496,27 @@ func open_weapon_choice() -> void:
 
 
 func choose_weapon(index: int) -> void:
-	if not choice_open or index < 0 or index >= offered_weapons.size():
+	if not choice_open or pending_recipe!="" or player.health<=0 or game_over or victory or run_state!="combat" or index < 0 or index >= offered_weapons.size():
 		return
-	armory.acquire(offered_weapons[index])
-	sound.play_effect("choose")
+	var id: String=offered_weapons[index]
+	if id.begins_with("@"):
+		var recipe:=id.substr(1)
+		var outputs: Array=Catalog.Evolution.RECIPES[recipe].outputs
+		if outputs.size()>1:
+			pending_recipe=recipe; choice_ui.show_branches(recipe,armory.levels,level+1); return
+		if not armory.evolve(recipe,outputs[0]): return
+	else: armory.acquire(id)
+	_finish_weapon_choice(id.begins_with("@"))
+
+func choose_evolution(output: String) -> void:
+	if not choice_open or pending_recipe=="" or player.health<=0 or game_over or victory: return
+	if armory.evolve(pending_recipe,output): _finish_weapon_choice(true)
+func return_to_choices() -> void:
+	if not choice_open: return
+	pending_recipe=""; choice_ui.show_choices(offered_weapons,armory.levels,level+1)
+func _finish_weapon_choice(evolved:=false) -> void:
+	pending_recipe=""
+	if not evolved: sound.play_effect("choose")
 	experience -= xp_needed
 	level += 1
 	xp_needed = Difficulty.xp_for_level(level)
@@ -513,9 +539,9 @@ func _update_hud() -> void:
 	xp_bar.max_value = xp_needed
 	xp_bar.value = experience
 	inventory_label.add_theme_font_size_override("font_size",12 if armory.levels.size()>20 else (13 if armory.levels.size()>18 else 14))
-	inventory_label.text = "装備武器 / すべて自動攻撃"
+	inventory_label.text = "装備武器 / 進化 %d / 2"%armory.evolution_count()
 	for id in armory.levels:
-		inventory_label.text += "\n%s  %s" % [Catalog.ITEMS[id].name, "MAX" if armory.levels[id]>=Catalog.MAX_RANK else "Lv.%d"%armory.levels[id]]
+		inventory_label.text += "\n%s  %s" % [Catalog.data(id).name, "MAX" if armory.levels[id]>=Catalog.max_rank(id) else "Lv.%d"%armory.levels[id]]
 		if id=="starfall": inventory_label.text+="  %ds"%ceili(maxf(0,armory.cooldowns.get(id,0)))
 	var profile := Difficulty.profile(elapsed)
 	if director!=null:

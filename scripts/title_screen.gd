@@ -49,7 +49,7 @@ func _ready() -> void:
 	_label(ui, "SURVIVAL ADVENTURE", Vector2(72, 74), 17, Color("7ee6d4"))
 	_label(ui, "PENGUIN\nSURVIVORS", Vector2(67, 114), 66, Color("f1f7ec"))
 	_label(ui, "小さなペンギン、大きなサバイバル。", Vector2(74, 278), 22, Color("ffdc94"))
-	_label(ui, "ステージごとの16武器で、動物の群れを突破。\n全23種類。10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
+	_label(ui, "ステージごとの16武器で、動物の群れを突破。\n基本23種＋進化8種。10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
 	for id in ["classic","pink"]:
 		var button:=Button.new()
 		button.text=Roster.CHARACTERS[id].name
@@ -152,6 +152,9 @@ func _ready() -> void:
 	settings_button.position=Vector2(1015,220); settings_button.size=Vector2(180,38)
 	settings_button.pressed.connect(Settings.open_menu)
 	ui.add_child(settings_button)
+	var book:=preload("res://scripts/evolution_book.gd").new(); ui.add_child(book)
+	var evolution_button:=Button.new(); evolution_button.text="進化・合体のレシピを見る"; evolution_button.position=Vector2(825,545); evolution_button.size=Vector2(330,36); ui.add_child(evolution_button)
+	evolution_button.pressed.connect(func(): book.show_book())
 	fade = ColorRect.new()
 	fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fade.color = Color(0.03, 0.08, 0.12, 0)

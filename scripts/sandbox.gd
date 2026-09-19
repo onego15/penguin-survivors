@@ -109,7 +109,8 @@ func rebuild_player(reset_health: bool=false) -> void:
 	armory.game=self
 	add_child(armory)
 	for id in settings.weapons:
-		for rank in range(int(settings.weapons[id])): armory.acquire(id)
+		armory.acquire(id)
+		armory.levels[id]=clampi(int(settings.weapons[id]),Catalog.min_rank(id),Catalog.max_rank(id))
 	if armory.levels.has("starfall"): armory.cooldowns.starfall=Catalog.cooldown("starfall",armory.levels.starfall)
 	player.weapon.visible=armory.levels.has("frost" if settings.character=="classic" else "heart")
 	if is_instance_valid(player.frost_weapon): player.frost_weapon.visible=armory.levels.has("frost")
@@ -126,7 +127,7 @@ func rebuild_player(reset_health: bool=false) -> void:
 
 func set_weapon(id: String, rank: int) -> void:
 	if rank==0: settings.weapons.erase(id)
-	else: settings.weapons[id]=clampi(rank,1,5)
+	else: settings.weapons[id]=clampi(rank,Catalog.min_rank(id),Catalog.max_rank(id))
 	rebuild_player()
 
 func clear_attacks(hostile_only: bool) -> void:

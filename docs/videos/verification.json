@@ -1,0 +1,23 @@
+{
+  "recorded": "2026-09-20",
+  "duration_seconds": 72,
+  "fps": 60,
+  "width": 1280,
+  "height": 720,
+  "decoded_frames": 4320,
+  "consecutive_duplicate_frames": 0,
+  "video_codec": "H.264",
+  "audio_codec": "AAC",
+  "audio_mean_db": -28.0,
+  "audio_max_db": -10.3,
+  "gif_frames": 240,
+  "gif_duration_ms": 8000,
+  "gif_dimensions": [
+    640,
+    360
+  ],
+  "gif_frame_durations_ms": [
+    30,
+    40
+  ]
+}

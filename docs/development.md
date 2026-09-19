@@ -84,7 +84,7 @@ python tools/generate_evolution_audio.py
 
 進化の撮影は `tools/capture_evolutions.gd`。その他の撮影スクリプトは `tools/capture_starfall.gd`、 `tools/capture_castle_control_rebalance.gd` と `tools/capture_control_weapons.gd`。画面を使うため、`--headless` を付けずに実行します。撮影用に時間・装備・敵配置を設定し、`docs/screenshots/` の画像を更新します。
 
-デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。2026-09-18の動画はデン・現在の武器モデル・両ステージを収録しています。撮影用に進行を制御した紹介映像です。
+デモ動画の収録方法とフレーム検証は[動画のREADME](videos/README.md)へ。2026-09-20の動画は、敵の行動改善・デンの跳躍・虹プリズム・ノクティスの移動氷壁を含む72秒の映像です。撮影用に進行を制御した紹介映像です。
 
 ### サンドボックスの確認
 

@@ -120,7 +120,8 @@ static func claw(parent: Node3D, point: Vector3, side: float=1) -> Node3D:
 	V.ellipsoid(root,Color("aa4b49"),Vector3(0,-0.04,-0.12),Vector3(0.2,0.18,0.23))
 	V.ellipsoid(root,Color("e97c64"),Vector3.ZERO,Vector3(0.31,0.24,0.32))
 	for sign_value in [-1,1]:
-		S.tube(root,[Vector3(sign_value*0.18,0,0.15),Vector3(sign_value*0.24,0.02,0.38),Vector3(sign_value*0.17,0.02,0.59),Vector3(sign_value*0.065,0,0.66)],[0.13,0.11,0.065,0.015],Color("f6b787"))
+		var jaw:=V.pivot(root,"JawLeft" if sign_value<0 else "JawRight",Vector3(0,0,0.15))
+		S.tube(jaw,[Vector3(sign_value*0.18,0,0),Vector3(sign_value*0.24,0.02,0.23),Vector3(sign_value*0.17,0.02,0.44),Vector3(sign_value*0.065,0,0.51)],[0.13,0.11,0.065,0.015],Color("f6b787"))
 	V.ellipsoid(root,Color("ffd7a4"),Vector3(-0.07,0.2,0),Vector3(0.14,0.035,0.18))
 	root.rotation.z=side*0.15
 	S.bake(root)
@@ -174,8 +175,18 @@ static func arena(parent: Node3D) -> void:
 		for j in range(3): V.rod(coral,Color("db9bb8") if i%2==0 else Color("95c9c5"),Vector3((j-1)*0.35,0,0),Vector3((j-1)*0.8,1.0+j*0.4,0),0.16,0.08)
 static func weapon(parent: Node3D, id: String) -> void:
 	if id=="shell_wave":
-		for i in range(4): V.ring(parent,Color("f6c6a5"),Vector3(0,0,i*0.1),0.26-i*0.04,0.07,true)
+		# Flared conch with a visible dark opening and tapered spiral body.
+		V.ellipsoid(parent,Color("dda787"),Vector3(0,0,-0.05),Vector3(0.25,0.25,0.38))
+		for i in range(5): V.ring(parent,Color("f6d6b1"),Vector3(0,0,0.23-i*0.14),0.27-i*0.043,0.055,true)
+		V.ellipsoid(parent,Color("865b66"),Vector3(0,0,0.265),Vector3(0.23,0.23,0.028))
+		V.ring(parent,Color("fff1d3"),Vector3(0,0,0.29),0.26,0.06,true)
+		for i in range(5):
+			var a:=i*TAU/5
+			V.rod(parent,Color("f4c5a5"),Vector3(cos(a)*0.18,sin(a)*0.18,-0.04),Vector3(cos(a)*0.33,sin(a)*0.33,-0.10),0.055,0.008)
 	elif id=="bubble":
-		V.rod(parent,Color("edb8da"),Vector3(0,-0.3,0),Vector3.ZERO,0.06)
-		V.ring(parent,Color("b6e9e7"),Vector3(0,0.18,0),0.19,0.04,true)
+		V.rod(parent,Color("edb8da"),Vector3(0,-0.4,0),Vector3(0,0.02,0),0.075)
+		for i in range(3): V.ring(parent,Color("fff2db"),Vector3(0,-0.31+i*0.10,0),0.075,0.018)
+		V.ring(parent,Color("72b7d7"),Vector3(0,0.22,0),0.25,0.055,true)
+		V.ring(parent,Color("f4d5ed"),Vector3(0,0.22,0.015),0.19,0.025,true)
+		V.ellipsoid(parent,Color("f8ffff"),Vector3(-0.13,0.4,0.045),Vector3(0.08,0.035,0.025))
 	else: claw(parent,Vector3.ZERO).scale=Vector3.ONE*0.65

@@ -34,5 +34,6 @@ func _ready() -> void:
 		index+=1
 	game.free()
 	var camera:=Camera3D.new()
-	camera.projection=Camera3D.PROJECTION_ORTHOGONAL; camera.size=24
-	camera.position=Vector3(0,27,21); add_child(camera); camera.look_at(Vector3.ZERO); camera.current=true
+	camera.projection=Camera3D.PROJECTION_ORTHOGONAL; camera.size=maxf(24,ceilf(Catalog.all_ids().size()/6.0)*4.8)
+	var center:=Vector3(0,0,-10+(ceilf(Catalog.all_ids().size()/6.0)-1)*2)
+	camera.position=center+Vector3(0,27,21); add_child(camera); camera.look_at(center); camera.current=true

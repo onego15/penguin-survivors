@@ -82,3 +82,9 @@ Godotで `scenes/weapon_gallery.tscn` を開きF6で装備モデルを一覧で�
 表示のみの変更で、威力・周期・射程・命中回数は維持。Compatibility実画面と `beach_combat_test.gd`（失敗0件）で確認しています。
 
 ![海の武器：上段は装備、下段は攻撃](screenshots/beach-weapon-models.png)
+
+## 海の合体モデル
+
+真珠の大波は真珠を抱いた巻き貝と巻き上がる波頭、アクアリウムは泡を閉じ込めた水槽と薄い水のドーム、カニうどんは左右にハサミが付いたどんぶりと巻き付く麺で素材を表現します。[仕様と個別実画面](evolutions.md#サンゴ浜の合体進化)。
+
+![基本26種と進化11種の全モデル](screenshots/weapon-models-37.png)

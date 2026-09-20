@@ -18,7 +18,7 @@
 | `scenes/title.tscn` / `scripts/title_screen.gd` | タイトル・キャラとステージの選択 |
 | `scenes/main.tscn` / `scripts/main.gd` | ゲーム進行・HUD・シーン間の接続 |
 | `scripts/player.gd` / `character_roster.gd` | 移動・HP・キャラ定義 |
-| `scripts/weapon_catalog.gd` / `weapon_system.gd` | 基本23武器と進化8武器の定義・強化・自動発動 |
+| `scripts/weapon_catalog.gd` / `weapon_system.gd` | 基本26武器と進化11武器の定義・強化・自動発動 |
 | `scripts/evolution_catalog.gd` / `evolution_book.gd` | 進化条件・継承・専用成長・レシピ表示 |
 | `scripts/evolution_projectile.gd` / `fusion_attack.gd` / `evolution_models.gd` | 進化武器の攻撃・表示 |
 | `scripts/weapon_attack.gd` / `advanced_attack.gd` | 武器の移動・命中・寿命 |
@@ -186,3 +186,5 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 ## サンゴ浜
 
 `beach_catalog.gd`がWave、`beach_field.gd`が潮と泉、`player_status.gd`がプレイヤーの状態異常を管理。`beach_enemy.gd`／`beach_miniboss.gd`／`octo.gd`は既存のダメージ・難易度・報酬へ接続しています。専用武器は`beach_attack.gd`。撮影は`tools/capture_beach.gd`、測定は`tools/profile_beach.gd`と`tools/audit_beach.gd`。仕様と検証結果は[サンゴ浜](beach.md)へ。
+
+海の合体進化：`tests/beach_fusion_test.gd` が判定・素材消費・停止を検証。`tests/beach_fusion_audit.gd` が同じ選択回数で素材強化と比較し、`docs/benchmarks/beach-fusion-balance.json` に記録します。`tools/capture_beach_fusions.gd` で攻撃・候補カードを撮影。専用音は `python tools/generate_beach_fusion_audio.py` で再生成できます。

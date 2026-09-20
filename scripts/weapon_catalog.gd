@@ -85,6 +85,9 @@ static func upgrade_text(id: String, rank: int) -> String:
 	for key in ["damage","cooldown","reach","radius","count","duration","pierce","travel","knockback","freeze","width","pulse_interval","pulse_radius","pulse_damage"]:
 		if not before.has(key) or before[key]==after[key]: continue
 		var names:={"damage":"威力","cooldown":"間隔","reach":"射程","radius":"半径","count":"数","duration":"持続","pierce":"貫通数","travel":"到達距離","knockback":"押し返し","freeze":"凍結時間","width":"光線幅","pulse_interval":"波動間隔","pulse_radius":"波動半径","pulse_damage":"波動威力"}
+		if id=="pearl_wave" and key=="width": names.width="最大幅"
+		if id=="bubble_aquarium" and key=="pulse_damage": names.pulse_damage="泡の威力"
+		if id=="crab_udon" and key=="pulse_damage": names.pulse_damage="ハサミ威力"
 		if id in ["gust","blizzard_fan"] and key=="cooldown": names.cooldown="同じ敵への命中間隔"
 		if key in ["damage","count","pierce","pulse_damage"]: lines.append("%s %d → %d"%[names[key],before[key],after[key]])
 		else: lines.append("%s %.2f → %.2f%s"%[names[key],before[key],after[key],"m" if key in ["reach","radius","travel","knockback","width","pulse_radius"] else "秒"])

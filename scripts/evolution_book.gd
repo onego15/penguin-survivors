@@ -21,7 +21,14 @@ func show_book(game: Node=null) -> void:
 			if game!=null and "armory" in game:
 				state="（消費済み）" if consumed.has(id) else ("（このステージ対象外）" if not id in stage_pool else (" Lv.%d"%levels[id] if levels.has(id) else "（未所持）"))
 			names.append(Catalog.data(id).name+state)
-		body.text+=("【雪原限定】\n" if recipe=="pearl_chime" else ("【夜の氷の城限定】\n" if recipe=="thunder_dome" else "【両ステージ共通】\n"))
+		var stages: PackedStringArray=[]
+		for stage in preload("res://scripts/stage_catalog.gd").STAGES:
+			var pool=preload("res://scripts/stage_catalog.gd").weapon_pool(stage)
+			var valid:=true
+			for source in def.sources:
+				if not source in pool: valid=false
+			if valid: stages.append(preload("res://scripts/stage_catalog.gd").STAGES[stage].name)
+		body.text+="【"+"・".join(stages)+"】\n"
 		body.text+="[color=#9feaff][b]"+" ＋ ".join(names)+"[/b][/color]\n必要：各Lv.%d以上\n"%def.minimum
 		for id in def.outputs: body.text+="→ [b]"+Catalog.data(id).name+"[/b]\n"+Catalog.data(id).description.replace("\n"," ")+"\n"
 		body.text+="\n"

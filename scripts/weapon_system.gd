@@ -352,6 +352,18 @@ func fire_evolved(id: String) -> bool:
 	if not levels.has(id): return false
 	var values:=Catalog.stats(id,levels[id])
 	var origin: Vector3=game.player.global_position
+	if id in ["pearl_wave","bubble_aquarium","crab_udon"]:
+		var point: Vector3=origin
+		if id=="bubble_aquarium":
+			var victim:=nearest(origin,16)
+			if victim==null: return false
+			point=victim.global_position
+			if not preload("res://scripts/castle_obstacles.gd").placement(game,point,0.1): return false
+		var sea:=preload("res://scripts/beach_fusion_attack.gd").new()
+		sea.mode=id; sea.stats=values.duplicate(true); sea.direction=game.player.facing_direction(); sea.position=point
+		attach(sea,id)
+		game.sound.play_effect(id)
+		return true
 	if id in ["blizzard_fan","pearl_chime"]:
 		if is_instance_valid(fusion_nodes.get(id)):
 			fusion_nodes[id].configure(values); return true

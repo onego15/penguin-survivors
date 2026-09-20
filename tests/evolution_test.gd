@@ -15,7 +15,7 @@ func new_game(stage: String="snowfield") -> void:
 func enemy(point: Vector3):
 	var unit=game.spawn_enemy(0); unit.position=point; unit.health=1000; unit.max_health=1000; return unit
 func run() -> void:
-	check(C.ITEMS.size()==26 and C.all_ids().size()==34,"26 base + 8 evolved")
+	check(C.ITEMS.size()==26 and C.all_ids().size()==37,"26 base + 11 evolved")
 	check(S.weapon_pool("snowfield").size()==16 and S.weapon_pool("castle").size()==16,"unchanged pools")
 	for a in range(1,6):
 		for b in range(1,6): check(E.inherited_level("blizzard_fan",{"gust":a,"popsicle":b})==a+b-1,"all 25 fusion levels")

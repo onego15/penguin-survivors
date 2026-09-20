@@ -4,6 +4,19 @@ const M=preload("res://scripts/character_models.gd")
 static func build(parent: Node3D, id: String) -> Node3D:
 	var root:=V.pivot(parent,"EvolutionModel")
 	match id:
+		"pearl_wave":
+			preload("res://scripts/beach_models.gd").weapon(root,"shell_wave")
+			for i in range(3): V.ellipsoid(root,Color("fff4df"),Vector3((i-1)*0.18,0.24,0.30),Vector3.ONE*0.13)
+		"bubble_aquarium":
+			V.rod(root,Color("5996b3"),Vector3(0,-0.12,0),Vector3.ZERO,0.40)
+			var globe:=V.ellipsoid(root,Color(0.65,0.91,1,0.22),Vector3(0,0.3,0),Vector3(0.38,0.42,0.38))
+			globe.material_override=globe.material_override.duplicate(); globe.material_override.transparency=BaseMaterial3D.TRANSPARENCY_ALPHA
+			for i in range(3):
+				V.ring(root,Color("e1ffff"),Vector3((i-1)*0.15,0.2+i*0.12,0.16),0.08,0.015,true)
+		"crab_udon":
+			preload("res://scripts/udon_attack.gd").bowl(root)
+			for side in [-1,1]:
+				var claw=preload("res://scripts/beach_models.gd").claw(root,Vector3(side*0.4,0.22,0.1),side); claw.scale=Vector3.ONE*0.6
 		"pop_cannon","triple_cannon":
 			var gun:=M.blaster(root); gun.scale=Vector3.ONE*0.6
 			for i in range(3 if id=="triple_cannon" else 1):

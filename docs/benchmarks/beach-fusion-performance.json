@@ -1,0 +1,21 @@
+{
+	"condition": "seed73, 96 sea enemies, stationary invincible, 4 weapons Lv3, 60 warmup frames; base vs fusion workload, not equal-power builds",
+	"gpu": "RTX 4060 Laptop",
+	"renderer": "Compatibility",
+	"rows": [
+		{
+			"frames": 360,
+			"fusion": false,
+			"mean_ms": 2.216875,
+			"p95_ms": 4.967,
+			"spawned": 96
+		},
+		{
+			"frames": 360,
+			"fusion": true,
+			"mean_ms": 2.82641388888889,
+			"p95_ms": 5.951,
+			"spawned": 96
+		}
+	]
+}

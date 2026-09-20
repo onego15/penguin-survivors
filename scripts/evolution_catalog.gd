@@ -2,6 +2,9 @@ extends RefCounted
 ## Base weapon IDs remain stable. Evolutions are owned-only entries, never random acquisitions.
 const LIMIT:=2
 const RECIPES={
+	"pearl_wave":{"sources":["shell_wave","orbit"],"minimum":1,"outputs":["pearl_wave"]},
+	"bubble_aquarium":{"sources":["bubble","storm"],"minimum":1,"outputs":["bubble_aquarium"]},
+	"crab_udon":{"sources":["crab_claw","udon"],"minimum":1,"outputs":["crab_udon"]},
 	"pop_branch":{"sources":["frost"],"minimum":2,"outputs":["pop_cannon","triple_cannon"]},
 	"heart_branch":{"sources":["heart"],"minimum":2,"outputs":["big_heart","heart_ring"]},
 	"rainbow_heart":{"sources":["beam","heart"],"minimum":1,"outputs":["rainbow_heart"]},
@@ -10,6 +13,9 @@ const RECIPES={
 	"thunder_dome":{"sources":["storm","lightning"],"minimum":1,"outputs":["thunder_dome"]},
 }
 const ITEMS={
+	"pearl_wave":{"name":"ざぶざぶ真珠の大波","description":"前方へ真珠を抱いた大波。\n群れを一度ずつ貫通。周回・防御なし。","style":"合体 / 前方固定・広がる波","color":Color("a9f5ed")},
+	"bubble_aquarium":{"name":"ぷかぷか泡のアクアリウム","description":"近い敵の場所へ水のドームを固定。\n6回の波動と漂う泡。凍結・防御なし。","style":"合体 / 設置・漂流破裂","color":Color("b8eaff")},
+	"crab_udon":{"name":"ちゅるっとカニうどん","description":"左右へ麺を伸ばし敵を寄せて挟む。\nボスは引き寄せずダメージのみ。","style":"合体 / 左右固定・引き寄せ","color":Color("ffbfaa")},
 	"pop_cannon":{"name":"れんしゃポップキャノン","description":"最寄りへ氷粒を高速連射。\n単体火力を伸ばす。凍結なし。","style":"単体進化 / 自動照準・単体","color":Color("85efff")},
 	"triple_cannon":{"name":"さんれんつららキャノン","description":"最寄りの方向へ3本の氷槍。\n各3体貫通。凍結なし。","style":"単体進化 / 自動照準・3方向","color":Color("a3d4ff")},
 	"big_heart":{"name":"おおきなときめき","description":"最寄りへ大きなハート。\n直線上の群れを貫通。回復なし。","style":"単体進化 / 大型貫通弾","color":Color("ff91c8")},
@@ -44,6 +50,9 @@ static func stats(id: String, rank: int) -> Dictionary:
 	# Ease low-rank targeting/control without raising damage or the Lv.9 ceiling.
 	var t:=float(clampi(rank,1,9)-1)/8
 	match id:
+		"pearl_wave": return {"damage":ceili(lerpf(16,48,t)),"cooldown":lerpf(2.8,2.2,t),"reach":lerpf(12,16,t),"width":lerpf(6,9,t)}
+		"bubble_aquarium": return {"damage":ceili(lerpf(2,6,t)),"cooldown":lerpf(4.8,4.0,t),"reach":16.0,"radius":lerpf(3,4,t),"duration":3.0,"pulse_damage":ceili(lerpf(4,12,t)),"pulse_radius":lerpf(1.1,1.5,t)}
+		"crab_udon": return {"damage":ceili(lerpf(2,5,t)),"cooldown":lerpf(2.8,2.5,t),"reach":lerpf(8,11,t),"pulse_damage":ceili(lerpf(16,36,t)),"radius":lerpf(1.5,2,t)}
 		"rainbow_heart": return {"damage":ceili(lerpf(4,16,t)),"cooldown":lerpf(2.5,2.35,t),"reach":lerpf(14,18,t),"width":lerpf(0.6,0.65,t),"duration":1.2}
 		"blizzard_fan": return {"damage":ceili(lerpf(1,3,t)),"cooldown":lerpf(2.8,2.4,t),"reach":lerpf(7,9,t),"knockback":lerpf(3,4.5,t),"pulse_interval":lerpf(4.1,4,t),"freeze":lerpf(1.2,1.4,t)}
 		"pearl_chime": return {"damage":ceili(lerpf(2,4,t)),"cooldown":0.0,"count":ceili(lerpf(3,8,t)),"radius":lerpf(2.3,2.8,t),"pulse_interval":lerpf(3,2.4,t),"pulse_radius":lerpf(1.2,1.8,t),"pulse_damage":ceili(lerpf(2,6,t))}

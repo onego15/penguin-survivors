@@ -13,7 +13,7 @@ func run() -> void:
 	status.tick(2); check(not status.apply("ink"),"natural expiry immunity")
 	var stages=preload("res://scripts/stage_catalog.gd")
 	var catalog=preload("res://scripts/weapon_catalog.gd")
-	check(catalog.ITEMS.size()==26 and catalog.all_ids().size()==34,"weapon count")
+	check(catalog.ITEMS.size()==26 and catalog.all_ids().size()==37,"weapon count")
 	for id in stages.STAGES:
 		check(stages.weapon_pool(id).size()==16,"16 pool "+id)
 		for weapon in stages.weapon_pool(id): check(catalog.ITEMS.has(weapon),"valid weapon")

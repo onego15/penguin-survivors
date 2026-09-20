@@ -52,7 +52,7 @@ func _ready() -> void:
 	_label(ui, "SURVIVAL ADVENTURE", Vector2(72, 74), 17, Color("7ee6d4"))
 	_label(ui, "PENGUIN\nSURVIVORS", Vector2(67, 114), 66, Color("f1f7ec"))
 	_label(ui, "小さなペンギン、大きなサバイバル。", Vector2(74, 278), 22, Color("ffdc94"))
-	_label(ui, "ステージごとの16武器で、動物の群れを突破。\n基本23種＋進化8種。10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
+	_label(ui, "ステージごとの16武器で、動物の群れを突破。\n基本26種＋進化8種。10分後に待つステージの王を倒そう。", Vector2(74, 312), 18, Color("bfced6"))
 	for id in ["classic","pink"]:
 		var button:=Button.new()
 		button.text=Roster.CHARACTERS[id].name
@@ -112,7 +112,7 @@ func _ready() -> void:
 	_label(ui, "最後の30秒：通常敵を倒し、中ボスHPを削ろう\n残敵が少ないほどラスボスHPの加算が減る。", Vector2(710, 588), 15, Color("23485a"))
 	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 673), 14, Color("8fe5dc"))
 	_label(ui,"STAGE SELECT",Vector2(710,68),18,Color("244156"))
-	for id in ["snowfield","castle"]:
+	for id in ["snowfield","castle","beach"]:
 		var button:=Button.new()
 		button.text=Stages.STAGES[id].name
 		var selected_style:=StyleBoxFlat.new()
@@ -121,8 +121,8 @@ func _ready() -> void:
 		selected_style.set_border_width_all(2)
 		selected_style.set_corner_radius_all(5)
 		button.add_theme_stylebox_override("pressed",selected_style)
-		button.position=Vector2(700+stage_buttons.size()*260,100)
-		button.size=Vector2(250,48)
+		button.position=Vector2(700+stage_buttons.size()*174,100)
+		button.size=Vector2(168,48)
 		button.toggle_mode=true
 		button.focus_mode=Control.FOCUS_NONE
 		button.add_theme_font_size_override("font_size",20)
@@ -228,8 +228,8 @@ func _input(event: InputEvent) -> void:
 func select_stage(id: String) -> void:
 	if starting or not Stages.STAGES.has(id): return
 	Stages.selected_id=id
-	stage_hint.text="氷の城：門でルートが変わる上級ステージ\n白青の鍵が点滅したら、開いた門へ！" if id=="castle" else "雪原：見晴らしのよい最初のステージ\n武器と仲間を集め、冬の王に挑もう。"
-	for i in range(stage_buttons.size()): stage_buttons[i].set_pressed_no_signal(id==["snowfield","castle"][i])
+	stage_hint.text="サンゴ浜：潮と状態異常を乗りこなす浜辺\n緑の泉で状態異常を解除。墨の中でも危険予告を見よう。" if id=="beach" else "氷の城：門でルートが変わる上級ステージ\n白青の鍵が点滅したら、開いた門へ！" if id=="castle" else "雪原：見晴らしのよい最初のステージ\n武器と仲間を集め、冬の王に挑もう。"
+	for i in range(stage_buttons.size()): stage_buttons[i].set_pressed_no_signal(id==["snowfield","castle","beach"][i])
 
 func select_difficulty(id: String) -> void:
 	if starting: return

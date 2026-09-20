@@ -3,6 +3,7 @@ extends CharacterBody3D
 const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 signal damage_received(amount: int)
+var statuses=preload("res://scripts/player_status.gd").new()
 var training_invincible := false
 const SPEED := 7.0
 const ARENA_LIMIT := 23.0
@@ -42,10 +43,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if cinematic_locked or health<=0: return
+	statuses.tick(delta)
 	invulnerability = maxf(0.0, invulnerability - delta)
 	body.visible = invulnerability <= 0.0 or int(invulnerability * 15.0) % 2 == 0
 	var input := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = Vector3(input.x, 0, input.y) * SPEED
+	velocity = Vector3(input.x, 0, input.y) * SPEED * statuses.move_rate()
 	var before_move:=global_position
 	move_and_slide()
 	var obstacle=preload("res://scripts/castle_obstacles.gd").world(self)
@@ -104,10 +107,10 @@ func fire_feedback() -> void:
 	recoil = 1.0
 
 
-func take_damage(amount: int, attack_difficulty: String="") -> void:
-	if cinematic_locked or training_invincible: return
+func take_damage(amount: int, attack_difficulty: String="") -> bool:
+	if cinematic_locked or training_invincible: return false
 	if invulnerability > 0.0 or health <= 0:
-		return
+		return false
 	var tiers=preload("res://scripts/difficulty_tiers.gd")
 	amount=tiers.scaled(amount,tiers.data(tiers.source(self) if attack_difficulty=="" else attack_difficulty).damage)
 	var original:=maxi(0,amount)
@@ -118,6 +121,7 @@ func take_damage(amount: int, attack_difficulty: String="") -> void:
 	health = maxi(0, health - amount)
 	get_tree().call_group("game_audio", "play_effect", "hurt")
 	invulnerability = 0.8
+	return true
 
 
 func heal(amount: int) -> void:

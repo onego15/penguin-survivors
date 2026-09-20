@@ -98,6 +98,7 @@ func cache_ice_materials(node: Node) -> void:
 		var original: StandardMaterial3D=node.material_override
 		var ice: StandardMaterial3D=original.duplicate()
 		var shade:=original.albedo_color.get_luminance()
+		ice.vertex_color_use_as_albedo=false
 		ice.albedo_color=Color("378fbd").lerp(Color("d5faff"),clampf(0.3+shade*0.65,0,1))
 		ice.albedo_color.a=original.albedo_color.a
 		ice.roughness=0.2

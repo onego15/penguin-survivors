@@ -4,7 +4,7 @@ func _initialize() -> void: call_deferred("run")
 func check(ok: bool, label: String) -> void:
 	if not ok: failures+=1; push_error(label)
 func run() -> void:
-	for stage in ["snowfield","castle"]:
+	for stage in ["snowfield","castle","beach"]:
 		for won in [true,false]:
 			for kinds in [[],[3],[0,1,2,3]]:
 				var view=preload("res://scripts/victory_screen.gd").new()
@@ -19,9 +19,9 @@ func run() -> void:
 				view.results={"stage_id":stage,"won":won,"character_id":"pink","elapsed":645,"kills":500,"level":20,"weapons":weapons,"contributions":ledger.snapshot(weapons)}
 				root.add_child(view)
 				check(view.friends.size()==kinds.size(),"only recruited supports")
-				check(view.equipment.size()==31 and view.equipment.has("heart"),"all used weapons including consumed material")
+				check(view.equipment.size()==34 and view.equipment.has("heart"),"all used weapons including consumed material")
 				check(view.characters[0].get_meta("character_id")=="pink","selected hero")
-				check(view.viewport.get_child(0).has_node("CastleBackdrop" if stage=="castle" else "SnowfieldBackdrop"),"stage background")
+				check(view.viewport.get_child(0).has_node("BeachBackdrop" if stage=="beach" else "CastleBackdrop" if stage=="castle" else "SnowfieldBackdrop"),"stage background")
 				view._process(0.5)
 				check(view.confetti.size()==(65 if won else 0),"celebration only on victory")
 				view.free()

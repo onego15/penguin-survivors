@@ -64,6 +64,8 @@ func _physics_process(delta: float) -> void:
 	if player.health<=0:
 		game_over=true
 		run_state="dead"
+		player.statuses.clear()
+		if beach!=null: beach.stop_flow()
 		_clear_evolution_visuals()
 		if is_instance_valid(active_boss) and active_boss.has_method("cancel_attacks"): active_boss.cancel_attacks()
 		ultimate.clear_visuals()
@@ -73,6 +75,7 @@ func _physics_process(delta: float) -> void:
 	elapsed=float(settings.minute)*60
 	player.training_invincible=settings.invincible
 	if obstacles!=null: obstacles.tick(delta)
+	if beach!=null: beach.tick(delta)
 	if stopped:
 		for enemy in get_tree().get_nodes_in_group("all_enemies"):
 			enemy.control_step(delta)
@@ -82,7 +85,7 @@ func _physics_process(delta: float) -> void:
 			var item: Dictionary=pending[i]
 			if place_batch(item.spec,item.center,1,false)>0: pending.remove_at(i)
 			else: pending[i].left=1.0
-	fire_cooldown-=delta
+	fire_cooldown-=delta*player.statuses.attack_rate()
 	if fire_cooldown<=0 and armory.levels.has("frost") and fire_at_nearest():
 		fire_cooldown=Catalog.cooldown("frost",armory.levels.frost)
 	armory.tick(delta)
@@ -119,7 +122,7 @@ func rebuild_player(reset_health: bool=false) -> void:
 	player.weapon.visible=armory.levels.has("frost" if settings.character=="classic" else "heart")
 	if is_instance_valid(player.frost_weapon): player.frost_weapon.visible=armory.levels.has("frost")
 	for enemy in get_tree().get_nodes_in_group("all_enemies"): enemy.target=player
-	for group in ["hostile_projectiles","enemy_clouds"]:
+	for group in ["hostile_projectiles","enemy_clouds","beach_hazards"]:
 		for hazard in get_tree().get_nodes_in_group(group): hazard.target=player
 	ultimate.definition=Roster.ULTIMATES[Roster.CHARACTERS[player.character_id].ultimate]
 	if reset_health:
@@ -137,7 +140,7 @@ func set_weapon(id: String, rank: int) -> void:
 func clear_attacks(hostile_only: bool) -> void:
 	for actor in actors.get_children():
 		if actor==player or actor.is_in_group("all_enemies"): continue
-		var hostile: bool=actor.is_in_group("hostile_projectiles") or actor.is_in_group("enemy_clouds")
+		var hostile: bool=actor.is_in_group("hostile_projectiles") or actor.is_in_group("enemy_clouds") or actor.is_in_group("beach_hazards")
 		if hostile_only!=hostile: continue
 		actor.free()
 
@@ -150,15 +153,20 @@ func clear_enemies() -> void:
 	clear_attacks(true)
 	active_boss=null
 	if obstacles!=null: obstacles.open_all()
+	if beach!=null: beach.stop_flow()
 	suppress_rewards=false
 
-func switch_terrain(castle: bool) -> void:
-	if terrain_castle==castle: return
+func switch_terrain(castle: bool, shore: bool=false) -> void:
+	if terrain_castle==castle and is_instance_valid(beach)==shore: return
 	clear_enemies()
 	player.position=Vector3.ZERO
 	if obstacles!=null: obstacles.free(); obstacles=null
+	if beach!=null: beach.free(); beach=null
+	player.statuses.clear()
+	if shore:
+		beach=preload("res://scripts/beach_field.gd").new(); beach.game=self; add_child(beach)
 	terrain_castle=castle
-	final_boss_spawned=castle
+	final_boss_spawned=castle or shore
 	if castle:
 		obstacles=O.new()
 		obstacles.game=self
@@ -217,7 +225,7 @@ func create_enemy(spec: Dictionary, point: Vector3, strength: float) -> Node3D:
 	var enemy: Node3D
 	match spec.type:
 		"normal":
-			enemy=load("res://scripts/castle_enemy.gd" if spec.index>=10 else ("res://scripts/special_enemy.gd" if spec.index>=4 else "res://scripts/enemy.gd")).new()
+			enemy=load("res://scripts/beach_enemy.gd" if spec.index>=15 else "res://scripts/castle_enemy.gd" if spec.index>=10 else ("res://scripts/special_enemy.gd" if spec.index>=4 else "res://scripts/enemy.gd")).new()
 			enemy.kind=spec.index
 			var profile: Dictionary=Difficulty.profile(strength)
 			enemy.health_multiplier=profile.hp
@@ -227,11 +235,11 @@ func create_enemy(spec: Dictionary, point: Vector3, strength: float) -> Node3D:
 			enemy=preload("res://scripts/boss_minion.gd").new()
 			enemy.second_phase=spec.index==1
 		"mid":
-			enemy=load("res://scripts/castle_miniboss.gd" if spec.index>=4 else "res://scripts/miniboss.gd").new()
+			enemy=load("res://scripts/beach_miniboss.gd" if spec.index>=8 else "res://scripts/castle_miniboss.gd" if spec.index>=4 else "res://scripts/miniboss.gd").new()
 			enemy.encounter=spec.index%4
 			if spec.index<4: enemy.speed=Miniboss.ROSTER[spec.index].speed
 		"final":
-			enemy=load("res://scripts/noctis.gd" if spec.index==1 else "res://scripts/final_boss.gd").new()
+			enemy=load("res://scripts/octo.gd" if spec.index==2 else "res://scripts/noctis.gd" if spec.index==1 else "res://scripts/final_boss.gd").new()
 			enemy.set_meta("phase_locked",true)
 		_: return null
 	enemy.target=player
@@ -282,7 +290,7 @@ func place_random(count: int, selected: Dictionary, mixed: bool=true) -> int:
 	var available:=maxi(0,100-get_tree().get_nodes_in_group("all_enemies").size())
 	for i in range(mini(clampi(count,1,100),available)):
 		var spec: Dictionary=selected.duplicate()
-		if mixed: spec={"type":"normal","index":rng.randi_range(0,14),"refill":selected.get("refill",false)}
+		if mixed: spec={"type":"normal","index":rng.randi_range(0,20),"refill":selected.get("refill",false)}
 		if spec.type not in ["normal","minion"]: break
 		var found:=false
 		for attempt in range(128):

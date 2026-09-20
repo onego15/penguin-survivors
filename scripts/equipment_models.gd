@@ -5,6 +5,9 @@ const Catalog=preload("res://scripts/weapon_catalog.gd")
 const E=preload("res://scripts/evolution_catalog.gd")
 const Motifs=preload("res://scripts/weapon_models.gd")
 static func build(mount: Node3D, id: String) -> void:
+	if id in ["shell_wave","bubble","crab_claw"]:
+		preload("res://scripts/beach_models.gd").weapon(mount,id)
+		return
 	if id=="frost":
 		preload("res://scripts/character_models.gd").blaster(mount)
 		return

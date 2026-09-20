@@ -42,8 +42,9 @@ func advance() -> void:
 		for kind in waves[wave].new:
 			if not introduced.has(kind) and not pending.has(kind): pending.append(kind)
 	if game.elapsed>=30 and not introduced.has(1) and not pending.has(1): pending.push_front(1)
-	if game.elapsed>=90 and not introduced.has(2) and not pending.has(2): pending.push_front(2)
+	if game.stage_id!="beach" and game.elapsed>=90 and not introduced.has(2) and not pending.has(2): pending.push_front(2)
 func first_boss_ready() -> bool:
+	if game.stage_id=="beach": return introduced_at.has(15) and game.elapsed-float(introduced_at[15])>=20
 	return introduced_at.has(2) and game.elapsed-float(introduced_at[2])>=20
 func eligible(kind: int) -> bool:
 	if kind==2 and game.elapsed<120: return false
@@ -58,6 +59,7 @@ func below_cap(kind: int) -> bool:
 		if enemy.kind>=4: total+=1
 		if enemy.kind==kind: count+=1
 	var limit := 2 if kind in [9,13] else (3 if kind in [4,6,7,10,11,12,14] else 12)
+	if kind>=15: limit=4 if kind==15 else (2 if kind==20 else 3)
 	if kind==5: limit=3 if game.elapsed<360 else 5
 	return total<12 and count<limit
 func choose_kind() -> int:

@@ -7,7 +7,9 @@ static func weapon_pool(id: String) -> Array[String]:
 	var result: Array[String]=COMMON_WEAPONS.duplicate()
 	result.append_array(STAGES.get(id,STAGES.snowfield).weapons)
 	return result
+const BEACH_WAVES=preload("res://scripts/beach_catalog.gd").WAVES
 const STAGES={
+	"beach":{"name":"潮風のサンゴ浜","background":"beach","weapons":["orbit","storm","rear_bomb","starfall","shell_wave","bubble","crab_claw"],"obstacles":false,"difficulty":"res://scripts/difficulty.gd","wave_set":"beach","boss_script":"res://scripts/octo.gd","midboss_script":"res://scripts/beach_miniboss.gd","music":"beach","boss_music":"octo","phase_music":"octo_phase2","boss_name":"潮騒の大王・オクト","phase_name":"荒潮の王"},
 	"snowfield":{"name":"雪原", "background":"snowfield", "weapons":SNOW_WEAPONS, "obstacles":false, "difficulty":"res://scripts/difficulty.gd", "wave_set":"snowfield", "boss_script":"res://scripts/final_boss.gd", "midboss_script":"res://scripts/miniboss.gd", "music":"snowfield", "boss_music":"final_boss", "phase_music":"final_boss_phase2", "boss_name":"冬の王・グレイシャー", "phase_name":"吹雪の王"},
 	"castle":{"name":"夜の氷の城", "background":"castle", "weapons":CASTLE_WEAPONS, "obstacles":true, "difficulty":"res://scripts/difficulty.gd", "wave_set":"castle", "boss_script":"res://scripts/noctis.gd", "midboss_script":"res://scripts/castle_miniboss.gd", "music":"castle", "boss_music":"noctis", "phase_music":"noctis_phase2", "boss_name":"氷城の梟王・ノクティス", "phase_name":"月影の支配者"},
 }

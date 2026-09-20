@@ -11,9 +11,9 @@ func enemy(point: Vector3) -> Node3D:
 	e.health=1000; e.max_health=1000; e.set_physics_process(false)
 	return e
 func run() -> void:
-	check(Catalog.ITEMS.size()==23,"23 catalog entries")
+	check(Catalog.ITEMS.size()==26,"26 catalog entries")
 	var union: Dictionary={}
-	for stage in ["snowfield","castle"]:
+	for stage in ["snowfield","castle","beach"]:
 		var pool=Stages.weapon_pool(stage)
 		check(pool.size()==16,"16 weapons")
 		for id in ["frost","heart","beam"]: check(pool.has(id),"shared "+id)
@@ -36,7 +36,7 @@ func run() -> void:
 		campaign.open_weapon_choice()
 		check(campaign.player.health==70 and not campaign.choice_open,"stage max heals without other stage weapons")
 		campaign.free(); await process_frame
-	check(union.size()==23,"all weapons belong to stage")
+	check(union.size()==26,"all weapons belong to stage")
 	game=load("res://scenes/sandbox.tscn").instantiate()
 	root.add_child(game); current_scene=game
 	game.set_physics_process(false); game.player.set_physics_process(false)

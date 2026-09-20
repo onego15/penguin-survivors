@@ -7,6 +7,7 @@ const O=preload("res://scripts/castle_obstacles.gd")
 var stage_id:=Stages.selected_id
 var stage: Dictionary
 var obstacles: Node3D
+var beach: Node3D
 const Player = preload("res://scripts/player.gd")
 const Enemy = preload("res://scripts/enemy.gd")
 const Projectile = preload("res://scripts/projectile.gd")
@@ -100,7 +101,7 @@ func _ready() -> void:
 	camera.current = true
 	_update_camera()
 	_setup_hud()
-	if stage_id=="castle":
+	if stage_id in ["castle","beach"]:
 		for label in [phase_label,wave_hint,boss_label,sound.status]:
 			label.add_theme_color_override("font_color",Color("eff7ff"))
 			label.add_theme_color_override("font_outline_color",Color("203449"))
@@ -116,12 +117,15 @@ func _ready() -> void:
 	director = preload("res://scripts/wave_director.gd").new()
 	director.game = self
 	if stage.wave_set=="castle": director.waves=Stages.CASTLE_WAVES
+	if stage.wave_set=="beach": director.waves=Stages.BEACH_WAVES
 	final_director=preload("res://scripts/final_battle_director.gd").new()
 	final_director.game=self
 	director.advance()
 	support = preload("res://scripts/support_director.gd").new()
 	support.game = self
 	add_child(support)
+	var ink_layer:=CanvasLayer.new(); ink_layer.layer=0; add_child(ink_layer)
+	var status_view:=preload("res://scripts/status_overlay.gd").new(); status_view.game=self; ink_layer.add_child(status_view)
 	_update_hud()
 
 
@@ -136,6 +140,10 @@ func _setup_input() -> void:
 
 
 func _setup_arena() -> void:
+	if stage_id=="beach":
+		preload("res://scripts/beach_models.gd").arena(self)
+		beach=preload("res://scripts/beach_field.gd").new(); beach.game=self; add_child(beach)
+		return
 	if stage.obstacles:
 		preload("res://scripts/castle_models.gd").arena(self)
 		obstacles=O.new()
@@ -285,6 +293,8 @@ func _physics_process(delta: float) -> void:
 		_cancel_presentation()
 		final_director.stop()
 		if obstacles!=null: obstacles.open_all()
+		player.statuses.clear()
+		if beach!=null: beach.stop_flow()
 		support.clear()
 		_clear_control_states()
 		sound.finish(false)
@@ -303,6 +313,8 @@ func _physics_process(delta: float) -> void:
 		_cancel_presentation()
 		final_director.stop()
 		if obstacles!=null: obstacles.open_all()
+		player.statuses.clear()
+		if beach!=null: beach.stop_flow()
 		support.clear()
 		_clear_control_states()
 		sound.finish(true)
@@ -322,9 +334,10 @@ func _physics_process(delta: float) -> void:
 	_tick_director(delta)
 	if run_state!="combat": return
 	if obstacles!=null: obstacles.tick(delta)
+	if beach!=null: beach.tick(delta)
 	support.tick(delta)
 	final_director.tick(delta)
-	fire_cooldown -= delta
+	fire_cooldown -= delta*player.statuses.attack_rate()
 	if fire_cooldown <= 0.0 and armory.levels.has("frost"):
 		if fire_at_nearest():
 			fire_cooldown = Catalog.cooldown("frost", armory.levels.frost)
@@ -346,7 +359,7 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 		return null
 	var chosen: int = forced_kind if forced_kind>=0 else (director.choose_kind() if director!=null else Difficulty.pick_kind(elapsed,rng))
 	if not as_boss and director!=null and not director.below_cap(chosen): return null
-	var enemy: Node3D = load(stage.midboss_script).new() if as_boss else (preload("res://scripts/castle_enemy.gd").new() if chosen>=10 else preload("res://scripts/special_enemy.gd").new() if chosen>=4 else Enemy.new())
+	var enemy: Node3D = load(stage.midboss_script).new() if as_boss else (preload("res://scripts/beach_enemy.gd").new() if chosen>=15 else preload("res://scripts/castle_enemy.gd").new() if chosen>=10 else preload("res://scripts/special_enemy.gd").new() if chosen>=4 else Enemy.new())
 	if as_boss:
 		enemy.encounter = boss_encounters
 	else:
@@ -414,6 +427,8 @@ func _tick_director(delta: float) -> void:
 
 func _start_final_boss() -> void:
 	if final_boss_spawned: return
+	player.statuses.clear()
+	if beach!=null: beach.stop_flow()
 	sweep.finish()
 	notify_event()
 	support.begin_final()
@@ -634,6 +649,7 @@ func notify_event() -> void:
 func _on_phase_changed() -> void:
 	final_director.stop()
 	if obstacles!=null: obstacles.open_all()
+	if beach!=null: beach.stop_flow()
 	if player.health<=0 or final_boss_defeated: return
 	for bolt in get_tree().get_nodes_in_group("hostile_projectiles"):
 		bolt.process_mode=Node.PROCESS_MODE_DISABLED

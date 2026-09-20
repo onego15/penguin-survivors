@@ -89,12 +89,12 @@ func _ready() -> void:
 	var enemies:=VBoxContainer.new(); enemies.name="敵"; tabs.add_child(enemies)
 	label(enemies,"① 敵を選ぶ　→　② 配置方法を選ぶ　→　③「再開」で戦闘開始")
 	enemy_picker=OptionButton.new(); enemies.add_child(enemy_picker)
-	for i in range(15): add_entry("通常 / "+game.Enemy.NAMES[i],{"type":"normal","index":i,"hint":game.Enemy.ROLES[i]})
+	for i in range(game.Enemy.NAMES.size()): add_entry("通常 / "+game.Enemy.NAMES[i],{"type":"normal","index":i,"hint":game.Enemy.ROLES[i]})
 	for i in range(2): add_entry("手下 / "+["氷アザラシ","氷ユキヒョウ"][i],{"type":"minion","index":i,"hint":["腹滑りで接近","左右から回り込む"][i]})
-	for i in range(8):
-		var roster=preload("res://scripts/castle_miniboss.gd").ROSTER if i>=4 else game.Miniboss.ROSTER
+	for i in range(12):
+		var roster=preload("res://scripts/beach_miniboss.gd").ROSTER if i>=8 else preload("res://scripts/castle_miniboss.gd").ROSTER if i>=4 else game.Miniboss.ROSTER
 		add_entry("中ボス / "+roster[i%4].name,{"type":"mid","index":i,"hint":"予告を見て回避。制御効果は無効。"})
-	for i in range(2): add_entry("ラスボス / "+["グレイシャー","ノクティス"][i],{"type":"final","index":i,"hint":["放射弾・突進。第二形態は大氷震。","城門の勅令・跳躍・門を貫く氷羽・氷輪。"][i]})
+	for i in range(3): add_entry("ラスボス / "+["グレイシャー","ノクティス","オクト"][i],{"type":"final","index":i,"hint":["放射弾・突進。第二形態は大氷震。","城門の勅令・跳躍・門を貫く氷羽・氷輪。","潮の操作・触手・墨・水たまり。"][i]})
 	var options:=row(enemies)
 	label(options,"まとめて配置する数")
 	amount=SpinBox.new(); amount.min_value=1; amount.max_value=100; amount.value=1; options.add_child(amount)
@@ -187,16 +187,16 @@ func select_enemy(index: int) -> void:
 	amount.editable=true
 	refill.disabled=false
 	phase.disabled=spec.type!="final"
-	description.text=spec.hint+"\n"+("ボスは合計1体まで。既存ボスは全消去してから配置。\nノクティス配置時は城門を設置。地形変更時は全消去します。" if spec.type in ["mid","final"] else "左クリックで配置。水色の輪＝配置可能、赤＝配置不可。\nランダム配置なら、場所を選ばず一度に追加できます。")
+	description.text=spec.hint+"\n"+("ボスは合計1体まで。既存ボスは全消去してから配置。\nノクティスは城門、オクトは潮と泉を設置。地形変更時は全消去します。" if spec.type in ["mid","final"] else "左クリックで配置。水色の輪＝配置可能、赤＝配置不可。\nランダム配置なら、場所を選ばず一度に追加できます。")
 	if is_instance_valid(preview_root): preview_root.free()
 	# Use the real model in an isolated viewport, with combat processing disabled.
 	preview_root=Node3D.new(); preview_view.add_child(preview_root)
 	var enemy: Node3D
 	if spec.type=="normal":
-		enemy=load("res://scripts/castle_enemy.gd" if spec.index>=10 else ("res://scripts/special_enemy.gd" if spec.index>=4 else "res://scripts/enemy.gd")).new(); enemy.kind=spec.index
+		enemy=load("res://scripts/beach_enemy.gd" if spec.index>=15 else "res://scripts/castle_enemy.gd" if spec.index>=10 else ("res://scripts/special_enemy.gd" if spec.index>=4 else "res://scripts/enemy.gd")).new(); enemy.kind=spec.index
 	elif spec.type=="minion": enemy=preload("res://scripts/boss_minion.gd").new(); enemy.second_phase=spec.index==1
-	elif spec.type=="mid": enemy=load("res://scripts/castle_miniboss.gd" if spec.index>=4 else "res://scripts/miniboss.gd").new(); enemy.encounter=spec.index%4
-	else: enemy=load("res://scripts/noctis.gd" if spec.index==1 else "res://scripts/final_boss.gd").new()
+	elif spec.type=="mid": enemy=load("res://scripts/beach_miniboss.gd" if spec.index>=8 else "res://scripts/castle_miniboss.gd" if spec.index>=4 else "res://scripts/miniboss.gd").new(); enemy.encounter=spec.index%4
+	else: enemy=load("res://scripts/octo.gd" if spec.index==2 else "res://scripts/noctis.gd" if spec.index==1 else "res://scripts/final_boss.gd").new()
 	game.actors.add_child(enemy)
 	if spec.type=="final": enemy.initialize_training_phase(phase.selected==1)
 	enemy.process_mode=Node.PROCESS_MODE_DISABLED
@@ -234,7 +234,7 @@ func start_placing(count: int=1) -> void:
 	current_spec=entries[enemy_picker.selected].duplicate()
 	current_spec.phase=phase.selected+1
 	current_spec.refill=refill.button_pressed and current_spec.type in ["normal","minion"]
-	if current_spec.type=="final": game.switch_terrain(current_spec.index==1)
+	if current_spec.type=="final": game.switch_terrain(current_spec.index==1,current_spec.index==2)
 	if current_spec.type in ["mid","final"] and is_instance_valid(game.active_boss) and not game.active_boss.dead:
 		result.text="ボスはすでに配置されています。「敵と危険物を全消去」してから置いてください。"
 		return

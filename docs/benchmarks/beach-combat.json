@@ -1,0 +1,56 @@
+[
+	{
+		"boss_damage": 204,
+		"build": "front",
+		"character": "classic",
+		"damage_received": 116,
+		"kills": 23,
+		"minions_spawned": 24,
+		"seconds": 60
+	},
+	{
+		"boss_damage": 89,
+		"build": "rear",
+		"character": "classic",
+		"damage_received": 128,
+		"kills": 22,
+		"minions_spawned": 24,
+		"seconds": 60
+	},
+	{
+		"boss_damage": 682,
+		"build": "auto",
+		"character": "classic",
+		"damage_received": 66,
+		"kills": 24,
+		"minions_spawned": 24,
+		"seconds": 60
+	},
+	{
+		"boss_damage": 204,
+		"build": "front",
+		"character": "pink",
+		"damage_received": 116,
+		"kills": 23,
+		"minions_spawned": 24,
+		"seconds": 60
+	},
+	{
+		"boss_damage": 89,
+		"build": "rear",
+		"character": "pink",
+		"damage_received": 128,
+		"kills": 22,
+		"minions_spawned": 24,
+		"seconds": 60
+	},
+	{
+		"boss_damage": 682,
+		"build": "auto",
+		"character": "pink",
+		"damage_received": 66,
+		"kills": 24,
+		"minions_spawned": 24,
+		"seconds": 60
+	}
+]

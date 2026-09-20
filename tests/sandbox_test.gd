@@ -22,7 +22,7 @@ func run() -> void:
 	game.rebuild_player()
 	for id in game.Catalog.ITEMS:
 		game.set_weapon(id,5)
-	check(game.armory.levels.size()==23,"23 weapons")
+	check(game.armory.levels.size()==26,"26 weapons")
 	for id in game.Catalog.ITEMS: check(game.armory.levels[id]==5,"rank "+id)
 	game.settings.character="pink"; game.rebuild_player(true)
 	check(game.player.character_id=="pink" and roster.selected()==original,"character isolation")
@@ -32,7 +32,7 @@ func run() -> void:
 	game.player.training_invincible=false; game.player.take_damage(20)
 	check(game.player.health==80 and game.received==20,"damage counter")
 	game.set_stopped(true)
-	for i in range(15):
+	for i in range(21):
 		game.clear_enemies()
 		var enemy=game.create_enemy({"type":"normal","index":i},Vector3(0,0,8),0)
 		check(enemy!=null,"normal spawn")
@@ -44,7 +44,7 @@ func run() -> void:
 		check(enemy.position.distance_to(start)>0.1,"control works while AI stopped")
 		game.menu.select_enemy(i)
 		check(get_nodes_in_group("all_enemies").size()==1,"preview isolated")
-	for i in range(8):
+	for i in range(12):
 		game.clear_enemies()
 		var enemy=game.create_enemy({"type":"mid","index":i},Vector3(0,0,10),0)
 		check(enemy.is_miniboss,"midboss")

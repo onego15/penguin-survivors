@@ -8,6 +8,7 @@ var lifetime := 5.0
 var damage := 16
 var regular := false
 var pass_gates:=false
+var status_effect:=""
 var tint := Color("b881f4")
 
 
@@ -21,6 +22,8 @@ func _ready() -> void:
 	c.ink(V.rod(self,Color("ff573c"),Vector3(0,0,-0.9),Vector3.ZERO,0.01,0.16))
 	if pass_gates:
 		for side in [-1,1]: c.ink(V.rod(self,Color("ffd2d9"),Vector3(0,0,-0.3),Vector3(side*0.42,0,-0.65),0.055,0))
+	if status_effect!="":
+		V.ellipsoid(self,Color("4d365d") if status_effect=="ink" else Color("d5bb7e"),Vector3.ZERO,Vector3.ONE*0.17)
 	rotation.y = atan2(direction.x, direction.z)
 
 
@@ -37,7 +40,8 @@ func _physics_process(delta: float) -> void:
 	if is_instance_valid(target):
 		var closest := Geometry3D.get_closest_point_to_segment(target.global_position + Vector3.UP, start, global_position)
 		if closest.distance_to(target.global_position + Vector3.UP) < 0.65:
-			target.take_damage(damage,preload("res://scripts/difficulty_tiers.gd").source(self))
+			if target.take_damage(damage,preload("res://scripts/difficulty_tiers.gd").source(self)) and target.health>0 and status_effect!="":
+				target.statuses.apply(status_effect)
 			queue_free()
 			return
 	if blocked: queue_free(); return

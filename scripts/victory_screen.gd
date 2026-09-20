@@ -10,6 +10,7 @@ var characters: Array[Node3D]=[]
 var friends: Dictionary={}
 var equipment: Dictionary={}
 var castle:=false
+var shore:=false
 var won:=true
 var confetti: Array[Node3D]=[]
 var time:=0.0
@@ -18,6 +19,7 @@ var report: Control
 var ui: Control
 func _ready() -> void:
 	layer=8
+	shore=results.get("stage_id","")=="beach"
 	castle=results.get("stage_id","snowfield")=="castle"
 	won=results.get("won",true)
 	ui=Control.new()
@@ -87,7 +89,7 @@ func _ready() -> void:
 			V.rod(star,Color("e7b859"),Vector3.ZERO,Vector3(sin(a),cos(a),0)*0.2,0.055,0)
 	_label("CLEAR!" if won else "GAME OVER",Vector2(72,38),58,Color("fff0ce") if castle else Color("255864"))
 	_label(results.get("boss_name","冬の王")+"を倒した！" if won else "Wave %d / 冒険の記録" % mini(10,int(results.elapsed)/60+1),Vector2(76,110),27,Color("d4e5ff") if castle else Color("42666b"))
-	_label(("氷の城に、夜明けが来た。" if castle else "雪原に、平和が戻った。") if won else "また、この仲間と冒険へ。",Vector2(76,620),24,Color("e2edff") if castle else Color("315e62"))
+	_label(("氷の城に、夜明けが来た。" if castle else "サンゴ浜に、穏やかな潮が戻った。" if shore else "雪原に、平和が戻った。") if won else "また、この仲間と冒険へ。",Vector2(76,620),24,Color("e2edff") if castle else Color("315e62"))
 	_label("M：BGM切替   /   N：効果音切替",Vector2(76,662),15,Color("c5dbef") if castle else Color("41676b"))
 	var panel:=Panel.new()
 	panel.position=Vector2(830,38)
@@ -164,8 +166,15 @@ func _build_equipment(hero: Node3D) -> void:
 func _build_background(stage: Node3D) -> void:
 	var floor_mesh:=BoxMesh.new()
 	floor_mesh.size=Vector3(50,0.2,24)
-	V.mesh(stage,floor_mesh,Color("7187aa") if castle else Color("dfedf3"),Vector3(0,-0.8,6))
-	if castle:
+	V.mesh(stage,floor_mesh,Color("7187aa") if castle else Color("d9d3b4") if shore else Color("dfedf3"),Vector3(0,-0.8,6))
+	if shore:
+		var backdrop:=V.pivot(stage,"BeachBackdrop")
+		var sea:=BoxMesh.new(); sea.size=Vector3(35,0.05,12)
+		V.mesh(backdrop,sea,Color("63bbcc"),Vector3(0,-0.65,-7))
+		for i in range(12):
+			var p:=Vector3(-10+i*1.7,-0.5,-3-i%2)
+			for j in range(3): V.rod(backdrop,Color("e4a5b0"),p,p+Vector3((j-1)*0.35,0.8+j*0.2,0),0.09,0.04)
+	elif castle:
 		var backdrop:=V.pivot(stage,"CastleBackdrop")
 		for x in range(-12,13,3):
 			var wall:=BoxMesh.new(); wall.size=Vector3(2.9,3.2,0.7)

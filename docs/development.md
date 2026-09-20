@@ -40,6 +40,8 @@
 プロジェクトのルートから実行します。以下の `godot` はPATHに登録したGodot実行ファイル名です。Windowsでは使用するGodotのコンソール版exeのパスへ置き換えられます。
 
 ```sh
+godot --headless --path . --script tests/beach_test.gd
+godot --headless --path . --script tests/beach_combat_test.gd
 godot --headless --path . --script tests/contributions_test.gd
 godot --headless --path . --script tests/evolution_test.gd
 godot --headless --path . --script tests/settings_test.gd
@@ -78,6 +80,7 @@ godot --headless --path . --script tests/castle_behavior_test.gd
 ```sh
 python tools/generate_audio.py
 python tools/generate_evolution_audio.py
+python tools/generate_beach_audio.py
 ```
 
 ## スクリーンショット・動画
@@ -179,3 +182,7 @@ HPを戻さない静止試験ではメテオ構成は約15秒で死亡し、Lv.3
 追加テストは `tests/enemy_refresh_test.gd`。比較は `tools/audit_enemy_refresh.gd`、描画負荷は `tools/profile_enemy_refresh.gd`、撮影は `tools/capture_enemy_refresh.gd` です。`python tools/prepare_enemy_baseline.py` で比較用の旧版を準備できます。比較用の旧版はコミット `305a423` のscripts/scenesを `.godot/enemy-baseline/` へ複製し、内部のスクリプト・シーン参照だけをそのディレクトリへ置換して実行します。音声などのアセットは現行と共用します。
 
 掃討の境界値・回帰確認と自動操作比較は[掃討の検証](cleanup-verification.md)を参照。
+
+## サンゴ浜
+
+`beach_catalog.gd`がWave、`beach_field.gd`が潮と泉、`player_status.gd`がプレイヤーの状態異常を管理。`beach_enemy.gd`／`beach_miniboss.gd`／`octo.gd`は既存のダメージ・難易度・報酬へ接続しています。専用武器は`beach_attack.gd`。撮影は`tools/capture_beach.gd`、測定は`tools/profile_beach.gd`と`tools/audit_beach.gd`。仕様と検証結果は[サンゴ浜](beach.md)へ。

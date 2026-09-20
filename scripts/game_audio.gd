@@ -1,7 +1,7 @@
 extends Node
 ## Original generated music and bounded, rate-limited sound effects.
-const EFFECTS := ["evolve", "den_stomp", "star_fall", "star_impact", "gust", "ice_cast", "ice_break", "shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom", "gate", "castle_throw", "noctis_cast", "noctis_roar"]
-const MUSIC := ["snowfield","boss","final_boss","final_boss_phase2","celebration","castle","noctis","noctis_phase2"]
+const EFFECTS := ["tide", "cleanse", "sea_cast", "sea_hit", "evolve", "den_stomp", "star_fall", "star_impact", "gust", "ice_cast", "ice_break", "shot", "magic", "hit", "defeat", "hurt", "blast", "thunder", "slash", "level_up", "choose", "warning", "victory", "game_over", "support_arrive", "support_join", "support_heal", "support_guard", "support_leave", "boss_roar", "boss_transform", "quake_charge", "quake_impact", "ultimate", "bloom", "gate", "castle_throw", "noctis_cast", "noctis_roar"]
+const MUSIC := ["beach","octo","octo_phase2","snowfield","boss","final_boss","final_boss_phase2","celebration","castle","noctis","noctis_phase2"]
 var fading: AudioStreamPlayer
 var fade_left := 0.0
 var celebration_left := -1.0
@@ -90,7 +90,7 @@ func set_track(id: String) -> void:
 	if ended or id == track:
 		return
 	var offset:=0.0
-	if (id=="final_boss_phase2" and track=="final_boss") or (id=="noctis_phase2" and track=="noctis"):
+	if (id=="final_boss_phase2" and track=="final_boss") or (id=="noctis_phase2" and track=="noctis") or (id=="octo_phase2" and track=="octo"):
 		offset=fmod(music.get_playback_position(),clips[id].get_length())
 		fading.stream=music.stream
 		fading.volume_db=0

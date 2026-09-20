@@ -75,7 +75,7 @@ func tick(delta: float) -> void:
 		if id in ["gust","orbit","blizzard_fan","pearl_chime"]:
 			fire(id)
 			continue
-		cooldowns[id] = float(cooldowns.get(id, 0.0)) - delta
+		cooldowns[id] = float(cooldowns.get(id, 0.0)) - delta*game.player.statuses.attack_rate()
 		if cooldowns[id] <= 0 and fire(id):
 			cooldowns[id] = Catalog.cooldown(id, levels[id])
 			cast_times[id]=time
@@ -102,6 +102,14 @@ func fire(id: String) -> bool:
 	if not levels.has(id) or id == "frost":
 		return false
 	var stats:=Catalog.stats(id,levels[id])
+	if id in ["shell_wave","bubble","crab_claw"]:
+		var attack:=preload("res://scripts/beach_attack.gd").new()
+		attack.mode=id; attack.stats=stats
+		attack.position=game.player.global_position
+		attack.direction=game.player.facing_direction()
+		attach(attack,id)
+		game.sound.play_effect("sea_cast")
+		return true
 	if id=="orbit":
 		if not is_instance_valid(orbit_attack) or orbit_attack.is_queued_for_deletion():
 			orbit_attack=preload("res://scripts/pearl_orbit.gd").new()

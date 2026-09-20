@@ -3,6 +3,9 @@ extends RefCounted
 const Evolution=preload("res://scripts/evolution_catalog.gd")
 
 const ITEMS := {
+ "shell_wave":{"name":"ざぶざぶ貝がら","description":"前方へ広がる波を放つ。\n群れを貫通・押し返しなし。","style":"前方固定 / 広がる波","color":Color("8de6e5"),"cooldown":3.2,"damage":6},
+ "bubble":{"name":"ぷかぷかバブル","description":"前方へゆっくり漂う泡。\n敵に触れると周囲へ破裂。潮に流れる。","style":"漂流 / 接触破裂","color":Color("c5eeff"),"cooldown":4.0,"damage":3},
+ "crab_claw":{"name":"ぱっちんカニばさみ","description":"左右の敵を同時にはさむ。\n前後は範囲外・防御効果なし。","style":"左右固定 / 近距離","color":Color("ff9c98"),"cooldown":2.4,"damage":8},
 	"starfall":{"name":"おほしさまメテオ","description":"長く待って巨大な星を落とす。\n固定地点の広範囲へ一度に大ダメージ。","style":"遠隔着弾 / 長い待ち時間","color":Color("ffe9ae"),"cooldown":24.0,"damage":30},
 	"gust":{"name":"ぱたぱた扇風機","description":"常時送風し、左右に首を振って押し返す。\nボスにはダメージのみ。","style":"常時首振り / ノックバック","color":Color("a8efdc"),"cooldown":3.0,"damage":1},
 	"popsicle":{"name":"ひえひえアイスキャンディ","description":"近い敵へ氷菓を発射し、周囲を凍結。\nボスにはダメージのみ。","style":"自動照準 / 凍結","color":Color("99cfff"),"cooldown":3.8,"damage":1},
@@ -53,6 +56,9 @@ static func min_rank(id: String) -> int:
 static func stats(id: String, rank: int) -> Dictionary:
 	if Evolution.ITEMS.has(id): return Evolution.stats(id,rank)
 	var n:=clampi(rank,1,MAX_RANK)-1
+	if id=="shell_wave": return {"damage":6+3*n,"cooldown":3.2-0.15*n,"reach":10.0+n,"width":2.0+0.4*n}
+	if id=="bubble": return {"damage":3+n,"cooldown":4.0-0.2*n,"count":3+n/2,"duration":4.0+0.5*n,"radius":1.0+0.15*n}
+	if id=="crab_claw": return {"damage":8+4*n,"cooldown":2.4-0.1*n,"radius":1.4+0.2*n,"reach":2.0+0.2*n}
 	if id=="orbit": return {"damage":[2,2,2,3,3][n],"cooldown":0.0,"radius":[2.2,2.3,2.4,2.5,2.6][n],"count":2+n}
 	if id=="starfall": return {"damage":[30,36,44,52,60][n],"cooldown":[24.0,23.0,22.0,21.0,20.0][n],"radius":[5.0,5.3,5.6,5.9,6.2][n],"reach":18.0}
 	if id=="gust": return {"damage":[1,2,2,3,3][n],"cooldown":[3.0,2.85,2.7,2.55,2.4][n],"reach":[6.0,6.5,7.0,7.5,8.0][n],"knockback":[3.0,3.0,3.5,4.0,4.5][n]}

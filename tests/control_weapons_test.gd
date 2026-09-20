@@ -35,7 +35,16 @@ func clear_actors() -> void:
 	for attack in get_nodes_in_group("weapon_attacks"): attack.free()
 func run() -> void:
 	setup("snowfield")
-	check(Catalog.ITEMS.size()==23,"Both control weapons in mixed pool")
+	var sea_a=actor(15,Vector3(10,0,10))
+	var sea_b=actor(15,Vector3(12,0,10))
+	var sea_mesh=sea_a.model.get_node("SculptedSurface")
+	var sea_original=sea_mesh.material_override
+	sea_a.apply_control("freeze",1)
+	check(not sea_mesh.material_override.vertex_color_use_as_albedo and sea_b.model.get_node("SculptedSurface").material_override==sea_original,"Baked sea model freezes without tinting cached sibling")
+	sea_a.control.step(1.1)
+	check(sea_mesh.material_override==sea_original and sea_original.vertex_color_use_as_albedo,"Thaw restores baked sea colors")
+	clear_actors()
+	check(Catalog.ITEMS.size()==26,"Both control weapons in mixed pool")
 	for rank in range(1,6):
 		check(is_equal_approx(Catalog.stats("gust",rank).cooldown,[3.0,2.85,2.7,2.55,2.4][rank-1]),"Fan hit interval rank %d"%rank)
 	check(Catalog.ITEMS.gust.cooldown==Catalog.stats("gust",1).cooldown,"Fan catalog matches first rank")

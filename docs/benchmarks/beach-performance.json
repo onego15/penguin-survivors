@@ -1,0 +1,9 @@
+{
+	"frames": 180,
+	"gpu": "RTX 4060 Laptop",
+	"mean_ms": 1.86183888888889,
+	"mode": "sandbox, stationary invincible, 4 weapons Lv3, sea AI active",
+	"p95_ms": 4.055,
+	"renderer": "Compatibility",
+	"spawned": 96
+}

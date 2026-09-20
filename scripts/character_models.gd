@@ -74,6 +74,7 @@ static func blaster(parent: Node3D) -> Node3D:
 
 
 static func animal(parent: Node3D, kind: int) -> Node3D:
+	if kind>=15: return preload("res://scripts/beach_models.gd").animal(parent,kind)
 	if kind>=10: return preload("res://scripts/castle_models.gd").animal(parent,kind)
 	var root := V.pivot(parent, "Animal")
 	match kind:

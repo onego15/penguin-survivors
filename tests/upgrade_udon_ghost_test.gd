@@ -12,7 +12,7 @@ func run() -> void:
 	game.set_physics_process(false)
 	game.player.set_physics_process(false)
 	game.player.invulnerability=999
-	check(Catalog.ITEMS.size()==23,"Twenty-three weapons including udon")
+	check(Catalog.ITEMS.size()==26,"Twenty-six weapons including udon")
 	for id in Catalog.ITEMS:
 		var previous:=Catalog.stats(id,1)
 		var meaningful:=true

@@ -34,6 +34,7 @@ static func tail(parent: Node3D) -> Node3D:
 	return ink(V.rod(parent,FRIEND,Vector3(0,0,-0.85),Vector3(0,0,-0.2),0.015,0.07))
 static func warning(parent: Node3D, radius: float, length:=0.0) -> Node3D:
 	var root:=V.pivot(parent,"DangerWarning",Vector3(0,0.09,0))
+	root.add_to_group("ink_readable"); root.set_meta("outline",{"radius":radius,"length":length,"warning":true})
 	for i in range(24):
 		var a:=i*TAU/24
 		if length>0:
@@ -50,6 +51,7 @@ static func progress(root: Node3D, fraction: float) -> void:
 	root.get_node("Countdown").scale=Vector3.ONE*maxf(0.02,clampf(fraction,0,1))
 static func danger(parent: Node3D, radius: float, text:="!") -> Node3D:
 	var root:=V.pivot(parent,"ActiveDanger",Vector3(0,0.09,0))
+	root.add_to_group("ink_readable"); root.set_meta("outline",{"radius":radius,"warning":false})
 	ink(V.ring(root,DANGER,Vector3.ZERO,radius,0.09))
 	for i in range(-4,5):
 		var z:=i*radius/5
@@ -76,6 +78,7 @@ static func soil(parent: Node3D) -> Node3D:
 
 static func sector_warning(parent: Node3D, radius: float, half_angle: float) -> Node3D:
 	var root:=V.pivot(parent,"AntlerWarning",Vector3(0,0.09,0))
+	root.add_to_group("ink_readable"); root.set_meta("outline",{"radius":radius,"half":half_angle,"warning":true})
 	for i in range(16):
 		var a:=lerpf(-half_angle,half_angle,i/16.0)
 		var b:=a+half_angle*2/16*0.6

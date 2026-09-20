@@ -6,7 +6,7 @@ signal rewarded(amount: int)
 const Visuals = preload("res://scripts/visuals.gd")
 const Models = preload("res://scripts/character_models.gd")
 const Effects = preload("res://scripts/hit_effect.gd")
-enum Kind { FOX, RABBIT, BOAR, TURTLE, OWL, WOLF, SKUNK, HEDGEHOG, MOLE, DEER, BAT, RACCOON, ERMINE, GOAT, GHOST }
+enum Kind { FOX, RABBIT, BOAR, TURTLE, OWL, WOLF, SKUNK, HEDGEHOG, MOLE, DEER, BAT, RACCOON, ERMINE, GOAT, GHOST, CRAB, HERMIT, JELLY, FLYFISH, SQUID, PUFFER }
 enum ChargeState { APPROACH, WINDUP, CHARGE, RECOVER }
 const STATS := [
 	{"health": 2, "speed": 1.1, "radius": 0.58, "damage": 10, "color": Color("de743a")},
@@ -24,11 +24,18 @@ const STATS := [
 	{"health":4,"speed":2.4,"radius":0.55,"damage":10,"color":Color("eef5ec")},
 	{"health":8,"speed":1.8,"radius":0.8,"damage":12,"color":Color("c5ccde")},
 	{"health":4,"speed":1.75,"radius":0.6,"damage":10,"color":Color("a894d9")},
+	{"health": 4, "speed": 2.0, "radius": 0.65, "damage": 10,"color":Color("e88a78")},
+	{"health": 5, "speed": 1.4, "radius": 0.7, "damage": 10,"color":Color("cbb487")},
+	{"health": 4, "speed": 1.0, "radius": 0.6, "damage": 8,"color":Color("b2a3ea")},
+	{"health": 3, "speed": 4.0, "radius": 0.6, "damage": 8,"color":Color("65b6d7")},
+	{"health": 5, "speed": 1.8, "radius": 0.65, "damage": 10,"color":Color("b59bdc")},
+	{"health": 8, "speed": 1.2, "radius": 0.8, "damage": 10,"color":Color("e4c784")},
 ]
-const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ", "コウモリ", "アライグマ", "オコジョ", "ヤギ", "ゴースト"]
-const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "短い甲羅防御", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波", "弧を描く飛行", "氷玉投げ", "斜め前へ跳躍", "短距離の頭突き", "門・城壁をすり抜ける"]
+const NAMES := ["キツネ", "ウサギ", "イノシシ", "カメ", "フクロウ", "オオカミ", "スカンク", "ハリネズミ", "モグラ", "シカ", "コウモリ", "アライグマ", "オコジョ", "ヤギ", "ゴースト", "カニ", "ヤドカリ", "クラゲ", "トビウオ", "コイカ", "フグ"]
+const ROLES := ["ジグザグ接近", "跳躍", "直線突進", "短い甲羅防御", "遠距離射撃", "回り込み", "危険範囲設置", "放射状射撃", "潜行・奇襲", "角から遠距離の衝撃波", "弧を描く飛行", "氷玉投げ", "斜め前へ跳躍", "短距離の頭突き", "門・城壁をすり抜ける", "横歩き往復", "巡回・砂まみれ", "漂流・しびれ放電", "方向固定の横断", "巡回・墨まみれ", "膨らんで泡の放射"]
 static func cost(type: int) -> int:
-	return 3 if type in [Kind.DEER,Kind.GOAT] else (2 if type >= Kind.OWL else 1)
+	if type==Kind.CRAB: return 1
+	return 3 if type in [Kind.DEER,Kind.GOAT,Kind.PUFFER] else (2 if type >= Kind.OWL else 1)
 
 @export_enum("Fox", "Rabbit", "Boar", "Turtle", "Owl", "Wolf", "Skunk", "Hedgehog", "Mole", "Deer", "Bat", "Raccoon", "Ermine", "Goat", "Ghost") var kind: int = Kind.FOX
 var target: Node3D

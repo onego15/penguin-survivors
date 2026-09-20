@@ -40,6 +40,7 @@ func _ready() -> void:
 	var reset:=Button.new(); reset.text="キー配置を初期値へ戻す"; inputs.add_child(reset)
 	reset.pressed.connect(func(): settings.keys=settings.DEFAULT_KEYS.duplicate(); settings.install_inputs(); settings.save_preferences(); refresh_keys())
 	var pad:=Label.new(); pad.text="パッド：左スティック / 十字キーで移動、Xで必殺技\nStart：ポーズ、A：決定、B：戻る、Y：終了後に再挑戦\nEsc・Tab・Enter・1〜3はメニュー操作用です。"; pad.add_theme_font_size_override("font_size",16); inputs.add_child(pad)
+	var sweep_help:=Label.new(); sweep_help.text="最後の30秒は掃討：通常敵を倒し、中ボスのHPを削ろう。\n残敵でラスボスHPが増加（通常敵最大30％＋中ボス最大20％）。"; sweep_help.add_theme_font_size_override("font_size",15); display.add_child(sweep_help)
 	message=Label.new(); message.add_theme_font_size_override("font_size",15); box.add_child(message)
 	var actions:=HBoxContainer.new(); box.add_child(actions)
 	resume=Button.new(); resume.text="閉じる / 再開（Esc・Start）"; resume.size_flags_horizontal=Control.SIZE_EXPAND_FILL; resume.pressed.connect(settings.close_menu); actions.add_child(resume)

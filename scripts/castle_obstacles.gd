@@ -180,6 +180,9 @@ func commanding() -> bool:
 	return false
 func tick(delta: float) -> void:
 	if game.run_state!="combat" or game.get_tree().paused or game.player.health<=0: return
+	if not game.final_boss_spawned and "sweep" in game and game.sweep.started:
+		open_all()
+		return
 	var miniboss: bool=not game.final_boss_spawned and ((is_instance_valid(game.active_boss) and not game.active_boss.dead) or game.elapsed<game.recovery_until)
 	if miniboss:
 		open_all()

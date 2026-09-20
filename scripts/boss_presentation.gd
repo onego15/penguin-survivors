@@ -23,10 +23,12 @@ func _ready() -> void:
 	layer.add_child(banner)
 	caption=Label.new()
 	caption.text="第二形態 — "+game.stage.phase_name if game.run_state=="phase_transition" else game.stage.boss_name
+	if game.run_state=="boss_intro" and "sweep" in game:
+		caption.text+=" / 残敵HP＋%d％"%game.sweep.snapshot().bonus
 	var font:=SystemFont.new()
 	font.font_names=PackedStringArray(["Yu Gothic UI","Meiryo"])
 	caption.add_theme_font_override("font",font)
-	caption.add_theme_font_size_override("font_size",32)
+	caption.add_theme_font_size_override("font_size",27)
 	caption.add_theme_color_override("font_color",Color("e6f9ff"))
 	caption.add_theme_color_override("font_outline_color",Color("243954"))
 	caption.add_theme_constant_override("outline_size",10)

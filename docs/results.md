@@ -49,3 +49,9 @@
 Godot 4.7.2 / Compatibilityで `tools/capture_contributions.gd` を実行し、文字・スクロール・キャラクターとの非重複を確認。環境由来の証明書警告と、既存テストでも発生する終了時のObjectDB警告は残っています。
 
 `tests/result_scene_test.gd` で両背景・勝敗・サポートなし／一部／全員・全31武器と消費素材の表示を確認。`tools/capture_results.gd` は表示確認用の固定データで撮影します。
+
+## 掃討の記録
+
+掃討を開始したプレイでは、通常敵の残数・中ボスの残りHP割合・ラスボスHP加算率を表示します。決戦開始後は確定値、掃討中の死亡では死亡時点の見込みです。
+
+![掃討結果を含むリザルト](screenshots/cleanup-result.png)

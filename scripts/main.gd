@@ -66,10 +66,15 @@ var director: RefCounted
 var ultimate: Node
 var support: Node
 var last_event_at := -100.0
+var sweep=preload("res://scripts/cleanup_director.gd").new()
+var cleanup_guide: Label
+var cleanup_notice_until:=0.0
+var cleanup_preannounced:=false
 var wave_hint: Label
 
 
 func _ready() -> void:
+	sweep.game=self
 	xp_needed=Tiers.xp(level,difficulty_id)
 	stage=Stages.STAGES.get(stage_id,Stages.STAGES.snowfield)
 	rng.randomize()
@@ -220,6 +225,13 @@ func _setup_hud() -> void:
 	game_over_label.add_theme_font_size_override("font_size", 42)
 	game_over_label.visible = false
 	layer.add_child(game_over_label)
+	cleanup_guide=Label.new()
+	cleanup_guide.add_theme_font_override("font",japanese_font)
+	cleanup_guide.add_theme_font_size_override("font_size",17)
+	cleanup_guide.add_theme_color_override("font_color",Color.WHITE)
+	cleanup_guide.add_theme_color_override("font_outline_color",Color("203449"))
+	cleanup_guide.add_theme_constant_override("outline_size",6)
+	layer.add_child(cleanup_guide)
 	wave_hint=Label.new()
 	wave_hint.position=Vector2(450,148)
 	wave_hint.add_theme_font_override("font",japanese_font)
@@ -322,7 +334,7 @@ func _physics_process(delta: float) -> void:
 
 
 func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
-	if final_boss_spawned or game_over or victory:
+	if final_boss_spawned or game_over or victory or elapsed>=570:
 		return null
 	if as_boss and boss_encounters >= Miniboss.ROSTER.size():
 		return null
@@ -371,10 +383,20 @@ func spawn_enemy(forced_kind: int = -1, as_boss := false) -> Node3D:
 
 func _tick_director(delta: float) -> void:
 	director.advance()
+	if elapsed>=540 and not cleanup_preannounced:
+		cleanup_preannounced=true
+		director.notice="9:30から掃討開始。残敵はボスの力になる"
+		director.notification_until=elapsed+6
+	if elapsed>=570 and not sweep.started:
+		sweep.begin()
+		cleanup_notice_until=elapsed+4
+		notify_event()
+		sound.play_effect("warning")
 	if elapsed >= Difficulty.FINAL_BOSS_TIME:
 		if not final_boss_spawned:
 			_start_final_boss()
 		return
+	if elapsed>=570: return
 	var boss_alive: bool = is_instance_valid(active_boss) and not active_boss.dead
 	if elapsed < recovery_until:
 		return
@@ -392,6 +414,7 @@ func _tick_director(delta: float) -> void:
 
 func _start_final_boss() -> void:
 	if final_boss_spawned: return
+	sweep.finish()
 	notify_event()
 	support.begin_final()
 	sound.set_track(stage.boss_music)
@@ -417,6 +440,7 @@ func _start_final_boss() -> void:
 	Tiers.prepare(active_boss,difficulty_id)
 	actors.add_child(active_boss)
 	Tiers.apply_hp(active_boss)
+	sweep.apply(active_boss)
 	_begin_presentation("boss_intro")
 
 
@@ -586,6 +610,24 @@ func _update_hud() -> void:
 			boss_label.text = "中ボス全討伐 / 最終決戦まで %d秒" % maxi(0, ceili(Difficulty.FINAL_BOSS_TIME - elapsed))
 
 
+	cleanup_guide.hide()
+	if sweep.started and not final_boss_spawned and not game_over:
+		var stats: Dictionary=sweep.snapshot()
+		phase_label.text="掃討 / 決戦まで%d秒\n通常敵 残り%d体"%[maxi(0,ceili(600-elapsed)),stats.remaining]
+		var boss_text: String="中ボス 残りHP %.1f％"%(stats.boss_ratio*100) if stats.boss_ratio>0 else "中ボスなし"
+		wave_hint.text="%s\nこのままだとラスボスHP＋%d％\n通常敵＋%.1f％ / 中ボス＋%.1f％\n%s"%[boss_text,stats.bonus,stats.normal_bonus,stats.boss_bonus,sweep.guidance()]
+		if elapsed<cleanup_notice_until: wave_hint.text="掃討開始！ 増援停止・残敵を倒そう\n"+wave_hint.text
+		var target=sweep.offscreen_target()
+		if is_instance_valid(target):
+			var point: Vector2=camera.unproject_position(target.global_position)
+			var size:=get_viewport().get_visible_rect().size
+			var d:=point-size/2
+			var arrow: String=("→" if d.x>0 else "←") if absf(d.x)>absf(d.y) else ("↓" if d.y>0 else "↑")
+			cleanup_guide.position=Vector2(clampf(point.x,330,size.x-190),clampf(point.y,320,size.y-100))
+			cleanup_guide.text="%s %s %dm"%[arrow,"中ボス" if target.is_miniboss else "通常敵",ceili(target.position.distance_to(player.position))]
+			cleanup_guide.show()
+	if final_boss_spawned and boss_alive: boss_label.text="HP %d / %d（残敵加算＋%d％）"%[active_boss.health,active_boss.max_health,sweep.snapshot().bonus]
+
 func notify_event() -> void:
 	last_event_at=elapsed
 
@@ -640,7 +682,7 @@ func _clear_control_states() -> void:
 	for attack in get_tree().get_nodes_in_group("control_attacks"): attack.queue_free()
 
 func _result_data(won: bool) -> Dictionary:
-	return {"won":won,"stage_id":stage_id,"difficulty_name":Tiers.data(difficulty_id).name,"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
+	return {"cleanup":sweep.snapshot(),"won":won,"stage_id":stage_id,"difficulty_name":Tiers.data(difficulty_id).name,"stage_name":stage.name,"boss_name":stage.boss_name,"character_id":player.character_id,"elapsed":elapsed,"kills":kills,"level":level,"weapons":armory.levels.duplicate(true),"contributions":contributions.snapshot(armory.levels)}
 
 func _show_defeat_results() -> void:
 	defeat_results=preload("res://scripts/victory_screen.gd").new()

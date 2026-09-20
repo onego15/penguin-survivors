@@ -109,7 +109,7 @@ func _ready() -> void:
 	difficulty_hint.add_theme_font_size_override("font_size",15); ui.add_child(difficulty_hint)
 	select_difficulty(Tiers.selected_id)
 	_label(ui, "← / → キャラ選択   Enter / Space 開始\nEsc：ポーズ設定 / 操作は設定で確認 / 攻撃は自動", Vector2(74, 625), 15, Color("bfd9df"))
-	_label(ui, "一歩ずつ、強くなる。", Vector2(822, 591), 22, Color("23485a"))
+	_label(ui, "最後の30秒：通常敵を倒し、中ボスHPを削ろう\n残敵が少ないほどラスボスHPの加算が減る。", Vector2(710, 588), 15, Color("23485a"))
 	_label(ui, "! 黄の破線：敵の予告   /   赤の斜線：危険\n水色の輪：自分の攻撃   /   緑の柱：仲間", Vector2(74, 673), 14, Color("8fe5dc"))
 	_label(ui,"STAGE SELECT",Vector2(710,68),18,Color("244156"))
 	for id in ["snowfield","castle"]:
